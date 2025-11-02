@@ -95,6 +95,26 @@ const Auth = () => {
         return;
       }
 
+      // Send welcome email (don't block signup if it fails)
+      const emailEnabled = import.meta.env.VITE_ENABLE_EMAIL_NOTIFICATIONS === "true";
+      if (emailEnabled) {
+        try {
+          await supabase.functions.invoke("send-email", {
+            body: {
+              to: email.trim(),
+              templateType: "welcome",
+              templateData: {
+                name: fullName.trim(),
+                dashboardUrl: `${window.location.origin}/dashboard`,
+              },
+            },
+          });
+        } catch (emailError) {
+          // Log but don't fail signup
+          console.error("Failed to send welcome email:", emailError);
+        }
+      }
+
       toast({
         title: "Account created!",
         description: "Please check your email to verify your account.",

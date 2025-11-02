@@ -3,7 +3,11 @@ import { ArrowRight, Sparkles, Brain, Code, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export const Hero = () => {
-  console.log("Hero component rendering");
+  const scrollToPhases = () => {
+    const element = document.getElementById("phases-section");
+    element?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <section className="relative min-h-screen flex items-center justify-center pt-16 overflow-hidden">
       {/* Animated background elements */}
@@ -28,7 +32,7 @@ export const Hero = () => {
           </h1>
 
           {/* Subheading */}
-          <p className="text-lg sm:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto animate-fade-in px-4" style={{ animationDelay: "0.2s" }}>
+          <p className="text-lg sm:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto animate-fade-in animation-delay-200 px-4">
             Three AI agents guide you through a proven 10-phase framework.
             From idea validation to deployment, build your app the right way.
           </p>
@@ -40,31 +44,37 @@ export const Hero = () => {
                 Get Started Free <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="border-primary/30 hover:bg-primary/10">
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-primary/30 hover:bg-primary/10"
+              onClick={scrollToPhases}
+              aria-label="Scroll to see how the 10-phase framework works"
+            >
               See How It Works
             </Button>
           </div>
 
           {/* AI Agents showcase */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 max-w-3xl mx-auto animate-fade-in" style={{ animationDelay: "0.4s" }}>
-            <div className="glass-card p-6 hover:scale-105 transition-transform">
-              <div className="w-12 h-12 rounded-full bg-ai-claude/20 flex items-center justify-center mb-4 mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 max-w-3xl mx-auto animate-fade-in animation-delay-400">
+            <div className="glass-card p-6 hover:scale-105 transition-transform" role="article" aria-label="Claude AI Agent">
+              <div className="w-12 h-12 rounded-full bg-ai-claude/20 flex items-center justify-center mb-4 mx-auto" aria-hidden="true">
                 <Code className="w-6 h-6 text-ai-claude" />
               </div>
               <h3 className="font-semibold mb-2">Claude</h3>
               <p className="text-sm text-muted-foreground">Generates initial code and architecture</p>
             </div>
 
-            <div className="glass-card p-6 hover:scale-105 transition-transform">
-              <div className="w-12 h-12 rounded-full bg-ai-gemini/20 flex items-center justify-center mb-4 mx-auto">
+            <div className="glass-card p-6 hover:scale-105 transition-transform" role="article" aria-label="Gemini AI Agent">
+              <div className="w-12 h-12 rounded-full bg-ai-gemini/20 flex items-center justify-center mb-4 mx-auto" aria-hidden="true">
                 <Brain className="w-6 h-6 text-ai-gemini" />
               </div>
               <h3 className="font-semibold mb-2">Gemini</h3>
               <p className="text-sm text-muted-foreground">Reviews and suggests improvements</p>
             </div>
 
-            <div className="glass-card p-6 hover:scale-105 transition-transform">
-              <div className="w-12 h-12 rounded-full bg-ai-codex/20 flex items-center justify-center mb-4 mx-auto">
+            <div className="glass-card p-6 hover:scale-105 transition-transform" role="article" aria-label="Codex AI Agent">
+              <div className="w-12 h-12 rounded-full bg-ai-codex/20 flex items-center justify-center mb-4 mx-auto" aria-hidden="true">
                 <Zap className="w-6 h-6 text-ai-codex" />
               </div>
               <h3 className="font-semibold mb-2">Codex</h3>
@@ -73,7 +83,7 @@ export const Hero = () => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-4 md:gap-8 max-w-2xl mx-auto mt-16 animate-fade-in" style={{ animationDelay: "0.5s" }}>
+          <div className="grid grid-cols-3 gap-4 md:gap-8 max-w-2xl mx-auto mt-16 animate-fade-in animation-delay-500" role="region" aria-label="Platform Statistics">
             <div>
               <div className="text-2xl md:text-3xl font-bold gradient-text mb-2">60-70%</div>
               <div className="text-xs md:text-sm text-muted-foreground">Success Rate</div>

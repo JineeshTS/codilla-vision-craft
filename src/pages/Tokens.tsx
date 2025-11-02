@@ -8,6 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { TOKEN_PACKAGES, initiatePayment, type TokenPackage } from "@/lib/razorpay";
+import { trackTokenPurchase } from "@/lib/analytics";
 
 interface Transaction {
   id: string;
@@ -30,6 +32,7 @@ const Tokens = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [processingPayment, setProcessingPayment] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -61,6 +64,50 @@ const Tokens = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePurchase = async (pkg: TokenPackage) => {
+    const razorpayKeyId = import.meta.env.VITE_RAZORPAY_KEY_ID;
+    const paymentsEnabled = import.meta.env.VITE_ENABLE_PAYMENTS === "true";
+
+    if (!paymentsEnabled || !razorpayKeyId) {
+      toast({
+        title: "Payments not configured",
+        description: "Payment system is not yet configured. Please contact support.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setProcessingPayment(true);
+
+    await initiatePayment(
+      pkg,
+      razorpayKeyId,
+      async (tokens) => {
+        // Success callback
+        toast({
+          title: "Payment Successful!",
+          description: `Successfully added ${tokens.toLocaleString()} tokens to your account.`,
+        });
+
+        // Track purchase in analytics
+        trackTokenPurchase(tokens, pkg.price);
+
+        // Refresh token balance and transactions
+        await fetchData();
+        setProcessingPayment(false);
+      },
+      (error) => {
+        // Error callback
+        toast({
+          variant: "destructive",
+          title: "Payment Failed",
+          description: error.message || "Something went wrong. Please try again.",
+        });
+        setProcessingPayment(false);
+      }
+    );
   };
 
   const getTransactionIcon = (type: string) => {
@@ -113,29 +160,25 @@ const Tokens = () => {
         <Card className="glass-panel p-6 mb-8">
           <h2 className="text-2xl font-semibold mb-4">Purchase Tokens</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[
-              { tokens: 1000, price: 10, popular: false },
-              { tokens: 5000, price: 45, popular: true },
-              { tokens: 10000, price: 80, popular: false },
-            ].map((plan) => (
+            {TOKEN_PACKAGES.map((pkg) => (
               <Card
-                key={plan.tokens}
-                className={`p-6 cursor-pointer hover:scale-105 transition-transform ${
-                  plan.popular ? "border-primary border-2" : "border-muted"
+                key={pkg.id}
+                className={`p-6 hover:scale-105 transition-transform ${
+                  pkg.popular ? "border-primary border-2" : "border-muted"
                 }`}
               >
-                {plan.popular && (
+                {pkg.popular && (
                   <Badge className="mb-2 bg-primary">Most Popular</Badge>
                 )}
-                <h3 className="text-2xl font-bold mb-2">{plan.tokens.toLocaleString()} Tokens</h3>
-                <p className="text-3xl font-bold text-primary mb-4">${plan.price}</p>
-                <Button className="w-full" onClick={() => {
-                  toast({
-                    title: "Coming soon!",
-                    description: "Token purchases will be available soon.",
-                  });
-                }}>
-                  Purchase
+                <h3 className="text-xl font-bold mb-1">{pkg.name}</h3>
+                <h4 className="text-2xl font-bold mb-2">{pkg.tokens.toLocaleString()} Tokens</h4>
+                <p className="text-3xl font-bold text-primary mb-4">₹{pkg.price.toLocaleString()}</p>
+                <Button
+                  className="w-full"
+                  onClick={() => handlePurchase(pkg)}
+                  disabled={processingPayment}
+                >
+                  {processingPayment ? "Processing..." : "Purchase"}
                 </Button>
               </Card>
             ))}

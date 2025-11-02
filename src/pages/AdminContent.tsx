@@ -16,6 +16,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { getIdeaStatusConfig, formatStatus } from "@/lib/formatters";
+import type { IdeaStatus } from "@/lib/types";
 
 interface Idea {
   id: string;
@@ -204,23 +206,6 @@ const AdminContent = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "draft":
-        return "secondary";
-      case "validating":
-        return "default";
-      case "validated":
-        return "default";
-      case "in_development":
-        return "default";
-      case "completed":
-        return "default";
-      default:
-        return "secondary";
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen cosmic-bg">
@@ -276,7 +261,9 @@ const AdminContent = () => {
                           {idea.description}
                         </p>
                         <div className="flex flex-wrap gap-2 items-center">
-                          <Badge variant={getStatusColor(idea.status)}>{idea.status}</Badge>
+                          <Badge className={getIdeaStatusConfig(idea.status as IdeaStatus).bgColor}>
+                            {formatStatus(idea.status)}
+                          </Badge>
                           {idea.consensus_score !== null && (
                             <Badge variant="outline">Score: {idea.consensus_score}/100</Badge>
                           )}
@@ -380,8 +367,8 @@ const AdminContent = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <h3 className="font-semibold mb-1">Status</h3>
-                    <Badge variant={getStatusColor(selectedIdea.status)}>
-                      {selectedIdea.status}
+                    <Badge className={getIdeaStatusConfig(selectedIdea.status as IdeaStatus).bgColor}>
+                      {formatStatus(selectedIdea.status)}
                     </Badge>
                   </div>
                   {selectedIdea.consensus_score !== null && (

@@ -12,6 +12,8 @@ import { useAuthGuard } from "@/hooks/useAuthGuard";
 import Navbar from "@/components/Navbar";
 import { Lightbulb, Sparkles, Rocket, Edit, Save, X, TrendingUp } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { getIdeaStatusConfig, formatStatus, getConsensusScoreColor } from "@/lib/formatters";
+import type { IdeaStatus } from "@/lib/types";
 
 interface Idea {
   id: string;
@@ -211,17 +213,6 @@ const IdeaDetail = () => {
 
   if (!idea) return null;
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "draft": return "bg-muted";
-      case "validating": return "bg-blue-500/20 text-blue-400";
-      case "validated": return "bg-green-500/20 text-green-400";
-      case "in_development": return "bg-purple-500/20 text-purple-400";
-      case "completed": return "bg-primary/20";
-      default: return "bg-muted";
-    }
-  };
-
   return (
     <div className="min-h-screen cosmic-bg">
       <Navbar />
@@ -237,8 +228,8 @@ const IdeaDetail = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Badge className={getStatusColor(idea.status)}>
-              {idea.status.replace("_", " ")}
+            <Badge className={getIdeaStatusConfig(idea.status as IdeaStatus).bgColor}>
+              {formatStatus(idea.status)}
             </Badge>
             {!editing && idea.status === "draft" && (
               <Button variant="outline" onClick={() => setEditing(true)}>
