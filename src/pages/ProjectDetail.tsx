@@ -5,10 +5,20 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import Navbar from "@/components/Navbar";
-import { Rocket, CheckCircle, Clock, AlertCircle, ExternalLink, GitBranch } from "lucide-react";
+import { Rocket, CheckCircle, Clock, AlertCircle, ExternalLink, GitBranch, Send, Loader2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Project {
   id: string;
@@ -31,17 +41,18 @@ interface Phase {
   completed_at: string | null;
 }
 
+// Aligned with Codilla.ai 10-Phase Framework
 const phaseNames = [
-  "Requirements Analysis",
-  "Architecture Design",
-  "Database Schema",
-  "API Design",
-  "UI/UX Design",
-  "Frontend Development",
-  "Backend Development",
-  "Integration & Testing",
-  "Deployment Setup",
-  "Final Review & Launch",
+  "Idea Capture & Screening",
+  "Validation & Research",
+  "Product Definition",
+  "Technical Planning",
+  "Design & Prototype",
+  "Development Preparation",
+  "AI-Assisted Development",
+  "Launch Preparation",
+  "Deployment & Go-Live",
+  "Post-Launch Operations",
 ];
 
 const ProjectDetail = () => {
@@ -52,6 +63,10 @@ const ProjectDetail = () => {
   const [project, setProject] = useState<Project | null>(null);
   const [phases, setPhases] = useState<Phase[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submissionDialogOpen, setSubmissionDialogOpen] = useState(false);
+  const [selectedPhase, setSelectedPhase] = useState<Phase | null>(null);
+  const [phaseInput, setPhaseInput] = useState("");
+  const [validating, setValidating] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -80,6 +95,88 @@ const ProjectDetail = () => {
       navigate("/projects");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStartPhase = (phase: Phase) => {
+    if (phase.status === "completed") {
+      toast({
+        title: "Phase Already Completed",
+        description: "This phase has already been validated with consensus.",
+      });
+      return;
+    }
+
+    setSelectedPhase(phase);
+    setPhaseInput("");
+    setSubmissionDialogOpen(true);
+  };
+
+  const handleSubmitPhase = async () => {
+    if (!selectedPhase || !phaseInput.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Input Required",
+        description: "Please describe your phase deliverables.",
+      });
+      return;
+    }
+
+    if (phaseInput.trim().length < 50) {
+      toast({
+        variant: "destructive",
+        title: "Too Short",
+        description: "Please provide at least 50 characters describing your work.",
+      });
+      return;
+    }
+
+    setValidating(true);
+
+    try {
+      // Mark phase as in_progress
+      await supabase
+        .from("phases")
+        .update({ status: "in_progress", started_at: new Date().toISOString() })
+        .eq("id", selectedPhase.id);
+
+      // Call validate-phase edge function
+      const { data, error } = await supabase.functions.invoke("validate-phase", {
+        body: {
+          phaseId: selectedPhase.id,
+          userInput: phaseInput.trim(),
+        },
+      });
+
+      if (error) throw error;
+
+      // Refresh project data to show updated phase status
+      await fetchProjectData();
+
+      setSubmissionDialogOpen(false);
+      setPhaseInput("");
+
+      if (data?.consensusReached) {
+        toast({
+          title: "Consensus Reached! 🎉",
+          description: `Phase ${selectedPhase.phase_number} has been validated successfully. Average score: ${data.avgScore}/100`,
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Consensus Not Reached",
+          description: `Phase validation did not reach consensus. Average score: ${data.avgScore}/100. Please review AI feedback and try again.`,
+        });
+      }
+    } catch (error: any) {
+      console.error("Phase validation error:", error);
+      toast({
+        variant: "destructive",
+        title: "Validation Failed",
+        description: error.message || "Failed to validate phase. Please try again.",
+      });
+    } finally {
+      setValidating(false);
     }
   };
 
@@ -239,6 +336,52 @@ const ProjectDetail = () => {
                     </p>
                   </div>
                 )}
+
+                {/* Phase Action Buttons */}
+                <div className="mt-4 flex justify-end">
+                  {phase.status === "pending" && (
+                    <Button
+                      size="sm"
+                      onClick={() => handleStartPhase(phase)}
+                      disabled={phase.phase_number !== project.current_phase}
+                    >
+                      {phase.phase_number === project.current_phase ? "Start Phase" : "Locked"}
+                    </Button>
+                  )}
+                  {phase.status === "in_progress" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleStartPhase(phase)}
+                    >
+                      Submit Deliverable
+                    </Button>
+                  )}
+                  {phase.status === "completed" && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => {
+                        // TODO: Show phase validation details modal
+                        toast({
+                          title: "Phase Complete",
+                          description: `This phase reached consensus and was completed successfully.`,
+                        });
+                      }}
+                    >
+                      View Details
+                    </Button>
+                  )}
+                  {phase.status === "failed" && (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleStartPhase(phase)}
+                    >
+                      Retry Phase
+                    </Button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -252,13 +395,20 @@ const ProjectDetail = () => {
           <div className="flex gap-4">
             <Button
               onClick={() => {
-                toast({
-                  title: "Phase System Active",
-                  description: "Multi-agent validation is ready. Start your next phase when ready.",
-                });
+                const currentPhase = phases.find(p => p.phase_number === project.current_phase);
+                if (currentPhase) {
+                  handleStartPhase(currentPhase);
+                } else {
+                  toast({
+                    variant: "destructive",
+                    title: "Phase Not Found",
+                    description: "Unable to find the current phase. Please refresh the page.",
+                  });
+                }
               }}
+              disabled={project.current_phase > 10}
             >
-              Start Next Phase
+              {project.current_phase > 10 ? "All Phases Complete" : "Start Next Phase"}
             </Button>
             <Button
               variant="outline"
@@ -269,6 +419,73 @@ const ProjectDetail = () => {
           </div>
         </Card>
       </div>
+
+      {/* Phase Submission Dialog */}
+      <Dialog open={submissionDialogOpen} onOpenChange={setSubmissionDialogOpen}>
+        <DialogContent className="glass-panel max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Submit Phase {selectedPhase?.phase_number}: {selectedPhase ? phaseNames[selectedPhase.phase_number - 1] : ""}
+            </DialogTitle>
+            <DialogDescription>
+              Describe your deliverables for this phase. The AI consensus system will evaluate your submission
+              using Claude, Gemini, and Codex. Minimum 50 characters required.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 my-4">
+            <div>
+              <Label htmlFor="phase-input">Phase Deliverables</Label>
+              <Textarea
+                id="phase-input"
+                placeholder="Describe what you've accomplished in this phase...
+
+Examples:
+- For Phase 1 (Idea Capture): Describe your idea, problem statement, target audience, and value proposition
+- For Phase 2 (Validation): Share market research findings, competitor analysis, and user feedback
+- For Phase 3 (Product Definition): Detail features, user stories, MVP scope, and success metrics
+- For Phase 4 (Technical Planning): Describe architecture, tech stack, database schema, and API design
+- For Phase 7 (Development): Share code repository link, implemented features, and functionality demos
+- For Phase 9 (Deployment): Provide production URL, deployment logs, and monitoring setup details"
+                value={phaseInput}
+                onChange={(e) => setPhaseInput(e.target.value)}
+                rows={12}
+                className="resize-none"
+                disabled={validating}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                {phaseInput.length} / 50 characters minimum
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSubmissionDialogOpen(false);
+                setPhaseInput("");
+              }}
+              disabled={validating}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSubmitPhase} disabled={validating || phaseInput.trim().length < 50}>
+              {validating ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Validating with AI...
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4 mr-2" />
+                  Submit for Validation
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

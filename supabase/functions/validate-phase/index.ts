@@ -120,12 +120,18 @@ serve(async (req) => {
       return createErrorResponse('Access denied', 403, corsHeaders, errorId);
     }
 
+    // Complete 10-Phase Framework descriptions aligned with Codilla.ai methodology
     const phaseDescriptions: Record<number, string> = {
-      1: "Concept & Planning Phase: Define requirements, create wireframes, plan architecture",
-      2: "Foundation Phase: Set up project structure, implement core features, establish design system",
-      3: "Implementation Phase: Build main functionality, integrate APIs, implement business logic",
-      4: "Refinement Phase: Polish UI/UX, optimize performance, fix bugs",
-      5: "Deployment Phase: Prepare for production, deploy to hosting, set up monitoring",
+      1: "Idea Capture & Screening: Transform initial concept into structured, actionable idea with clear problem statement, target audience, and unique value proposition. Screen for viability and market potential.",
+      2: "Validation & Research: Conduct comprehensive market research, competitor analysis, user interviews, and validate product-market fit. Assess technical feasibility and resource requirements.",
+      3: "Product Definition: Create detailed product specification including features, user stories, acceptance criteria, MVP scope, and success metrics. Define product roadmap and priorities.",
+      4: "Technical Planning: Design system architecture, choose technology stack, plan database schema, define API contracts, establish development workflow, and create technical documentation.",
+      5: "Design & Prototype: Create wireframes, mockups, and interactive prototypes. Establish design system, UI components library, and user flows. Conduct usability testing.",
+      6: "Development Preparation: Set up development environment, CI/CD pipelines, version control, project structure, testing framework, and development standards. Initialize repositories.",
+      7: "AI-Assisted Development: Implement features using AI code generation, review, and optimization. Build frontend, backend, database, integrations, and core functionality iteratively.",
+      8: "Launch Preparation: Conduct comprehensive testing (unit, integration, e2e), security audit, performance optimization, documentation, and deployment dry runs. Prepare marketing materials.",
+      9: "Deployment & Go-Live: Deploy to production environment, configure monitoring and analytics, set up error tracking, conduct smoke testing, and execute go-live checklist.",
+      10: "Post-Launch Operations: Monitor performance metrics, gather user feedback, fix bugs, implement improvements, scale infrastructure as needed, and plan next iteration.",
     };
 
     const validationPrompt = `
@@ -148,7 +154,16 @@ Respond with ONLY a valid JSON object (no markdown, no code blocks):
   "recommendations": ["<string>", ...]
 }`;
 
+    // Model mapping for true multi-agent diversity
+    const agentModels: Record<string, string> = {
+      "Claude": "anthropic/claude-3.5-sonnet",
+      "Gemini": "google/gemini-2.0-flash-exp",
+      "Codex": "openai/gpt-4o",
+    };
+
     const callAI = async (agentName: string) => {
+      const model = agentModels[agentName] || "google/gemini-2.0-flash-exp";
+
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -156,7 +171,7 @@ Respond with ONLY a valid JSON object (no markdown, no code blocks):
           "Authorization": `Bearer ${LOVABLE_API_KEY}`,
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model,
           messages: [{ role: "user", content: validationPrompt }],
           temperature: 0.7,
         }),
@@ -215,8 +230,32 @@ Respond with ONLY a valid JSON object (no markdown, no code blocks):
       return createErrorResponse('Failed to save validation results', 500, corsHeaders, errorId);
     }
 
+    // Deduct tokens from user profile
+    const { data: profile } = await serviceClient
+      .from("profiles")
+      .select("total_tokens, tokens_used")
+      .eq("id", user.id)
+      .single();
+
+    if (profile) {
+      const newTokensUsed = (profile.tokens_used || 0) + tokensUsed;
+      await serviceClient
+        .from("profiles")
+        .update({ tokens_used: newTokensUsed })
+        .eq("id", user.id);
+
+      await serviceClient.from("token_transactions").insert({
+        user_id: user.id,
+        transaction_type: "consumption",
+        amount: -tokensUsed,
+        balance_after: profile.total_tokens - newTokensUsed,
+        description: `Phase ${phaseData.phase_number} validation: ${phaseData.projects.name}`,
+      });
+    }
+
+    // Update project progress when phase is completed with consensus
     if (consensusReached) {
-      const totalPhases = 5;
+      const totalPhases = 10;  // Complete 10-Phase Framework
       const progress = Math.round((phaseData.phase_number / totalPhases) * 100);
 
       await serviceClient

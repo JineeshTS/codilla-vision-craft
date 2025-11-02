@@ -139,7 +139,16 @@ Evaluate the idea and respond with ONLY a valid JSON object (no markdown, no cod
   "recommendations": ["<string>", ...]
 }`;
 
+    // Model mapping for true multi-agent diversity
+    const agentModels: Record<string, string> = {
+      "Claude": "anthropic/claude-3.5-sonnet",
+      "Gemini": "google/gemini-2.0-flash-exp",
+      "Codex": "openai/gpt-4o",
+    };
+
     const callAI = async (agentName: string) => {
+      const model = agentModels[agentName] || "google/gemini-2.0-flash-exp";
+
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -147,7 +156,7 @@ Evaluate the idea and respond with ONLY a valid JSON object (no markdown, no cod
           "Authorization": `Bearer ${LOVABLE_API_KEY}`,
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model,
           messages: [{ role: "user", content: validationPrompt }],
           temperature: 0.7,
         }),
@@ -218,7 +227,7 @@ Evaluate the idea and respond with ONLY a valid JSON object (no markdown, no cod
 
       await serviceClient.from("token_transactions").insert({
         user_id: user.id,
-        transaction_type: "usage",
+        transaction_type: "consumption",
         amount: -tokensUsed,
         balance_after: profile.total_tokens - newTokensUsed,
         description: `Idea validation: ${idea.title}`,
