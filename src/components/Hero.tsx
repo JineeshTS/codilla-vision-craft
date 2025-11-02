@@ -20,14 +20,14 @@ export const Hero = () => {
           </div>
 
           {/* Main heading */}
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in" style={{ animationDelay: "0.1s" }}>
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold mb-6 animate-fade-in" style={{ animationDelay: "0.1s" }}>
             Transform Ideas into Apps
             <br />
             <span className="gradient-text">with AI Consensus</span>
           </h1>
 
           {/* Subheading */}
-          <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: "0.2s" }}>
+          <p className="text-lg sm:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto animate-fade-in px-4" style={{ animationDelay: "0.2s" }}>
             Three AI agents guide you through a proven 10-phase framework.
             From idea validation to deployment, build your app the right way.
           </p>
@@ -45,7 +45,7 @@ export const Hero = () => {
           </div>
 
           {/* AI Agents showcase */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto animate-fade-in" style={{ animationDelay: "0.4s" }}>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 max-w-3xl mx-auto animate-fade-in" style={{ animationDelay: "0.4s" }}>
             <div className="glass-card p-6 hover:scale-105 transition-transform">
               <div className="w-12 h-12 rounded-full bg-ai-claude/20 flex items-center justify-center mb-4 mx-auto">
                 <Code className="w-6 h-6 text-ai-claude" />
@@ -72,18 +72,18 @@ export const Hero = () => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto mt-16 animate-fade-in" style={{ animationDelay: "0.5s" }}>
+          <div className="grid grid-cols-3 gap-4 md:gap-8 max-w-2xl mx-auto mt-16 animate-fade-in" style={{ animationDelay: "0.5s" }}>
             <div>
-              <div className="text-3xl font-bold gradient-text mb-2">60-70%</div>
-              <div className="text-sm text-muted-foreground">Success Rate</div>
+              <div className="text-2xl md:text-3xl font-bold gradient-text mb-2">60-70%</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Success Rate</div>
             </div>
             <div>
-              <div className="text-3xl font-bold gradient-text mb-2">80%</div>
-              <div className="text-sm text-muted-foreground">Code from Templates</div>
+              <div className="text-2xl md:text-3xl font-bold gradient-text mb-2">80%</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Code from Templates</div>
             </div>
             <div>
-              <div className="text-3xl font-bold gradient-text mb-2">10</div>
-              <div className="text-sm text-muted-foreground">Structured Phases</div>
+              <div className="text-2xl md:text-3xl font-bold gradient-text mb-2">10</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Structured Phases</div>
             </div>
           </div>
         </div>

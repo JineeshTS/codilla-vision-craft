@@ -98,10 +98,10 @@ const Templates = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <FileText className="w-8 h-8 text-primary" />
-            <h1 className="text-4xl font-bold gradient-text">Templates</h1>
+            <FileText className="w-6 h-6 md:w-8 md:h-8 text-primary" />
+            <h1 className="text-3xl md:text-4xl font-bold gradient-text">Templates</h1>
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm md:text-base">
             Jumpstart your ideas with proven templates
           </p>
         </div>
@@ -157,7 +157,7 @@ const Templates = () => {
             <p className="text-muted-foreground">Try adjusting your search or filters</p>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {filteredTemplates.map((template) => (
               <Card
                 key={template.id}

@@ -82,12 +82,12 @@ const Ideas = () => {
     <div className="min-h-screen cosmic-bg">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-4xl font-bold gradient-text mb-2">Your Ideas</h1>
-            <p className="text-muted-foreground">Capture, validate, and develop your concepts</p>
+            <h1 className="text-3xl md:text-4xl font-bold gradient-text mb-2">Your Ideas</h1>
+            <p className="text-muted-foreground text-sm md:text-base">Capture, validate, and develop your concepts</p>
           </div>
-          <Button onClick={() => navigate("/ideas/new")} className="glow-on-hover">
+          <Button onClick={() => navigate("/ideas/new")} className="glow-on-hover w-full sm:w-auto">
             <Plus className="w-4 h-4 mr-2" />
             New Idea
           </Button>
@@ -108,7 +108,7 @@ const Ideas = () => {
             </Button>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {ideas.map((idea) => (
               <Card
                 key={idea.id}

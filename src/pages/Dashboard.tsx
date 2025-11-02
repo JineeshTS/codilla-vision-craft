@@ -56,7 +56,7 @@ const Dashboard = () => {
           <p className="text-muted-foreground">Transform your ideas into reality</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
           <Card className="glass-panel p-6">
             <div className="flex items-center justify-between mb-2">
               <span className="text-muted-foreground">Active Ideas</span>
@@ -91,8 +91,8 @@ const Dashboard = () => {
         </div>
 
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <h2 className="text-xl md:text-2xl font-semibold mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             <Card 
               className="glass-panel p-6 hover:scale-105 transition-transform cursor-pointer"
               onClick={() => navigate("/ideas/new")}
