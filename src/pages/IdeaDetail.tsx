@@ -123,16 +123,9 @@ const IdeaDetail = () => {
         description: "AI agents Claude, Gemini, and Codex are analyzing your idea...",
       });
 
-      // Get session for authorization
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Not authenticated");
-
-      // Call the validation edge function
+      // Call the validation edge function (auth header is automatically included)
       const { data, error } = await supabase.functions.invoke("validate-idea", {
         body: { ideaId: id },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
       });
 
       if (error) throw error;
