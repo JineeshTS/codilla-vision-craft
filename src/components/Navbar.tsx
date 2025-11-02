@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Sparkles, LogOut, Coins, Menu, X } from "lucide-react";
+import { Sparkles, LogOut, Coins, Menu, X, Shield, User } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -12,12 +12,14 @@ const Navbar = () => {
   const [user, setUser] = useState<any>(null);
   const [tokens, setTokens] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchTokens(session.user.id);
+        checkAdminRole(session.user.id);
       }
     });
 
@@ -25,6 +27,9 @@ const Navbar = () => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchTokens(session.user.id);
+        checkAdminRole(session.user.id);
+      } else {
+        setIsAdmin(false);
       }
     });
 
@@ -37,10 +42,20 @@ const Navbar = () => {
       .select("total_tokens, tokens_used")
       .eq("id", userId)
       .single();
-    
+
     if (data) {
       setTokens(data.total_tokens - data.tokens_used);
     }
+  };
+
+  const checkAdminRole = async (userId: string) => {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .single();
+
+    setIsAdmin(data?.role === "admin");
   };
 
   const handleSignOut = async () => {
@@ -74,10 +89,24 @@ const Navbar = () => {
           <Button variant="ghost" asChild className={mobile ? "w-full justify-start" : ""}>
             <Link to="/code-ide" onClick={onNavigate}>Code IDE</Link>
           </Button>
+          {isAdmin && (
+            <Button variant="ghost" asChild className={mobile ? "w-full justify-start gap-2" : "gap-2"}>
+              <Link to="/admin/dashboard" onClick={onNavigate}>
+                <Shield className="w-4 h-4" />
+                {mobile && <span>Admin</span>}
+              </Link>
+            </Button>
+          )}
           <Button variant="outline" asChild className={mobile ? "w-full justify-start gap-2" : "gap-2"}>
             <Link to="/tokens" onClick={onNavigate}>
               <Coins className="w-4 h-4" />
               {tokens}
+            </Link>
+          </Button>
+          <Button variant="ghost" size={mobile ? "default" : "icon"} asChild className={mobile ? "w-full justify-start" : ""}>
+            <Link to="/profile" onClick={onNavigate}>
+              <User className="w-4 h-4" />
+              {mobile && <span className="ml-2">Profile</span>}
             </Link>
           </Button>
           <Button variant="ghost" size={mobile ? "default" : "icon"} onClick={() => { handleSignOut(); onNavigate?.(); }} className={mobile ? "w-full justify-start" : ""}>
