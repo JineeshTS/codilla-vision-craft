@@ -15,3 +15,12 @@ verify_jwt = true
 
 [functions.ai-requirements-chat]
 verify_jwt = true
+
+[functions.create-razorpay-order]
+verify_jwt = true
+
+[functions.verify-razorpay-payment]
+verify_jwt = true
+
+[functions.validate-phase-2]
+verify_jwt = true

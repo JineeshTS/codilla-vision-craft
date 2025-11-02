@@ -8,6 +8,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import TokenPackages from "@/components/tokens/TokenPackages";
+import TokenPurchaseFlow from "@/components/tokens/TokenPurchaseFlow";
+import TokenUsageChart from "@/components/tokens/TokenUsageChart";
 
 interface Transaction {
   id: string;
@@ -30,6 +33,12 @@ const Tokens = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [purchaseFlowOpen, setPurchaseFlowOpen] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<{
+    name: string;
+    tokens: number;
+    price: number;
+  } | null>(null);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -67,10 +76,20 @@ const Tokens = () => {
     switch (type) {
       case "purchase": return <TrendingUp className="w-4 h-4 text-green-400" />;
       case "consumption": return <TrendingDown className="w-4 h-4 text-red-400" />;
+      case "usage": return <TrendingDown className="w-4 h-4 text-red-400" />;
       case "bonus": return <Gift className="w-4 h-4 text-primary" />;
       case "refund": return <TrendingUp className="w-4 h-4 text-blue-400" />;
       default: return <Coins className="w-4 h-4" />;
     }
+  };
+
+  const handlePackageSelect = (pkg: { name: string; tokens: number; price: number }) => {
+    setSelectedPackage(pkg);
+    setPurchaseFlowOpen(true);
+  };
+
+  const handlePurchaseSuccess = () => {
+    fetchData(); // Refresh data after successful purchase
   };
 
   const availableTokens = profile ? profile.total_tokens - profile.tokens_used : 0;
@@ -110,37 +129,21 @@ const Tokens = () => {
           </Card>
         </div>
 
-        <Card className="glass-panel p-6 mb-8">
-          <h2 className="text-2xl font-semibold mb-4">Purchase Tokens</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[
-              { tokens: 1000, price: 10, popular: false },
-              { tokens: 5000, price: 45, popular: true },
-              { tokens: 10000, price: 80, popular: false },
-            ].map((plan) => (
-              <Card
-                key={plan.tokens}
-                className={`p-6 cursor-pointer hover:scale-105 transition-transform ${
-                  plan.popular ? "border-primary border-2" : "border-muted"
-                }`}
-              >
-                {plan.popular && (
-                  <Badge className="mb-2 bg-primary">Most Popular</Badge>
-                )}
-                <h3 className="text-2xl font-bold mb-2">{plan.tokens.toLocaleString()} Tokens</h3>
-                <p className="text-3xl font-bold text-primary mb-4">${plan.price}</p>
-                <Button className="w-full" onClick={() => {
-                  toast({
-                    title: "Coming soon!",
-                    description: "Token purchases will be available soon.",
-                  });
-                }}>
-                  Purchase
-                </Button>
-              </Card>
-            ))}
+        <div className="space-y-8 mb-8">
+          <div>
+            <h2 className="text-2xl font-semibold mb-6">Purchase Token Packages</h2>
+            <TokenPackages onSelectPackage={handlePackageSelect} />
           </div>
-        </Card>
+
+          <TokenUsageChart />
+        </div>
+
+        <TokenPurchaseFlow
+          isOpen={purchaseFlowOpen}
+          onClose={() => setPurchaseFlowOpen(false)}
+          packageDetails={selectedPackage}
+          onSuccess={handlePurchaseSuccess}
+        />
 
         <Card className="glass-panel p-6">
           <h2 className="text-2xl font-semibold mb-4">Transaction History</h2>
@@ -168,12 +171,15 @@ const Tokens = () => {
                   </div>
                   <div className="text-right">
                     <p className={`font-semibold ${
-                      tx.transaction_type === "consumption" ? "text-red-400" : "text-green-400"
+                      tx.transaction_type === "consumption" || tx.transaction_type === "usage" 
+                        ? "text-red-400" 
+                        : "text-green-400"
                     }`}>
-                      {tx.transaction_type === "consumption" ? "-" : "+"}{Math.abs(tx.amount)}
+                      {tx.transaction_type === "consumption" || tx.transaction_type === "usage" ? "-" : "+"}
+                      {Math.abs(tx.amount).toLocaleString()}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Balance: {tx.balance_after}
+                      Balance: {tx.balance_after.toLocaleString()}
                     </p>
                   </div>
                 </div>

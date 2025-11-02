@@ -122,6 +122,7 @@ export type Database = {
         Row: {
           audience_size: string | null
           business_model: string | null
+          business_validation_score: number | null
           category: string | null
           consensus_score: number | null
           created_at: string
@@ -135,6 +136,9 @@ export type Database = {
           inspiration_source: string | null
           key_differentiator: string | null
           passion_score: number | null
+          phase_2_completed_at: string | null
+          phase_2_data: Json | null
+          phase_2_decision: string | null
           problem_statement: string | null
           screening_score: number | null
           status: Database["public"]["Enums"]["idea_status"]
@@ -149,6 +153,7 @@ export type Database = {
         Insert: {
           audience_size?: string | null
           business_model?: string | null
+          business_validation_score?: number | null
           category?: string | null
           consensus_score?: number | null
           created_at?: string
@@ -162,6 +167,9 @@ export type Database = {
           inspiration_source?: string | null
           key_differentiator?: string | null
           passion_score?: number | null
+          phase_2_completed_at?: string | null
+          phase_2_data?: Json | null
+          phase_2_decision?: string | null
           problem_statement?: string | null
           screening_score?: number | null
           status?: Database["public"]["Enums"]["idea_status"]
@@ -176,6 +184,7 @@ export type Database = {
         Update: {
           audience_size?: string | null
           business_model?: string | null
+          business_validation_score?: number | null
           category?: string | null
           consensus_score?: number | null
           created_at?: string
@@ -189,6 +198,9 @@ export type Database = {
           inspiration_source?: string | null
           key_differentiator?: string | null
           passion_score?: number | null
+          phase_2_completed_at?: string | null
+          phase_2_data?: Json | null
+          phase_2_decision?: string | null
           problem_statement?: string | null
           screening_score?: number | null
           status?: Database["public"]["Enums"]["idea_status"]
@@ -199,6 +211,45 @@ export type Database = {
           updated_at?: string
           user_id?: string
           validation_summary?: Json | null
+        }
+        Relationships: []
+      }
+      payment_transactions: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          razorpay_order_id: string
+          razorpay_payment_id: string | null
+          razorpay_signature: string | null
+          status: string
+          tokens_purchased: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          razorpay_order_id: string
+          razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
+          status?: string
+          tokens_purchased: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          razorpay_order_id?: string
+          razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
+          status?: string
+          tokens_purchased?: number
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -360,11 +411,16 @@ export type Database = {
           deployment_url: string | null
           id: string
           idea_id: string
+          mvp_features: Json | null
           name: string
+          phase_3_completed_at: string | null
+          prd_data: Json | null
           progress_percentage: number
           repository_url: string | null
           updated_at: string
           user_id: string
+          user_personas: Json | null
+          user_stories: Json | null
         }
         Insert: {
           created_at?: string
@@ -372,11 +428,16 @@ export type Database = {
           deployment_url?: string | null
           id?: string
           idea_id: string
+          mvp_features?: Json | null
           name: string
+          phase_3_completed_at?: string | null
+          prd_data?: Json | null
           progress_percentage?: number
           repository_url?: string | null
           updated_at?: string
           user_id: string
+          user_personas?: Json | null
+          user_stories?: Json | null
         }
         Update: {
           created_at?: string
@@ -384,11 +445,16 @@ export type Database = {
           deployment_url?: string | null
           id?: string
           idea_id?: string
+          mvp_features?: Json | null
           name?: string
+          phase_3_completed_at?: string | null
+          prd_data?: Json | null
           progress_percentage?: number
           repository_url?: string | null
           updated_at?: string
           user_id?: string
+          user_personas?: Json | null
+          user_stories?: Json | null
         }
         Relationships: [
           {
