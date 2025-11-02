@@ -12,3 +12,6 @@ verify_jwt = true
 
 [functions.ai-consensus]
 verify_jwt = true
+
+[functions.ai-requirements-chat]
+verify_jwt = true

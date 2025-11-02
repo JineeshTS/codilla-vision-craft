@@ -12,6 +12,10 @@ import { useAuthGuard } from "@/hooks/useAuthGuard";
 import Navbar from "@/components/Navbar";
 import { Lightbulb, Sparkles, Rocket, Edit, Save, X, TrendingUp } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { PhaseWorkflow } from "@/components/phases/PhaseWorkflow";
+import { ThreeAIIndicator } from "@/components/ThreeAIIndicator";
+import { RequirementsChat } from "@/components/phases/RequirementsChat";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Idea {
   id: string;
@@ -25,6 +29,13 @@ interface Idea {
   validation_summary: any;
   tokens_spent: number;
   created_at: string;
+  category: string | null;
+  business_model: string | null;
+  audience_size: string | null;
+  inspiration_source: string | null;
+  screening_score: number | null;
+  decision_status: string | null;
+  current_phase: number | null;
 }
 
 const IdeaDetail = () => {
@@ -305,31 +316,120 @@ const IdeaDetail = () => {
           </Card>
         ) : (
           <>
-            <Card className="glass-panel p-8 mb-6">
-              <h2 className="text-xl font-semibold mb-4">Description</h2>
-              <p className="text-muted-foreground mb-6">{idea.description}</p>
+            <Tabs defaultValue="overview" className="space-y-6">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="discussion">
+                  AI Discussion
+                  {idea.current_phase === 1 && (
+                    <span className="ml-2 px-2 py-0.5 bg-primary text-primary-foreground text-xs rounded-full">
+                      Active
+                    </span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="workflow">Workflow</TabsTrigger>
+              </TabsList>
 
-              {idea.problem_statement && (
-                <>
-                  <h2 className="text-xl font-semibold mb-4">Problem Statement</h2>
-                  <p className="text-muted-foreground mb-6">{idea.problem_statement}</p>
-                </>
-              )}
+              <TabsContent value="overview">
+                <Card className="glass-panel p-8 mb-6">
+                  <h2 className="text-xl font-semibold mb-4">Description</h2>
+                  <p className="text-muted-foreground mb-6">{idea.description}</p>
 
-              {idea.target_audience && (
-                <>
-                  <h2 className="text-xl font-semibold mb-4">Target Audience</h2>
-                  <p className="text-muted-foreground mb-6">{idea.target_audience}</p>
-                </>
-              )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div className="space-y-4">
+                      {idea.category && (
+                        <div>
+                          <h3 className="text-sm font-medium text-muted-foreground mb-2">Category</h3>
+                          <Badge variant="outline">{idea.category}</Badge>
+                        </div>
+                      )}
+                      {idea.business_model && (
+                        <div>
+                          <h3 className="text-sm font-medium text-muted-foreground mb-2">Business Model</h3>
+                          <p className="text-foreground text-sm">{idea.business_model}</p>
+                        </div>
+                      )}
+                      {idea.audience_size && (
+                        <div>
+                          <h3 className="text-sm font-medium text-muted-foreground mb-2">Target Audience Size</h3>
+                          <p className="text-foreground text-sm">{idea.audience_size}</p>
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-4">
+                      {idea.screening_score !== null && (
+                        <div>
+                          <h3 className="text-sm font-medium text-muted-foreground mb-2">Screening Score</h3>
+                          <div className="flex items-center gap-2">
+                            <Progress value={idea.screening_score * 10} className="flex-1" />
+                            <span className="text-sm font-bold">{idea.screening_score}/10</span>
+                          </div>
+                        </div>
+                      )}
+                      {idea.decision_status && (
+                        <div>
+                          <h3 className="text-sm font-medium text-muted-foreground mb-2">Decision Status</h3>
+                          <Badge
+                            variant={
+                              idea.decision_status === "go"
+                                ? "default"
+                                : idea.decision_status === "conditional"
+                                ? "secondary"
+                                : "destructive"
+                            }
+                          >
+                            {idea.decision_status}
+                          </Badge>
+                        </div>
+                      )}
+                      {idea.inspiration_source && (
+                        <div>
+                          <h3 className="text-sm font-medium text-muted-foreground mb-2">Inspiration Source</h3>
+                          <p className="text-foreground text-sm">{idea.inspiration_source}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-              {idea.unique_value_proposition && (
-                <>
-                  <h2 className="text-xl font-semibold mb-4">Unique Value Proposition</h2>
-                  <p className="text-muted-foreground">{idea.unique_value_proposition}</p>
-                </>
-              )}
-            </Card>
+                  {idea.problem_statement && (
+                    <>
+                      <h2 className="text-xl font-semibold mb-4">Problem Statement</h2>
+                      <p className="text-muted-foreground mb-6">{idea.problem_statement}</p>
+                    </>
+                  )}
+
+                  {idea.target_audience && (
+                    <>
+                      <h2 className="text-xl font-semibold mb-4">Target Audience</h2>
+                      <p className="text-muted-foreground mb-6">{idea.target_audience}</p>
+                    </>
+                  )}
+
+                  {idea.unique_value_proposition && (
+                    <>
+                      <h2 className="text-xl font-semibold mb-4">Unique Value Proposition</h2>
+                      <p className="text-muted-foreground">{idea.unique_value_proposition}</p>
+                    </>
+                  )}
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="discussion">
+                {idea.current_phase === 1 ? (
+                  <RequirementsChat ideaId={idea.id} ideaTitle={idea.title} />
+                ) : (
+                  <Card className="glass-panel p-8 text-center">
+                    <p className="text-muted-foreground">
+                      AI discussion is only available during Phase 1: Requirements Analysis
+                    </p>
+                  </Card>
+                )}
+              </TabsContent>
+
+              <TabsContent value="workflow">
+                <PhaseWorkflow currentPhase={idea.current_phase || 1} />
+              </TabsContent>
+            </Tabs>
 
             {idea.status === "draft" && (
               <Card className="glass-panel p-8 mb-6">
