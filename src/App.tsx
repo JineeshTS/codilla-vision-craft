@@ -15,6 +15,7 @@ import Tokens from "./pages/Tokens";
 import Templates from "./pages/Templates";
 import Analytics from "./pages/Analytics";
 import CodeIDE from "./pages/CodeIDE";
+import PhaseDetail from "./pages/PhaseDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/ideas/:id" element={<IdeaDetail />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
+          <Route path="/projects/:projectId/phase/:phaseNumber" element={<PhaseDetail />} />
           <Route path="/tokens" element={<Tokens />} />
           <Route path="/templates" element={<Templates />} />
           <Route path="/analytics" element={<Analytics />} />

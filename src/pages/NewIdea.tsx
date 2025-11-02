@@ -12,19 +12,43 @@ import { Card } from "@/components/ui/card";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { ideaSchema, sanitizeText } from "@/lib/validation";
 import { z } from "zod";
+import { Phase1Form } from "@/components/phases/Phase1Form";
 
 const NewIdea = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
+  const totalSteps = 5;
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
+    // Phase 1: Basic Information
     title: "",
     description: "",
+    category: "",
+    business_model: "",
+    audience_size: "",
+    inspiration_source: "",
+    
+    // Problem Statement
     problem_statement: "",
     target_audience: "",
+    current_solutions: [] as any[],
+    
+    // Solution Overview
     unique_value_proposition: "",
+    key_differentiator: "",
+    expected_outcomes: {
+      total_users: "",
+      active_users: "",
+      revenue: "",
+      time_saved: "",
+      money_saved: ""
+    },
+    
+    // Personal Fit
+    passion_score: 0,
+    domain_knowledge_score: 0,
   });
 
   // Use centralized auth guard (UX-only, RLS provides actual security)
@@ -69,16 +93,31 @@ const NewIdea = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Calculate screening score
+      const screeningScore = Math.round((formData.passion_score + formData.domain_knowledge_score) / 2);
+      
       // Sanitize inputs before saving
-      const { data, error } = await supabase
+      const { data, error} = await supabase
         .from("ideas")
         .insert({
           user_id: user.id,
           title: sanitizeText(formData.title),
           description: sanitizeText(formData.description),
+          category: formData.category || null,
+          business_model: formData.business_model || null,
+          audience_size: formData.audience_size || null,
+          inspiration_source: formData.inspiration_source || null,
           problem_statement: formData.problem_statement ? sanitizeText(formData.problem_statement) : null,
           target_audience: formData.target_audience ? sanitizeText(formData.target_audience) : null,
+          current_solutions: formData.current_solutions,
           unique_value_proposition: formData.unique_value_proposition ? sanitizeText(formData.unique_value_proposition) : null,
+          key_differentiator: formData.key_differentiator || null,
+          expected_outcomes: formData.expected_outcomes,
+          passion_score: formData.passion_score,
+          domain_knowledge_score: formData.domain_knowledge_score,
+          screening_score: screeningScore,
+          decision_status: screeningScore >= 7 ? 'go' : screeningScore >= 5 ? 'conditional' : 'no-go',
+          current_phase: 1,
           status: "draft",
         })
         .select()
@@ -112,7 +151,7 @@ const NewIdea = () => {
       });
       return;
     }
-    if (step < 3) setStep(step + 1);
+    if (step < totalSteps) setStep(step + 1);
   };
 
   const handlePrevious = () => {
@@ -135,129 +174,27 @@ const NewIdea = () => {
 
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            {[1, 2, 3].map((i) => (
+            {Array.from({ length: totalSteps }).map((_, i) => (
               <div
                 key={i}
                 className={`flex-1 h-2 rounded-full mx-1 ${
-                  i <= step ? "bg-primary" : "bg-muted"
+                  i + 1 <= step ? "bg-primary" : "bg-muted"
                 } transition-colors`}
               />
             ))}
           </div>
           <p className="text-sm text-muted-foreground text-center">
-            Step {step} of 3
+            Step {step} of {totalSteps}
           </p>
         </div>
 
         <Card className="glass-panel p-8">
-          {step === 1 && (
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="title">Idea Title *</Label>
-                <Input
-                  id="title"
-                  placeholder="e.g., AI-Powered Task Manager"
-                  value={formData.title}
-                  onChange={(e) => handleChange("title", e.target.value)}
-                />
-                {errors.title && (
-                  <div className="flex items-center gap-1 text-xs text-destructive">
-                    <AlertCircle className="w-3 h-3" />
-                    <span>{errors.title}</span>
-                  </div>
-                )}
-                <p className="text-xs text-muted-foreground text-right">
-                  {formData.title.length}/200 characters
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description *</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Describe your idea in detail..."
-                  rows={6}
-                  value={formData.description}
-                  onChange={(e) => handleChange("description", e.target.value)}
-                />
-                {errors.description && (
-                  <div className="flex items-center gap-1 text-xs text-destructive">
-                    <AlertCircle className="w-3 h-3" />
-                    <span>{errors.description}</span>
-                  </div>
-                )}
-                <p className="text-xs text-muted-foreground text-right">
-                  {formData.description.length}/5000 characters
-                </p>
-              </div>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="problem">Problem Statement</Label>
-                <Textarea
-                  id="problem"
-                  placeholder="What problem does your idea solve?"
-                  rows={4}
-                  value={formData.problem_statement}
-                  onChange={(e) => handleChange("problem_statement", e.target.value)}
-                />
-                {errors.problem_statement && (
-                  <div className="flex items-center gap-1 text-xs text-destructive">
-                    <AlertCircle className="w-3 h-3" />
-                    <span>{errors.problem_statement}</span>
-                  </div>
-                )}
-                <p className="text-xs text-muted-foreground text-right">
-                  {formData.problem_statement.length}/2000 characters
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="audience">Target Audience</Label>
-                <Textarea
-                  id="audience"
-                  placeholder="Who will benefit from this solution?"
-                  rows={4}
-                  value={formData.target_audience}
-                  onChange={(e) => handleChange("target_audience", e.target.value)}
-                />
-                {errors.target_audience && (
-                  <div className="flex items-center gap-1 text-xs text-destructive">
-                    <AlertCircle className="w-3 h-3" />
-                    <span>{errors.target_audience}</span>
-                  </div>
-                )}
-                <p className="text-xs text-muted-foreground text-right">
-                  {formData.target_audience.length}/1000 characters
-                </p>
-              </div>
-            </div>
-          )}
-
-          {step === 3 && (
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="uvp">Unique Value Proposition</Label>
-                <Textarea
-                  id="uvp"
-                  placeholder="What makes your idea unique and valuable?"
-                  rows={6}
-                  value={formData.unique_value_proposition}
-                  onChange={(e) => handleChange("unique_value_proposition", e.target.value)}
-                />
-                {errors.unique_value_proposition && (
-                  <div className="flex items-center gap-1 text-xs text-destructive">
-                    <AlertCircle className="w-3 h-3" />
-                    <span>{errors.unique_value_proposition}</span>
-                  </div>
-                )}
-                <p className="text-xs text-muted-foreground text-right">
-                  {formData.unique_value_proposition.length}/2000 characters
-                </p>
-              </div>
-            </div>
-          )}
+          <Phase1Form
+            formData={formData}
+            errors={errors}
+            onChange={handleChange}
+            step={step}
+          />
 
           <div className="flex justify-between mt-8">
             <Button
@@ -276,14 +213,14 @@ const NewIdea = () => {
                 <Save className="w-4 h-4 mr-2" />
                 Save Draft
               </Button>
-              {step < 3 ? (
+              {step < totalSteps ? (
                 <Button onClick={handleNext}>
                   Next
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               ) : (
                 <Button onClick={handleSaveDraft} disabled={loading}>
-                  Complete
+                  Complete Phase 1
                 </Button>
               )}
             </div>

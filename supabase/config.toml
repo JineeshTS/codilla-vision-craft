@@ -9,3 +9,6 @@ verify_jwt = true
 
 [functions.generate-code]
 verify_jwt = true
+
+[functions.ai-consensus]
+verify_jwt = true

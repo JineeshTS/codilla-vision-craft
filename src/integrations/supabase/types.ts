@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_requests: {
+        Row: {
+          ai_agent: string
+          created_at: string | null
+          error_message: string | null
+          execution_time: number | null
+          id: string
+          idea_id: string | null
+          phase_id: string | null
+          prompt: string
+          request_type: string
+          response: string | null
+          success: boolean | null
+          tokens_used: number | null
+          user_id: string
+        }
+        Insert: {
+          ai_agent: string
+          created_at?: string | null
+          error_message?: string | null
+          execution_time?: number | null
+          id?: string
+          idea_id?: string | null
+          phase_id?: string | null
+          prompt: string
+          request_type: string
+          response?: string | null
+          success?: boolean | null
+          tokens_used?: number | null
+          user_id: string
+        }
+        Update: {
+          ai_agent?: string
+          created_at?: string | null
+          error_message?: string | null
+          execution_time?: number | null
+          id?: string
+          idea_id?: string | null
+          phase_id?: string | null
+          prompt?: string
+          request_type?: string
+          response?: string | null
+          success?: boolean | null
+          tokens_used?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_requests_idea_id_fkey"
+            columns: ["idea_id"]
+            isOneToOne: false
+            referencedRelation: "ideas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_requests_phase_id_fkey"
+            columns: ["phase_id"]
+            isOneToOne: false
+            referencedRelation: "phase_progress"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_validations: {
         Row: {
           agent: Database["public"]["Enums"]["ai_agent"]
@@ -57,11 +120,23 @@ export type Database = {
       }
       ideas: {
         Row: {
+          audience_size: string | null
+          business_model: string | null
+          category: string | null
           consensus_score: number | null
           created_at: string
+          current_phase: number | null
+          current_solutions: Json | null
+          decision_status: string | null
           description: string
+          domain_knowledge_score: number | null
+          expected_outcomes: Json | null
           id: string
+          inspiration_source: string | null
+          key_differentiator: string | null
+          passion_score: number | null
           problem_statement: string | null
+          screening_score: number | null
           status: Database["public"]["Enums"]["idea_status"]
           target_audience: string | null
           title: string
@@ -72,11 +147,23 @@ export type Database = {
           validation_summary: Json | null
         }
         Insert: {
+          audience_size?: string | null
+          business_model?: string | null
+          category?: string | null
           consensus_score?: number | null
           created_at?: string
+          current_phase?: number | null
+          current_solutions?: Json | null
+          decision_status?: string | null
           description: string
+          domain_knowledge_score?: number | null
+          expected_outcomes?: Json | null
           id?: string
+          inspiration_source?: string | null
+          key_differentiator?: string | null
+          passion_score?: number | null
           problem_statement?: string | null
+          screening_score?: number | null
           status?: Database["public"]["Enums"]["idea_status"]
           target_audience?: string | null
           title: string
@@ -87,11 +174,23 @@ export type Database = {
           validation_summary?: Json | null
         }
         Update: {
+          audience_size?: string | null
+          business_model?: string | null
+          category?: string | null
           consensus_score?: number | null
           created_at?: string
+          current_phase?: number | null
+          current_solutions?: Json | null
+          decision_status?: string | null
           description?: string
+          domain_knowledge_score?: number | null
+          expected_outcomes?: Json | null
           id?: string
+          inspiration_source?: string | null
+          key_differentiator?: string | null
+          passion_score?: number | null
           problem_statement?: string | null
+          screening_score?: number | null
           status?: Database["public"]["Enums"]["idea_status"]
           target_audience?: string | null
           title?: string
@@ -102,6 +201,65 @@ export type Database = {
           validation_summary?: Json | null
         }
         Relationships: []
+      }
+      phase_progress: {
+        Row: {
+          ai_decision: string | null
+          ai_feedback: Json | null
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          phase_name: string
+          phase_number: number
+          progress: number | null
+          project_id: string | null
+          stages: Json | null
+          started_at: string | null
+          status: string | null
+          tokens_used: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          ai_decision?: string | null
+          ai_feedback?: Json | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          phase_name: string
+          phase_number: number
+          progress?: number | null
+          project_id?: string | null
+          stages?: Json | null
+          started_at?: string | null
+          status?: string | null
+          tokens_used?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          ai_decision?: string | null
+          ai_feedback?: Json | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          phase_name?: string
+          phase_number?: number
+          progress?: number | null
+          project_id?: string | null
+          stages?: Json | null
+          started_at?: string | null
+          status?: string | null
+          tokens_used?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "phase_progress_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       phases: {
         Row: {
@@ -241,6 +399,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      reusable_templates: {
+        Row: {
+          category: string
+          code: string
+          created_at: string | null
+          dependencies: Json | null
+          description: string
+          id: string
+          name: string
+          tokens_saved: number | null
+          updated_at: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          category: string
+          code: string
+          created_at?: string | null
+          dependencies?: Json | null
+          description: string
+          id?: string
+          name: string
+          tokens_saved?: number | null
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          category?: string
+          code?: string
+          created_at?: string | null
+          dependencies?: Json | null
+          description?: string
+          id?: string
+          name?: string
+          tokens_saved?: number | null
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Relationships: []
       }
       templates: {
         Row: {
