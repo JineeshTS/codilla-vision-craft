@@ -7,14 +7,18 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
-import { Lightbulb, ArrowRight, Save } from "lucide-react";
+import { Lightbulb, ArrowRight, Save, AlertCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
+import { ideaSchema, sanitizeText } from "@/lib/validation";
+import { z } from "zod";
 
 const NewIdea = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -23,36 +27,58 @@ const NewIdea = () => {
     unique_value_proposition: "",
   });
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      navigate("/auth");
-    }
-  };
+  // Use centralized auth guard (UX-only, RLS provides actual security)
+  useAuthGuard();
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSaveDraft = async () => {
+    setErrors({});
+    
+    // Validate required fields
+    try {
+      ideaSchema.parse({
+        title: formData.title,
+        description: formData.description,
+        problem_statement: formData.problem_statement || undefined,
+        target_audience: formData.target_audience || undefined,
+        unique_value_proposition: formData.unique_value_proposition || undefined,
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const newErrors: Record<string, string> = {};
+        error.issues.forEach((err) => {
+          if (err.path[0]) {
+            newErrors[err.path[0].toString()] = err.message;
+          }
+        });
+        setErrors(newErrors);
+        toast({
+          variant: "destructive",
+          title: "Validation Error",
+          description: "Please check the form for errors.",
+        });
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Sanitize inputs before saving
       const { data, error } = await supabase
         .from("ideas")
         .insert({
           user_id: user.id,
-          title: formData.title,
-          description: formData.description,
-          problem_statement: formData.problem_statement,
-          target_audience: formData.target_audience,
-          unique_value_proposition: formData.unique_value_proposition,
+          title: sanitizeText(formData.title),
+          description: sanitizeText(formData.description),
+          problem_statement: formData.problem_statement ? sanitizeText(formData.problem_statement) : null,
+          target_audience: formData.target_audience ? sanitizeText(formData.target_audience) : null,
+          unique_value_proposition: formData.unique_value_proposition ? sanitizeText(formData.unique_value_proposition) : null,
           status: "draft",
         })
         .select()
@@ -70,7 +96,7 @@ const NewIdea = () => {
       toast({
         variant: "destructive",
         title: "Error saving draft",
-        description: error.message,
+        description: error.message || "Failed to save draft. Please try again.",
       });
     } finally {
       setLoading(false);
@@ -134,6 +160,15 @@ const NewIdea = () => {
                   value={formData.title}
                   onChange={(e) => handleChange("title", e.target.value)}
                 />
+                {errors.title && (
+                  <div className="flex items-center gap-1 text-xs text-destructive">
+                    <AlertCircle className="w-3 h-3" />
+                    <span>{errors.title}</span>
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground text-right">
+                  {formData.title.length}/200 characters
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="description">Description *</Label>
@@ -144,6 +179,15 @@ const NewIdea = () => {
                   value={formData.description}
                   onChange={(e) => handleChange("description", e.target.value)}
                 />
+                {errors.description && (
+                  <div className="flex items-center gap-1 text-xs text-destructive">
+                    <AlertCircle className="w-3 h-3" />
+                    <span>{errors.description}</span>
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground text-right">
+                  {formData.description.length}/5000 characters
+                </p>
               </div>
             </div>
           )}
@@ -159,6 +203,15 @@ const NewIdea = () => {
                   value={formData.problem_statement}
                   onChange={(e) => handleChange("problem_statement", e.target.value)}
                 />
+                {errors.problem_statement && (
+                  <div className="flex items-center gap-1 text-xs text-destructive">
+                    <AlertCircle className="w-3 h-3" />
+                    <span>{errors.problem_statement}</span>
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground text-right">
+                  {formData.problem_statement.length}/2000 characters
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="audience">Target Audience</Label>
@@ -169,6 +222,15 @@ const NewIdea = () => {
                   value={formData.target_audience}
                   onChange={(e) => handleChange("target_audience", e.target.value)}
                 />
+                {errors.target_audience && (
+                  <div className="flex items-center gap-1 text-xs text-destructive">
+                    <AlertCircle className="w-3 h-3" />
+                    <span>{errors.target_audience}</span>
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground text-right">
+                  {formData.target_audience.length}/1000 characters
+                </p>
               </div>
             </div>
           )}
@@ -184,6 +246,15 @@ const NewIdea = () => {
                   value={formData.unique_value_proposition}
                   onChange={(e) => handleChange("unique_value_proposition", e.target.value)}
                 />
+                {errors.unique_value_proposition && (
+                  <div className="flex items-center gap-1 text-xs text-destructive">
+                    <AlertCircle className="w-3 h-3" />
+                    <span>{errors.unique_value_proposition}</span>
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground text-right">
+                  {formData.unique_value_proposition.length}/2000 characters
+                </p>
               </div>
             </div>
           )}

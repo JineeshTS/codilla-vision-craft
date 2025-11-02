@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Lightbulb, Rocket, CheckCircle, TrendingUp, Plus } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -15,17 +15,12 @@ const Dashboard = () => {
     tokens: 0,
   });
 
+  // Use centralized auth guard (UX-only, RLS provides actual security)
+  useAuthGuard();
+
   useEffect(() => {
-    checkAuth();
     fetchStats();
   }, []);
-
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      navigate("/auth");
-    }
-  };
 
   const fetchStats = async () => {
     const { data: { user } } = await supabase.auth.getUser();

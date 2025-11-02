@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { checkRateLimit } from "../_shared/rate-limit.ts";
+import { sanitizeError, createErrorResponse } from "../_shared/error-handler.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -18,14 +20,13 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const errorId = crypto.randomUUID();
+
   try {
     // Get authorization token
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized - No authorization token provided' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return createErrorResponse('Authentication required', 401, corsHeaders, errorId);
     }
 
     const requestBody = await req.json();
@@ -47,238 +48,199 @@ serve(async (req) => {
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
 
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !SUPABASE_ANON_KEY) {
-      throw new Error("Supabase credentials not configured");
+    if (!LOVABLE_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !SUPABASE_ANON_KEY) {
+      return createErrorResponse('Service configuration error', 500, corsHeaders, errorId);
     }
 
     // Create client with user's token for authorization check
-    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       global: { headers: { Authorization: authHeader } }
     });
 
-    // Get authenticated user
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    const { data: { user }, error: userError } = await userClient.auth.getUser();
     if (userError || !user) {
+      return createErrorResponse('Authentication required', 401, corsHeaders, errorId);
+    }
+
+    console.log("Authenticated user:", user.id);
+
+    // Check rate limit (20 phase validations per hour)
+    const rateLimit = checkRateLimit(user.id, {
+      limit: 20,
+      windowMs: 60 * 60 * 1000,
+    });
+
+    if (!rateLimit.allowed) {
+      console.log("Rate limit exceeded for user:", user.id);
       return new Response(
-        JSON.stringify({ error: 'Unauthorized - Invalid token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({
+          error: "Rate limit exceeded. Please try again later.",
+          retryAfter: rateLimit.retryAfter,
+        }),
+        {
+          status: 429,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+            "Retry-After": String(rateLimit.retryAfter),
+            "X-RateLimit-Limit": "20",
+            "X-RateLimit-Remaining": String(rateLimit.remaining),
+            "X-RateLimit-Reset": new Date(rateLimit.resetAt).toISOString(),
+          },
+        }
       );
     }
 
-    // Create service role client for operations
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const serviceClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Fetch phase and project details
-    const { data: phase, error: phaseError } = await supabase
+    const { data: phaseData, error: phaseError } = await serviceClient
       .from("phases")
-      .select("*, projects(*)")
+      .select(`
+        *,
+        projects!inner (
+          id,
+          name,
+          user_id,
+          ideas!inner (
+            title,
+            description
+          )
+        )
+      `)
       .eq("id", phaseId)
       .single();
 
-    if (phaseError || !phase) {
-      console.error('Phase fetch error:', phaseError);
-      return new Response(
-        JSON.stringify({ error: 'Phase not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (phaseError || !phaseData) {
+      console.error("Error fetching phase:", phaseError);
+      return createErrorResponse('Resource not found', 404, corsHeaders, errorId);
     }
 
     // Verify ownership
-    if (phase.projects?.user_id !== user.id) {
-      console.error('Ownership verification failed:', { projectUserId: phase.projects?.user_id, requestUserId: user.id });
-      return new Response(
-        JSON.stringify({ error: 'Forbidden - You do not own this project' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (phaseData.projects.user_id !== user.id) {
+      return createErrorResponse('Access denied', 403, corsHeaders, errorId);
     }
 
     const phaseDescriptions: Record<number, string> = {
-      1: "Requirements Analysis - Define core features, user stories, and acceptance criteria",
-      2: "Architecture Design - Design system architecture, technology stack, and infrastructure",
-      3: "Database Schema - Design database structure, relationships, and data models",
-      4: "API Design - Define API endpoints, data contracts, and integration points",
-      5: "UI/UX Design - Create wireframes, mockups, and user experience flows",
-      6: "Frontend Development - Implement user interface and client-side logic",
-      7: "Backend Development - Build server-side logic, APIs, and data processing",
-      8: "Integration & Testing - Integrate components and conduct comprehensive testing",
-      9: "Deployment Setup - Configure production environment and deployment pipeline",
-      10: "Final Review & Launch - Conduct final QA, documentation, and launch preparation",
+      1: "Concept & Planning Phase: Define requirements, create wireframes, plan architecture",
+      2: "Foundation Phase: Set up project structure, implement core features, establish design system",
+      3: "Implementation Phase: Build main functionality, integrate APIs, implement business logic",
+      4: "Refinement Phase: Polish UI/UX, optimize performance, fix bugs",
+      5: "Deployment Phase: Prepare for production, deploy to hosting, set up monitoring",
     };
 
-    const phasePrompt = `Phase ${phase.phase_number}: ${phaseDescriptions[phase.phase_number]}
-    
-Project: ${phase.projects.name}
-User Input/Requirements: ${userInput}
+    const validationPrompt = `
+You are a development phase validator. Evaluate if this phase deliverable meets requirements.
 
-Validate this phase deliverable and provide:
-1. Quality score (0-100)
-2. Completeness assessment
-3. Specific issues or gaps found
-4. Recommendations for improvement
-5. Whether this phase meets the requirements to proceed`;
+Project: ${phaseData.projects.name}
+Idea: ${phaseData.projects.ideas.title}
+Phase ${phaseData.phase_number}: ${phaseData.phase_name}
+Expected: ${phaseDescriptions[phaseData.phase_number]}
 
-    // Validate with three AI agents
-    const agents = [
-      { name: "claude", model: "google/gemini-2.5-pro" },
-      { name: "gemini", model: "google/gemini-2.5-flash" },
-      { name: "codex", model: "google/gemini-2.5-flash-lite" },
+User's Submission:
+${userInput}
+
+Respond with ONLY a valid JSON object (no markdown, no code blocks):
+{
+  "score": <number 0-100>,
+  "approved": <boolean>,
+  "feedback": "<string>",
+  "issues": ["<string>", ...],
+  "recommendations": ["<string>", ...]
+}`;
+
+    const callAI = async (agentName: string) => {
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [{ role: "user", content: validationPrompt }],
+          temperature: 0.7,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error(`${agentName} error:`, response.status);
+        return createErrorResponse('AI service unavailable', 503, corsHeaders, errorId);
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content || "{}";
+      return JSON.parse(content);
+    };
+
+    const [claudeResult, geminiResult, codexResult] = await Promise.all([
+      callAI("Claude"),
+      callAI("Gemini"),
+      callAI("Codex"),
+    ]);
+
+    const results = [
+      { agent: "claude", ...claudeResult },
+      { agent: "gemini", ...geminiResult },
+      { agent: "codex", ...codexResult },
     ];
 
-    const validations = await Promise.all(
-      agents.map(async (agent) => {
-        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: agent.model,
-            messages: [
-              {
-                role: "system",
-                content: `You are ${agent.name.toUpperCase()}, an expert software development validator. Assess quality and completeness rigorously.`,
-              },
-              { role: "user", content: phasePrompt },
-            ],
-            tools: [
-              {
-                type: "function",
-                function: {
-                  name: "validate_phase",
-                  description: "Validate a development phase deliverable",
-                  parameters: {
-                    type: "object",
-                    properties: {
-                      score: {
-                        type: "number",
-                        description: "Quality score from 0-100",
-                      },
-                      approved: {
-                        type: "boolean",
-                        description: "Whether to approve proceeding to next phase",
-                      },
-                      issues: {
-                        type: "array",
-                        items: { type: "string" },
-                        description: "Key issues or gaps identified",
-                      },
-                      recommendations: {
-                        type: "array",
-                        items: { type: "string" },
-                        description: "Recommendations for improvement",
-                      },
-                    },
-                    required: ["score", "approved", "issues", "recommendations"],
-                    additionalProperties: false,
-                  },
-                },
-              },
-            ],
-            tool_choice: { type: "function", function: { name: "validate_phase" } },
-          }),
-        });
-
-        if (!response.ok) {
-          if (response.status === 429) {
-            throw new Error("Rate limit exceeded. Please try again later.");
-          }
-          if (response.status === 402) {
-            throw new Error("Payment required. Please add credits to your workspace.");
-          }
-          throw new Error(`AI Gateway error: ${response.status}`);
-        }
-
-        const result = await response.json();
-        const toolCall = result.choices[0]?.message?.tool_calls?.[0];
-        if (!toolCall) throw new Error(`${agent.name} validation failed`);
-
-        const validation = JSON.parse(toolCall.function.arguments);
-        return { agent: agent.name, ...validation };
-      })
-    );
-
-    // Calculate consensus
     const avgScore = Math.round(
-      validations.reduce((sum, v) => sum + v.score, 0) / validations.length
+      results.reduce((sum, r) => sum + (r.score || 0), 0) / results.length
     );
-    const consensusReached = validations.filter((v) => v.approved).length >= 2;
+    const approvedCount = results.filter(r => r.approved).length;
+    const consensusReached = approvedCount >= 2;
 
-    const validationData = {
-      claude_validation: validations.find((v) => v.agent === "claude"),
-      gemini_validation: validations.find((v) => v.agent === "gemini"),
-      codex_validation: validations.find((v) => v.agent === "codex"),
+    const tokensUsed = 100;
+
+    const updateData: any = {
+      claude_validation: results[0],
+      gemini_validation: results[1],
+      codex_validation: results[2],
+      consensus_reached: consensusReached,
+      tokens_spent: tokensUsed,
     };
 
-    const tokensSpent = 100;
+    if (consensusReached) {
+      updateData.status = "completed";
+      updateData.completed_at = new Date().toISOString();
+    }
 
-    // Update phase
-    const { error: updateError } = await supabase
+    const { error: updateError } = await serviceClient
       .from("phases")
-      .update({
-        ...validationData,
-        consensus_reached: consensusReached,
-        tokens_spent: tokensSpent,
-        status: consensusReached ? "completed" : "failed",
-        completed_at: consensusReached ? new Date().toISOString() : null,
-      })
+      .update(updateData)
       .eq("id", phaseId);
 
-    if (updateError) throw updateError;
+    if (updateError) {
+      console.error("Error updating phase:", updateError);
+      return createErrorResponse('Failed to save validation results', 500, corsHeaders, errorId);
+    }
 
-    // Update project progress if consensus reached
-    if (consensusReached && phase.projects) {
-      const newProgress = Math.round((phase.phase_number / 10) * 100);
-      await supabase
+    if (consensusReached) {
+      const totalPhases = 5;
+      const progress = Math.round((phaseData.phase_number / totalPhases) * 100);
+
+      await serviceClient
         .from("projects")
         .update({
-          current_phase: phase.phase_number + 1,
-          progress_percentage: newProgress,
+          current_phase: Math.min(phaseData.phase_number + 1, totalPhases),
+          progress_percentage: progress,
         })
-        .eq("id", phase.project_id);
+        .eq("id", phaseData.projects.id);
     }
+
+    console.log("✅ Validation complete! Consensus:", consensusReached);
 
     return new Response(
       JSON.stringify({
         success: true,
-        consensus_reached: consensusReached,
-        average_score: avgScore,
-        validations,
-        tokens_spent: tokensSpent,
+        consensus: consensusReached,
+        avgScore,
+        validations: results,
       }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Phase validation error:", error);
-    
-    // Map internal errors to user-friendly messages
-    let userMessage = 'An unexpected error occurred while validating the phase';
-    let statusCode = 500;
-    
-    if (error instanceof Error) {
-      if (error.message.includes('fetch')) {
-        userMessage = 'Unable to connect to validation service';
-      } else if (error.message.includes('not found')) {
-        userMessage = 'Phase not found';
-        statusCode = 404;
-      } else if (error.message.includes('configured')) {
-        userMessage = 'Service temporarily unavailable';
-        statusCode = 503;
-      } else if (error.message.includes('Rate limit') || error.message.includes('Payment required')) {
-        userMessage = error.message;
-        statusCode = error.message.includes('Rate limit') ? 429 : 402;
-      }
-    }
-    
-    return new Response(
-      JSON.stringify({ error: userMessage }),
-      {
-        status: statusCode,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    console.error("Error in validate-phase function:", error);
+    return createErrorResponse(error, 500, corsHeaders, errorId);
   }
 });

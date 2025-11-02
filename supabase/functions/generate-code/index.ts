@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
+import { checkRateLimit } from "../_shared/rate-limit.ts";
+import { sanitizeError, createErrorResponse } from "../_shared/error-handler.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -18,14 +20,13 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const errorId = crypto.randomUUID();
+
   try {
     // Get authorization token
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized - No authorization token provided' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return createErrorResponse('Authentication required', 401, corsHeaders, errorId);
     }
 
     const requestBody = await req.json();
@@ -52,95 +53,89 @@ serve(async (req) => {
 
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     if (userError || !user) {
+      return createErrorResponse('Authentication required', 401, corsHeaders, errorId);
+    }
+
+    console.log("Authenticated user:", user.id);
+
+    // Check rate limit (30 code generations per hour)
+    const rateLimit = checkRateLimit(user.id, {
+      limit: 30,
+      windowMs: 60 * 60 * 1000,
+    });
+
+    if (!rateLimit.allowed) {
+      console.log("Rate limit exceeded for user:", user.id);
       return new Response(
-        JSON.stringify({ error: 'Unauthorized - Invalid token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({
+          error: "Rate limit exceeded. Please try again later.",
+          retryAfter: rateLimit.retryAfter,
+        }),
+        {
+          status: 429,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+            "Retry-After": String(rateLimit.retryAfter),
+            "X-RateLimit-Limit": "30",
+            "X-RateLimit-Remaining": String(rateLimit.remaining),
+            "X-RateLimit-Reset": new Date(rateLimit.resetAt).toISOString(),
+          },
+        }
       );
     }
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
-      console.error("LOVABLE_API_KEY not configured");
-      throw new Error("LOVABLE_API_KEY not configured");
+      return createErrorResponse('Service configuration error', 500, corsHeaders, errorId);
     }
 
-    console.log("Generating code with prompt:", prompt?.substring(0, 100));
+    const systemPrompt = context 
+      ? `You are a code generation assistant. Use this context: ${context}\n\nGenerate clean, production-ready code.`
+      : "You are a code generation assistant. Generate clean, production-ready code.";
 
-    const systemPrompt = `You are an expert software developer. Generate clean, production-ready code based on the user's requirements. Follow best practices, include comments, and ensure code is secure and efficient.
-
-Context: ${context || "General web application"}
-
-Provide complete, working code with proper error handling.`;
-
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: prompt },
+          { role: "user", content: prompt }
         ],
         stream: true,
       }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI Gateway error:", response.status, errorText);
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text();
+      console.error("AI gateway error:", aiResponse.status, errorText);
       
-      if (response.status === 429) {
+      if (aiResponse.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
-          {
-            status: 429,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
+          JSON.stringify({ error: "AI service rate limit exceeded. Please try again later." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (response.status === 402) {
+      
+      if (aiResponse.status === 402) {
         return new Response(
-          JSON.stringify({ error: "Payment required. Please add credits to your workspace." }),
-          {
-            status: 402,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
+          JSON.stringify({ error: "AI service credits exhausted. Please contact support." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      throw new Error(`AI Gateway error: ${response.status} - ${errorText}`);
+      
+      return createErrorResponse("AI service unavailable", 503, corsHeaders, errorId);
     }
 
-    console.log("Streaming response from AI gateway");
-
-    // Stream the response back to the client
-    return new Response(response.body, {
+    return new Response(aiResponse.body, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (error) {
-    console.error("Code generation error:", error);
-    
-    // Map internal errors to user-friendly messages
-    let userMessage = 'An unexpected error occurred while generating code';
-    let statusCode = 500;
-    
-    if (error instanceof Error) {
-      if (error.message.includes('fetch')) {
-        userMessage = 'Unable to connect to AI service';
-      } else if (error.message.includes('configured')) {
-        userMessage = 'Service temporarily unavailable';
-        statusCode = 503;
-      }
-    }
-    
-    return new Response(
-      JSON.stringify({ error: userMessage }),
-      {
-        status: statusCode,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    console.error("Error in generate-code function:", error);
+    return createErrorResponse(error, 500, corsHeaders, errorId);
   }
 });

@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Rocket } from "lucide-react";
+import { Sparkles, Rocket, AlertCircle } from "lucide-react";
+import { signUpSchema, signInSchema, calculatePasswordStrength } from "@/lib/validation";
+import { z } from "zod";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -15,6 +17,8 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [passwordStrength, setPasswordStrength] = useState({ score: 0, label: '', color: '' });
 
   useEffect(() => {
     // Check if user is already logged in
@@ -34,23 +38,62 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    if (value) {
+      setPasswordStrength(calculatePasswordStrength(value));
+    } else {
+      setPasswordStrength({ score: 0, label: '', color: '' });
+    }
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
+    
+    // Client-side validation
+    try {
+      signUpSchema.parse({ email, password, fullName });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const newErrors: Record<string, string> = {};
+        error.issues.forEach((err) => {
+          if (err.path[0]) {
+            newErrors[err.path[0].toString()] = err.message;
+          }
+        });
+        setErrors(newErrors);
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
       const { error } = await supabase.auth.signUp({
-        email,
+        email: email.trim(),
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
-            full_name: fullName,
+            full_name: fullName.trim(),
           },
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        // Handle specific Supabase auth errors
+        if (error.message.includes('already registered')) {
+          toast({
+            variant: "destructive",
+            title: "Email already registered",
+            description: "Please sign in or use a different email address.",
+          });
+        } else {
+          throw error;
+        }
+        return;
+      }
 
       toast({
         title: "Account created!",
@@ -60,7 +103,7 @@ const Auth = () => {
       toast({
         variant: "destructive",
         title: "Sign up failed",
-        description: error.message,
+        description: error.message || "An unexpected error occurred. Please try again.",
       });
     } finally {
       setLoading(false);
@@ -69,15 +112,45 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
+    
+    // Client-side validation
+    try {
+      signInSchema.parse({ email, password });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const newErrors: Record<string, string> = {};
+        error.issues.forEach((err) => {
+          if (err.path[0]) {
+            newErrors[err.path[0].toString()] = err.message;
+          }
+        });
+        setErrors(newErrors);
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim(),
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        // Handle specific auth errors
+        if (error.message.includes('Invalid login credentials')) {
+          toast({
+            variant: "destructive",
+            title: "Invalid credentials",
+            description: "Please check your email and password.",
+          });
+        } else {
+          throw error;
+        }
+        return;
+      }
 
       toast({
         title: "Welcome back!",
@@ -87,7 +160,7 @@ const Auth = () => {
       toast({
         variant: "destructive",
         title: "Sign in failed",
-        description: error.message,
+        description: error.message || "An unexpected error occurred. Please try again.",
       });
     } finally {
       setLoading(false);
@@ -124,6 +197,12 @@ const Auth = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />
+                  {errors.email && (
+                    <div className="flex items-center gap-1 text-xs text-destructive">
+                      <AlertCircle className="w-3 h-3" />
+                      <span>{errors.email}</span>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signin-password">Password</Label>
@@ -135,6 +214,12 @@ const Auth = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
+                  {errors.password && (
+                    <div className="flex items-center gap-1 text-xs text-destructive">
+                      <AlertCircle className="w-3 h-3" />
+                      <span>{errors.password}</span>
+                    </div>
+                  )}
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Signing in..." : "Sign In"}
@@ -154,6 +239,12 @@ const Auth = () => {
                     onChange={(e) => setFullName(e.target.value)}
                     required
                   />
+                  {errors.fullName && (
+                    <div className="flex items-center gap-1 text-xs text-destructive">
+                      <AlertCircle className="w-3 h-3" />
+                      <span>{errors.fullName}</span>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
@@ -165,6 +256,12 @@ const Auth = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />
+                  {errors.email && (
+                    <div className="flex items-center gap-1 text-xs text-destructive">
+                      <AlertCircle className="w-3 h-3" />
+                      <span>{errors.email}</span>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-password">Password</Label>
@@ -173,10 +270,29 @@ const Auth = () => {
                     type="password"
                     placeholder="••••••••"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => handlePasswordChange(e.target.value)}
                     required
-                    minLength={6}
                   />
+                  {errors.password && (
+                    <div className="flex items-center gap-1 text-xs text-destructive">
+                      <AlertCircle className="w-3 h-3" />
+                      <span>{errors.password}</span>
+                    </div>
+                  )}
+                  {password && passwordStrength.label && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Password strength:</span>
+                        <span className="font-medium">{passwordStrength.label}</span>
+                      </div>
+                      <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${passwordStrength.color} transition-all duration-300`}
+                          style={{ width: `${(passwordStrength.score / 6) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   <Rocket className="w-4 h-4 mr-2" />
