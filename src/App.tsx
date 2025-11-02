@@ -8,8 +8,12 @@ import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import Ideas from "./pages/Ideas";
 import NewIdea from "./pages/NewIdea";
+import IdeaDetail from "./pages/IdeaDetail";
 import Projects from "./pages/Projects";
+import ProjectDetail from "./pages/ProjectDetail";
 import Tokens from "./pages/Tokens";
+import Templates from "./pages/Templates";
+import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,8 +30,12 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/ideas" element={<Ideas />} />
           <Route path="/ideas/new" element={<NewIdea />} />
+          <Route path="/ideas/:id" element={<IdeaDetail />} />
           <Route path="/projects" element={<Projects />} />
+          <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/tokens" element={<Tokens />} />
+          <Route path="/templates" element={<Templates />} />
+          <Route path="/analytics" element={<Analytics />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

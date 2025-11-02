@@ -69,6 +69,12 @@ const Navbar = () => {
               <Button variant="ghost" asChild>
                 <Link to="/projects">Projects</Link>
               </Button>
+              <Button variant="ghost" asChild>
+                <Link to="/templates">Templates</Link>
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link to="/analytics">Analytics</Link>
+              </Button>
               <Button variant="outline" asChild className="gap-2">
                 <Link to="/tokens">
                   <Coins className="w-4 h-4" />
