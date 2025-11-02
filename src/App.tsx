@@ -14,6 +14,7 @@ import ProjectDetail from "./pages/ProjectDetail";
 import Tokens from "./pages/Tokens";
 import Templates from "./pages/Templates";
 import Analytics from "./pages/Analytics";
+import CodeIDE from "./pages/CodeIDE";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
           <Route path="/tokens" element={<Tokens />} />
           <Route path="/templates" element={<Templates />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/code-ide" element={<CodeIDE />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

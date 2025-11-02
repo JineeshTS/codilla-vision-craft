@@ -1,1 +1,11 @@
+[project]
 project_id = "numyfjzmrtvzclgyfkpx"
+
+[functions.validate-idea]
+verify_jwt = false
+
+[functions.validate-phase]
+verify_jwt = false
+
+[functions.generate-code]
+verify_jwt = false

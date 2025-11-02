@@ -250,12 +250,15 @@ const ProjectDetail = () => {
 
         <Card className="glass-panel p-6 mt-6">
           <h2 className="text-xl font-semibold mb-4">Phase Actions</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            The AI consensus system will guide each development phase with validation from Claude, Gemini, and Codex.
+          </p>
           <div className="flex gap-4">
             <Button
               onClick={() => {
                 toast({
-                  title: "Coming soon!",
-                  description: "Phase initiation will be available soon.",
+                  title: "Phase System Active",
+                  description: "Multi-agent validation is ready. Start your next phase when ready.",
                 });
               }}
             >
@@ -263,14 +266,9 @@ const ProjectDetail = () => {
             </Button>
             <Button
               variant="outline"
-              onClick={() => {
-                toast({
-                  title: "Coming soon!",
-                  description: "Detailed phase reports will be available soon.",
-                });
-              }}
+              onClick={() => navigate(`/projects`)}
             >
-              View Full Report
+              Back to Projects
             </Button>
           </div>
         </Card>

@@ -111,70 +111,49 @@ const IdeaDetail = () => {
     setValidating(true);
     try {
       // Update idea status to validating
-      const { error } = await supabase
+      const { error: statusError } = await supabase
         .from("ideas")
         .update({ status: "validating" })
         .eq("id", id);
 
-      if (error) throw error;
+      if (statusError) throw statusError;
 
       toast({
         title: "Validation Started!",
-        description: "AI agents are now analyzing your idea. This may take a few minutes.",
+        description: "AI agents Claude, Gemini, and Codex are analyzing your idea...",
       });
 
-      // In production, this would trigger edge functions to call AI APIs
-      // For now, simulate validation
-      setTimeout(() => {
-        simulateValidation();
-      }, 3000);
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error starting validation",
-        description: error.message,
+      // Call the validation edge function
+      const { data, error } = await supabase.functions.invoke("validate-idea", {
+        body: { ideaId: id },
       });
-      setValidating(false);
-    }
-  };
-
-  const simulateValidation = async () => {
-    try {
-      const mockScore = Math.floor(Math.random() * 30) + 70; // 70-100
-      const mockSummary = {
-        claude_score: Math.floor(Math.random() * 20) + 80,
-        gemini_score: Math.floor(Math.random() * 20) + 75,
-        codex_score: Math.floor(Math.random() * 20) + 70,
-        strengths: ["Clear problem definition", "Strong market potential", "Innovative approach"],
-        concerns: ["Consider scalability", "Market competition analysis needed"],
-        recommendations: ["Refine target audience", "Add competitive analysis"],
-      };
-
-      const { error } = await supabase
-        .from("ideas")
-        .update({
-          status: "validated",
-          consensus_score: mockScore,
-          validation_summary: mockSummary,
-          tokens_spent: 150,
-        })
-        .eq("id", id);
 
       if (error) throw error;
 
-      toast({
-        title: "Validation Complete!",
-        description: `Consensus Score: ${mockScore}%. Your idea is ready for development!`,
-      });
-      
-      setValidating(false);
-      fetchIdea();
+      if (data.success) {
+        toast({
+          title: "Validation Complete!",
+          description: `Consensus Score: ${data.consensus_score}%. Your idea is ready for development!`,
+        });
+        fetchIdea();
+      } else {
+        throw new Error("Validation failed");
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error completing validation",
-        description: error.message,
+        title: "Validation Error",
+        description: error.message || "Failed to validate idea. Please try again.",
       });
+      
+      // Reset status on error
+      await supabase
+        .from("ideas")
+        .update({ status: "draft" })
+        .eq("id", id);
+      
+      fetchIdea();
+    } finally {
       setValidating(false);
     }
   };
