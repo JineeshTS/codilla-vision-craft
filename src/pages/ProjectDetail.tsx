@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import Navbar from "@/components/Navbar";
 import { Rocket, CheckCircle, Clock, AlertCircle, ExternalLink, GitBranch } from "lucide-react";
 
@@ -47,21 +48,16 @@ const ProjectDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isAuthenticated = useAuthGuard();
   const [project, setProject] = useState<Project | null>(null);
   const [phases, setPhases] = useState<Phase[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    checkAuth();
-    fetchProjectData();
-  }, [id]);
-
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      navigate("/auth");
+    if (isAuthenticated) {
+      fetchProjectData();
     }
-  };
+  }, [id, isAuthenticated]);
 
   const fetchProjectData = async () => {
     try {

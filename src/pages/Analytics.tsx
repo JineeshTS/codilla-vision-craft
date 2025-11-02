@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import Navbar from "@/components/Navbar";
 import { BarChart, TrendingUp, Target, Zap, Clock, CheckCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
@@ -10,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 const Analytics = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isAuthenticated = useAuthGuard();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalIdeas: 0,
@@ -23,16 +25,10 @@ const Analytics = () => {
   });
 
   useEffect(() => {
-    checkAuth();
-    fetchAnalytics();
-  }, []);
-
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      navigate("/auth");
+    if (isAuthenticated) {
+      fetchAnalytics();
     }
-  };
+  }, [isAuthenticated]);
 
   const fetchAnalytics = async () => {
     try {

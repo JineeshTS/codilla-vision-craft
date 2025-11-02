@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Lightbulb, TrendingUp, Archive } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useToast } from "@/hooks/use-toast";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -21,20 +22,15 @@ interface Idea {
 const Ideas = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isAuthenticated = useAuthGuard();
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    checkAuth();
-    fetchIdeas();
-  }, []);
-
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      navigate("/auth");
+    if (isAuthenticated) {
+      fetchIdeas();
     }
-  };
+  }, [isAuthenticated]);
 
   const fetchIdeas = async () => {
     try {

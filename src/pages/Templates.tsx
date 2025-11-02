@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import Navbar from "@/components/Navbar";
 import { FileText, Search, TrendingUp, Sparkles } from "lucide-react";
 
@@ -22,22 +23,17 @@ interface Template {
 const Templates = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isAuthenticated = useAuthGuard();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   useEffect(() => {
-    checkAuth();
-    fetchTemplates();
-  }, []);
-
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      navigate("/auth");
+    if (isAuthenticated) {
+      fetchTemplates();
     }
-  };
+  }, [isAuthenticated]);
 
   const fetchTemplates = async () => {
     try {

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Coins, TrendingUp, TrendingDown, Gift } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useToast } from "@/hooks/use-toast";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -25,21 +26,16 @@ interface Profile {
 const Tokens = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isAuthenticated = useAuthGuard();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    checkAuth();
-    fetchData();
-  }, []);
-
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      navigate("/auth");
+    if (isAuthenticated) {
+      fetchData();
     }
-  };
+  }, [isAuthenticated]);
 
   const fetchData = async () => {
     try {

@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 import Navbar from "@/components/Navbar";
 import { Lightbulb, Sparkles, Rocket, Edit, Save, X, TrendingUp } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
@@ -30,6 +31,7 @@ const IdeaDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isAuthenticated = useAuthGuard();
   const [idea, setIdea] = useState<Idea | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -43,16 +45,10 @@ const IdeaDetail = () => {
   });
 
   useEffect(() => {
-    checkAuth();
-    fetchIdea();
-  }, [id]);
-
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      navigate("/auth");
+    if (isAuthenticated) {
+      fetchIdea();
     }
-  };
+  }, [id, isAuthenticated]);
 
   const fetchIdea = async () => {
     try {
@@ -133,7 +129,7 @@ const IdeaDetail = () => {
       if (data.success) {
         toast({
           title: "Validation Complete!",
-          description: `Consensus Score: ${data.consensus_score}%. Your idea is ready for development!`,
+          description: `Consensus Score: ${data.avgScore}%. Your idea is ready for development!`,
         });
         fetchIdea();
       } else {
@@ -382,19 +378,19 @@ const IdeaDetail = () => {
                   <div className="grid grid-cols-3 gap-4 mb-6">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-ai-claude">
-                        {idea.validation_summary.claude_score}%
+                        {idea.validation_summary.validations?.[0]?.score || 0}%
                       </div>
                       <p className="text-sm text-muted-foreground">Claude</p>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-ai-gemini">
-                        {idea.validation_summary.gemini_score}%
+                        {idea.validation_summary.validations?.[1]?.score || 0}%
                       </div>
                       <p className="text-sm text-muted-foreground">Gemini</p>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-ai-codex">
-                        {idea.validation_summary.codex_score}%
+                        {idea.validation_summary.validations?.[2]?.score || 0}%
                       </div>
                       <p className="text-sm text-muted-foreground">Codex</p>
                     </div>
@@ -404,7 +400,7 @@ const IdeaDetail = () => {
                     <div>
                       <h3 className="font-semibold mb-2 text-green-400">Strengths</h3>
                       <ul className="list-disc list-inside space-y-1">
-                        {idea.validation_summary.strengths?.map((s: string, i: number) => (
+                        {idea.validation_summary.validations?.flatMap((v: any) => v.strengths || []).map((s: string, i: number) => (
                           <li key={i} className="text-muted-foreground">{s}</li>
                         ))}
                       </ul>
@@ -412,7 +408,7 @@ const IdeaDetail = () => {
                     <div>
                       <h3 className="font-semibold mb-2 text-yellow-400">Concerns</h3>
                       <ul className="list-disc list-inside space-y-1">
-                        {idea.validation_summary.concerns?.map((c: string, i: number) => (
+                        {idea.validation_summary.validations?.flatMap((v: any) => v.concerns || []).map((c: string, i: number) => (
                           <li key={i} className="text-muted-foreground">{c}</li>
                         ))}
                       </ul>
@@ -420,7 +416,7 @@ const IdeaDetail = () => {
                     <div>
                       <h3 className="font-semibold mb-2 text-primary">Recommendations</h3>
                       <ul className="list-disc list-inside space-y-1">
-                        {idea.validation_summary.recommendations?.map((r: string, i: number) => (
+                        {idea.validation_summary.validations?.flatMap((v: any) => v.recommendations || []).map((r: string, i: number) => (
                           <li key={i} className="text-muted-foreground">{r}</li>
                         ))}
                       </ul>
