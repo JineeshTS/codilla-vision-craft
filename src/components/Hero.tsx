@@ -34,9 +34,9 @@ export const Hero = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-fade-in" style={{ animationDelay: "0.3s" }}>
-            <Link to="/dashboard">
+            <Link to="/auth">
               <Button size="lg" className="bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 glow-primary">
-                Start Building <ArrowRight className="w-4 h-4 ml-2" />
+                Get Started Free <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>
             <Button size="lg" variant="outline" className="border-primary/30 hover:bg-primary/10">

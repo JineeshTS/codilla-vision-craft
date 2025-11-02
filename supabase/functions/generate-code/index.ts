@@ -14,7 +14,12 @@ serve(async (req) => {
     const { prompt, context } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    if (!LOVABLE_API_KEY) {
+      console.error("LOVABLE_API_KEY not configured");
+      throw new Error("LOVABLE_API_KEY not configured");
+    }
+
+    console.log("Generating code with prompt:", prompt?.substring(0, 100));
 
     const systemPrompt = `You are an expert software developer. Generate clean, production-ready code based on the user's requirements. Follow best practices, include comments, and ensure code is secure and efficient.
 
@@ -39,6 +44,9 @@ Provide complete, working code with proper error handling.`;
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error("AI Gateway error:", response.status, errorText);
+      
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
@@ -57,9 +65,10 @@ Provide complete, working code with proper error handling.`;
           }
         );
       }
-      const errorText = await response.text();
       throw new Error(`AI Gateway error: ${response.status} - ${errorText}`);
     }
+
+    console.log("Streaming response from AI gateway");
 
     // Stream the response back to the client
     return new Response(response.body, {
