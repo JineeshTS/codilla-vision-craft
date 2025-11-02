@@ -58,8 +58,10 @@ serve(async (req) => {
       global: { headers: { Authorization: authHeader } }
     });
 
-    const { data: { user }, error: userError } = await userClient.auth.getUser();
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await userClient.auth.getUser(token);
     if (userError || !user) {
+      console.error('Auth failed in validate-idea:', userError);
       return createErrorResponse('Authentication required', 401, corsHeaders, errorId);
     }
 
