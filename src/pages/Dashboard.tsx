@@ -1,114 +1,129 @@
-import { Navbar } from "@/components/Navbar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Sparkles, Plus, FolderOpen, TrendingUp, Clock } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Lightbulb, Rocket, CheckCircle, TrendingUp, Plus } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import { supabase } from "@/integrations/supabase/client";
 
-export default function Dashboard() {
-  const stats = [
-    { label: "Active Projects", value: "0", icon: FolderOpen, color: "text-ai-claude" },
-    { label: "Token Balance", value: "0", icon: Sparkles, color: "text-primary" },
-    { label: "Success Rate", value: "0%", icon: TrendingUp, color: "text-ai-gemini" },
-    { label: "Time Saved", value: "0h", icon: Clock, color: "text-secondary" },
-  ];
+const Dashboard = () => {
+  const navigate = useNavigate();
+  const [stats, setStats] = useState({
+    ideas: 0,
+    projects: 0,
+    completed: 0,
+    tokens: 0,
+  });
+
+  useEffect(() => {
+    checkAuth();
+    fetchStats();
+  }, []);
+
+  const checkAuth = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      navigate("/auth");
+    }
+  };
+
+  const fetchStats = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const [ideasRes, projectsRes, profileRes] = await Promise.all([
+      supabase.from("ideas").select("id, status", { count: "exact" }).eq("user_id", user.id),
+      supabase.from("projects").select("id", { count: "exact" }).eq("user_id", user.id),
+      supabase.from("profiles").select("total_tokens, tokens_used").eq("id", user.id).single(),
+    ]);
+
+    const completed = ideasRes.data?.filter(i => i.status === "completed").length || 0;
+
+    setStats({
+      ideas: ideasRes.data?.length || 0,
+      projects: projectsRes.data?.length || 0,
+      completed,
+      tokens: profileRes.data ? profileRes.data.total_tokens - profileRes.data.tokens_used : 0,
+    });
+  };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen cosmic-bg">
       <Navbar />
-      
-      <main className="pt-24 pb-16">
-        <div className="container mx-auto px-4">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-4xl font-bold mb-2">Dashboard</h1>
-              <p className="text-muted-foreground">Welcome back! Let's build something amazing.</p>
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold gradient-text mb-2">Dashboard</h1>
+          <p className="text-muted-foreground">Transform your ideas into reality</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card className="glass-panel p-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-muted-foreground">Active Ideas</span>
+              <Lightbulb className="w-5 h-5 text-primary" />
             </div>
-            <Link to="/ideas/new">
-              <Button className="bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 glow-primary">
-                <Plus className="w-4 h-4 mr-2" />
-                New Idea
-              </Button>
-            </Link>
-          </div>
-
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {stats.map((stat, index) => {
-              const Icon = stat.icon;
-              return (
-                <Card key={index} className="glass-card animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className={`w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center`}>
-                        <Icon className={`w-5 h-5 ${stat.color}`} />
-                      </div>
-                    </div>
-                    <div className="text-3xl font-bold gradient-text mb-1">{stat.value}</div>
-                    <div className="text-sm text-muted-foreground">{stat.label}</div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-
-          {/* Recent Projects */}
-          <Card className="glass-card mb-8">
-            <CardHeader>
-              <CardTitle>Recent Projects</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12">
-                <div className="w-16 h-16 rounded-full bg-muted/20 flex items-center justify-center mx-auto mb-4">
-                  <FolderOpen className="w-8 h-8 text-muted-foreground" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">No projects yet</h3>
-                <p className="text-muted-foreground mb-6">Start your first project by capturing your idea</p>
-                <Link to="/ideas/new">
-                  <Button variant="outline" className="border-primary/30 hover:bg-primary/10">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Your First Idea
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
+            <p className="text-3xl font-bold">{stats.ideas}</p>
           </Card>
 
-          {/* Quick Actions */}
+          <Card className="glass-panel p-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-muted-foreground">In Development</span>
+              <Rocket className="w-5 h-5 text-primary" />
+            </div>
+            <p className="text-3xl font-bold">{stats.projects}</p>
+          </Card>
+
+          <Card className="glass-panel p-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-muted-foreground">Completed</span>
+              <CheckCircle className="w-5 h-5 text-green-400" />
+            </div>
+            <p className="text-3xl font-bold">{stats.completed}</p>
+          </Card>
+
+          <Card className="glass-panel p-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-muted-foreground">Available Tokens</span>
+              <TrendingUp className="w-5 h-5 text-primary" />
+            </div>
+            <p className="text-3xl font-bold">{stats.tokens.toLocaleString()}</p>
+          </Card>
+        </div>
+
+        <div className="mb-8">
+          <h2 className="text-2xl font-semibold mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="glass-card hover:scale-105 transition-transform cursor-pointer">
-              <CardContent className="p-6">
-                <h3 className="font-semibold mb-2">📝 Capture New Idea</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Start with our guided questionnaire
-                </p>
-                <Badge variant="outline" className="border-primary/30 text-primary">Phase 1</Badge>
-              </CardContent>
+            <Card 
+              className="glass-panel p-6 hover:scale-105 transition-transform cursor-pointer"
+              onClick={() => navigate("/ideas/new")}
+            >
+              <Plus className="w-8 h-8 text-primary mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Capture New Idea</h3>
+              <p className="text-muted-foreground text-sm">Start the validation process</p>
             </Card>
 
-            <Card className="glass-card hover:scale-105 transition-transform cursor-pointer">
-              <CardContent className="p-6">
-                <h3 className="font-semibold mb-2">🔍 Validate Idea</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Run AI-powered validation
-                </p>
-                <Badge variant="outline" className="border-ai-gemini/30 text-ai-gemini">Phase 2</Badge>
-              </CardContent>
+            <Card 
+              className="glass-panel p-6 hover:scale-105 transition-transform cursor-pointer"
+              onClick={() => navigate("/projects")}
+            >
+              <Rocket className="w-8 h-8 text-primary mb-4" />
+              <h3 className="text-xl font-semibold mb-2">View Projects</h3>
+              <p className="text-muted-foreground text-sm">Track your development</p>
             </Card>
 
-            <Card className="glass-card hover:scale-105 transition-transform cursor-pointer">
-              <CardContent className="p-6">
-                <h3 className="font-semibold mb-2">🚀 Start Building</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Begin AI-assisted development
-                </p>
-                <Badge variant="outline" className="border-secondary/30 text-secondary">Phase 7</Badge>
-              </CardContent>
+            <Card 
+              className="glass-panel p-6 hover:scale-105 transition-transform cursor-pointer"
+              onClick={() => navigate("/ideas")}
+            >
+              <CheckCircle className="w-8 h-8 text-green-400 mb-4" />
+              <h3 className="text-xl font-semibold mb-2">View All Ideas</h3>
+              <p className="text-muted-foreground text-sm">Review your concepts</p>
             </Card>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
-}
+};
+
+export default Dashboard;
