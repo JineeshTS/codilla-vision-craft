@@ -1,10 +1,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Input validation schema
+const requestSchema = z.object({
+  phaseId: z.string().uuid({ message: "Invalid phase ID format" }),
+  userInput: z.string().min(1).max(5000, { message: "User input must be between 1 and 5000 characters" }),
+});
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -12,16 +19,54 @@ serve(async (req) => {
   }
 
   try {
-    const { phaseId, userInput } = await req.json();
+    // Get authorization token
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - No authorization token provided' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const requestBody = await req.json();
+    
+    // Validate input
+    const validation = requestSchema.safeParse(requestBody);
+    if (!validation.success) {
+      console.error('Input validation failed:', validation.error);
+      return new Response(
+        JSON.stringify({ error: 'Invalid input format', details: validation.error.issues }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { phaseId, userInput } = validation.data;
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
 
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !SUPABASE_ANON_KEY) {
       throw new Error("Supabase credentials not configured");
     }
 
+    // Create client with user's token for authorization check
+    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // Get authenticated user
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    if (userError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - Invalid token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Create service role client for operations
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     // Fetch phase and project details
@@ -31,8 +76,22 @@ serve(async (req) => {
       .eq("id", phaseId)
       .single();
 
-    if (phaseError) throw phaseError;
-    if (!phase) throw new Error("Phase not found");
+    if (phaseError || !phase) {
+      console.error('Phase fetch error:', phaseError);
+      return new Response(
+        JSON.stringify({ error: 'Phase not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verify ownership
+    if (phase.projects?.user_id !== user.id) {
+      console.error('Ownership verification failed:', { projectUserId: phase.projects?.user_id, requestUserId: user.id });
+      return new Response(
+        JSON.stringify({ error: 'Forbidden - You do not own this project' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     const phaseDescriptions: Record<number, string> = {
       1: "Requirements Analysis - Define core features, user stories, and acceptance criteria",
@@ -194,12 +253,30 @@ Validate this phase deliverable and provide:
     );
   } catch (error) {
     console.error("Phase validation error:", error);
+    
+    // Map internal errors to user-friendly messages
+    let userMessage = 'An unexpected error occurred while validating the phase';
+    let statusCode = 500;
+    
+    if (error instanceof Error) {
+      if (error.message.includes('fetch')) {
+        userMessage = 'Unable to connect to validation service';
+      } else if (error.message.includes('not found')) {
+        userMessage = 'Phase not found';
+        statusCode = 404;
+      } else if (error.message.includes('configured')) {
+        userMessage = 'Service temporarily unavailable';
+        statusCode = 503;
+      } else if (error.message.includes('Rate limit') || error.message.includes('Payment required')) {
+        userMessage = error.message;
+        statusCode = error.message.includes('Rate limit') ? 429 : 402;
+      }
+    }
+    
     return new Response(
-      JSON.stringify({
-        error: error instanceof Error ? error.message : "Unknown error occurred",
-      }),
+      JSON.stringify({ error: userMessage }),
       {
-        status: 500,
+        status: statusCode,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
