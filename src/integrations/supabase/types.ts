@@ -118,6 +118,124 @@ export type Database = {
           },
         ]
       }
+      change_requests: {
+        Row: {
+          affected_components: string[] | null
+          approved_at: string | null
+          created_at: string
+          description: string
+          id: string
+          impact_analysis: string | null
+          implemented_at: string | null
+          priority: string
+          project_id: string
+          status: string
+          title: string
+          updated_at: string
+          user_approved: boolean | null
+          user_id: string
+        }
+        Insert: {
+          affected_components?: string[] | null
+          approved_at?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          impact_analysis?: string | null
+          implemented_at?: string | null
+          priority?: string
+          project_id: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_approved?: boolean | null
+          user_id: string
+        }
+        Update: {
+          affected_components?: string[] | null
+          approved_at?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          impact_analysis?: string | null
+          implemented_at?: string | null
+          priority?: string
+          project_id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_approved?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "change_requests_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      development_prompts: {
+        Row: {
+          category: string
+          created_at: string
+          dependencies: string[] | null
+          description: string
+          estimated_tokens: number
+          executed_at: string | null
+          execution_result: string | null
+          id: string
+          project_id: string
+          prompt_text: string
+          sequence_number: number
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          dependencies?: string[] | null
+          description: string
+          estimated_tokens?: number
+          executed_at?: string | null
+          execution_result?: string | null
+          id?: string
+          project_id: string
+          prompt_text: string
+          sequence_number: number
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          dependencies?: string[] | null
+          description?: string
+          estimated_tokens?: number
+          executed_at?: string | null
+          execution_result?: string | null
+          id?: string
+          project_id?: string
+          prompt_text?: string
+          sequence_number?: number
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "development_prompts_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ideas: {
         Row: {
           audience_size: string | null
@@ -462,6 +580,72 @@ export type Database = {
             columns: ["idea_id"]
             isOneToOne: false
             referencedRelation: "ideas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prompt_executions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          execution_order: number
+          execution_time_ms: number | null
+          generated_code: string | null
+          id: string
+          preview_url: string | null
+          project_id: string
+          prompt_id: string
+          started_at: string
+          tokens_used: number | null
+          user_approved: boolean | null
+          user_feedback: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          execution_order: number
+          execution_time_ms?: number | null
+          generated_code?: string | null
+          id?: string
+          preview_url?: string | null
+          project_id: string
+          prompt_id: string
+          started_at?: string
+          tokens_used?: number | null
+          user_approved?: boolean | null
+          user_feedback?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          execution_order?: number
+          execution_time_ms?: number | null
+          generated_code?: string | null
+          id?: string
+          preview_url?: string | null
+          project_id?: string
+          prompt_id?: string
+          started_at?: string
+          tokens_used?: number | null
+          user_approved?: boolean | null
+          user_feedback?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prompt_executions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prompt_executions_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "development_prompts"
             referencedColumns: ["id"]
           },
         ]

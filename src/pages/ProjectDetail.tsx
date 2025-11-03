@@ -186,6 +186,39 @@ const ProjectDetail = () => {
           </Card>
         )}
 
+        <Card className="glass-panel p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Button
+              variant="outline"
+              onClick={() => navigate(`/projects/${id}/development-prep`)}
+              className="h-auto py-4 flex-col gap-2"
+            >
+              <Rocket className="w-6 h-6" />
+              <span>Development Prep</span>
+              <span className="text-xs text-muted-foreground">Phase 6: Generate Prompts</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate(`/projects/${id}/ai-development`)}
+              className="h-auto py-4 flex-col gap-2"
+            >
+              <CheckCircle className="w-6 h-6" />
+              <span>AI Development</span>
+              <span className="text-xs text-muted-foreground">Phase 7: Execute & Review</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate(`/projects/${id}/product-definition`)}
+              className="h-auto py-4 flex-col gap-2"
+            >
+              <GitBranch className="w-6 h-6" />
+              <span>Product Definition</span>
+              <span className="text-xs text-muted-foreground">Phase 3: PRD & Stories</span>
+            </Button>
+          </div>
+        </Card>
+
         <Card className="glass-panel p-6">
           <h2 className="text-2xl font-semibold mb-6">Development Phases</h2>
           <div className="space-y-4">
