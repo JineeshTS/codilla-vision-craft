@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_conversations: {
+        Row: {
+          context_id: string | null
+          context_type: string | null
+          created_at: string
+          id: string
+          messages: Json | null
+          phase_number: number | null
+          total_tokens_used: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          context_id?: string | null
+          context_type?: string | null
+          created_at?: string
+          id?: string
+          messages?: Json | null
+          phase_number?: number | null
+          total_tokens_used?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          context_id?: string | null
+          context_type?: string | null
+          created_at?: string
+          id?: string
+          messages?: Json | null
+          phase_number?: number | null
+          total_tokens_used?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_requests: {
         Row: {
           ai_agent: string
@@ -496,6 +532,7 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          token_balance: number
           tokens_used: number
           total_tokens: number
           updated_at: string
@@ -506,6 +543,7 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
+          token_balance?: number
           tokens_used?: number
           total_tokens?: number
           updated_at?: string
@@ -516,6 +554,7 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          token_balance?: number
           tokens_used?: number
           total_tokens?: number
           updated_at?: string
