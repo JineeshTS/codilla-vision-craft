@@ -85,49 +85,50 @@ serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!SUPABASE_SERVICE_ROLE_KEY) {
       return createErrorResponse('Service configuration error', 500, corsHeaders, errorId);
+    }
+
+    const serviceClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Get AI provider config
+    const { data: aiConfig } = await serviceClient
+      .from('system_config')
+      .select('config_value')
+      .eq('config_key', 'ai_providers')
+      .single();
+
+    const aiProvider = (aiConfig?.config_value as any)?.primary || 'openai';
+    const aiApiKey = Deno.env.get(aiProvider === 'openai' ? 'OPENAI_API_KEY' : aiProvider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'GOOGLE_API_KEY') || Deno.env.get("LOVABLE_API_KEY") || '';
+    
+    if (!aiApiKey) {
+      throw new Error('AI provider API key not configured');
     }
 
     const systemPrompt = context 
       ? `You are a code generation assistant. Use this context: ${context}\n\nGenerate clean, production-ready code.`
       : "You are a code generation assistant. Generate clean, production-ready code.";
 
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
+    const { callAI } = await import("../_shared/ai-provider.ts");
+    
+    const aiResponse = await callAI(
+      {
+        provider: aiProvider as "openai" | "anthropic" | "google",
+        apiKey: aiApiKey,
+        model: aiProvider === 'openai' ? 'gpt-4o-mini' : 'google/gemini-2.5-flash',
+        temperature: 0.7,
       },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: prompt }
-        ],
-        stream: true,
-      }),
-    });
+      [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: prompt }
+      ],
+      true
+    );
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      console.error("AI gateway error:", aiResponse.status, errorText);
-      
-      if (aiResponse.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "AI service rate limit exceeded. Please try again later." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      
-      if (aiResponse.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI service credits exhausted. Please contact support." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      
+      console.error("AI provider error:", aiResponse.status, errorText);
       return createErrorResponse("AI service unavailable", 503, corsHeaders, errorId);
     }
 

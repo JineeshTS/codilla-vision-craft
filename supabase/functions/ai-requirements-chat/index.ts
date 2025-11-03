@@ -29,7 +29,6 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
     
     const supabase = createClient(supabaseUrl, supabaseKey);
     
@@ -79,6 +78,20 @@ serve(async (req) => {
 
     console.log(`📝 Processing idea: ${idea.title}`);
 
+    // Get AI provider config
+    const { data: aiConfig } = await supabase
+      .from('system_config')
+      .select('config_value')
+      .eq('config_key', 'ai_providers')
+      .single();
+
+    const aiProvider = (aiConfig?.config_value as any)?.primary || 'openai';
+    const aiApiKey = Deno.env.get(aiProvider === 'openai' ? 'OPENAI_API_KEY' : aiProvider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'GOOGLE_API_KEY') || Deno.env.get("LOVABLE_API_KEY") || '';
+    
+    if (!aiApiKey) {
+      throw new Error('AI provider API key not configured');
+    }
+
     const systemPrompt = `You are an expert requirements analyst helping entrepreneurs refine their ideas through the Codilla Framework Phase 1: Requirements Analysis.
 
 Your goal is to deeply understand the user's idea through thoughtful questions and discussion. Focus on:
@@ -101,44 +114,29 @@ ${idea.unique_value_proposition ? `- UVP: ${idea.unique_value_proposition}` : ''
 
 Ask ONE thoughtful, specific question at a time. Build on their previous answers. Be conversational, encouraging, and help them think deeper about their idea. When you identify gaps or concerns, ask clarifying questions rather than making assumptions.`;
 
-    const startTime = Date.now();
+    const { callAI } = await import("../_shared/ai-provider.ts");
     
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...messages
-        ],
+    const aiMessages = [
+      { role: "system" as const, content: systemPrompt },
+      ...messages
+    ];
+    
+    const response = await callAI(
+      {
+        provider: aiProvider as "openai" | "anthropic" | "google",
+        apiKey: aiApiKey,
+        model: aiProvider === 'openai' ? 'gpt-4o-mini' : 'google/gemini-2.5-flash',
         temperature: 0.8,
-        max_tokens: 500,
-        stream: true
-      }),
-    });
+        maxTokens: 500,
+      },
+      aiMessages,
+      true
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI gateway error:', response.status, errorText);
-      
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'AI rate limit exceeded, please try again later.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'AI credits exhausted, please add funds to your workspace.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      return createErrorResponse('AI gateway error', 500, corsHeaders, errorId);
+      console.error('AI provider error:', response.status, errorText);
+      return createErrorResponse('AI service unavailable', 500, corsHeaders, errorId);
     }
 
     // Stream the response back

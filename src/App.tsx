@@ -56,6 +56,7 @@ const App = () => (
           <Route path="/projects/:projectId/ai-development" element={<AIAssistedDev />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/settings" element={<AdminSettings />} />
+          <Route path="/admin/analytics" element={<Analytics />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
