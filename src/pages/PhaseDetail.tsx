@@ -10,10 +10,20 @@ import { useAuthGuard } from "@/hooks/useAuthGuard";
 import Navbar from "@/components/Navbar";
 import { PhaseTaskChat } from "@/components/phases/PhaseTaskChat";
 import { getPhaseStructure, PhaseTask } from "@/config/phaseStructure";
-import { ArrowLeft, CheckCircle2, Circle, Lock } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Circle, Lock, PartyPopper } from "lucide-react";
+import { 
+  initializePhaseProgress, 
+  calculatePhaseProgress, 
+  areAllTasksCompleted,
+  completePhase 
+} from "@/lib/phaseUtils";
 
 interface PhaseProgress {
-  stages: { taskId: string; completed: boolean; completedAt: string | null }[];
+  id: string;
+  completed_tasks: string[];
+  task_outputs: Record<string, any>;
+  status: string;
+  progress: number;
 }
 
 const PhaseDetail = () => {
@@ -23,7 +33,8 @@ const PhaseDetail = () => {
   const isAuthenticated = useAuthGuard();
   const [loading, setLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState<PhaseTask | null>(null);
-  const [phaseProgress, setPhaseProgress] = useState<PhaseProgress>({ stages: [] });
+  const [phaseProgress, setPhaseProgress] = useState<PhaseProgress | null>(null);
+  const [phaseComplete, setPhaseComplete] = useState(false);
   
   const phaseNum = parseInt(phaseNumber || "1");
   const phaseStructure = getPhaseStructure(phaseNum);
@@ -38,38 +49,26 @@ const PhaseDetail = () => {
     try {
       const { data, error } = await supabase
         .from("phase_progress")
-        .select("stages")
+        .select("*")
         .eq("project_id", projectId)
         .eq("phase_number", phaseNum)
         .single();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
       
-      if (data?.stages) {
-        setPhaseProgress({ stages: data.stages as any[] });
+      if (data) {
+        setPhaseProgress(data as PhaseProgress);
+        setPhaseComplete(data.status === "completed");
       } else {
-        // Initialize phase progress if not exists
-        const { error: insertError } = await supabase
-          .from("phase_progress")
-          .insert({
-            project_id: projectId,
-            phase_number: phaseNum,
-            phase_name: phaseStructure?.phaseName || "",
-            stages: phaseStructure?.tasks.map(t => ({ 
-              taskId: t.id, 
-              completed: false, 
-              completedAt: null 
-            })) || []
-          });
-        
-        if (insertError) throw insertError;
-        setPhaseProgress({ 
-          stages: phaseStructure?.tasks.map(t => ({ 
-            taskId: t.id, 
-            completed: false, 
-            completedAt: null 
-          })) || [] 
-        });
+        // Initialize phase progress
+        const result = await initializePhaseProgress(projectId!, phaseNum);
+        if (result.success && result.data) {
+          setPhaseProgress(result.data);
+        } else {
+          throw new Error(result.error || "Failed to initialize phase");
+        }
       }
     } catch (error: any) {
       toast({
@@ -82,17 +81,33 @@ const PhaseDetail = () => {
     }
   };
 
+  const handleTaskComplete = async () => {
+    await fetchPhaseProgress();
+    
+    // Check if all tasks are completed
+    if (phaseProgress && areAllTasksCompleted(phaseNum, phaseProgress.completed_tasks)) {
+      const result = await completePhase(projectId!, phaseNum);
+      if (result.success) {
+        setPhaseComplete(true);
+        toast({
+          title: "🎉 Phase Complete!",
+          description: `You've completed Phase ${phaseNum}: ${phaseStructure?.phaseName}. Moving to next phase...`,
+        });
+      }
+    }
+  };
+
   const isTaskCompleted = (taskId: string) => {
-    return phaseProgress.stages.find(s => s.taskId === taskId)?.completed || false;
+    return phaseProgress?.completed_tasks.includes(taskId) || false;
   };
 
   const getCompletedTasksCount = () => {
-    return phaseProgress.stages.filter(s => s.completed).length;
+    return phaseProgress?.completed_tasks.length || 0;
   };
 
   const getProgressPercentage = () => {
-    if (!phaseStructure) return 0;
-    return Math.round((getCompletedTasksCount() / phaseStructure.tasks.length) * 100);
+    if (!phaseStructure || !phaseProgress) return 0;
+    return calculatePhaseProgress(phaseNum, phaseProgress.completed_tasks);
   };
 
   if (loading || !phaseStructure) {
@@ -194,13 +209,38 @@ const PhaseDetail = () => {
           </div>
 
           <div className="lg:col-span-2">
-            {selectedTask ? (
+            {phaseComplete ? (
+              <Card className="glass-panel p-12 text-center">
+                <PartyPopper className="w-16 h-16 text-primary mx-auto mb-4" />
+                <h3 className="text-2xl font-bold gradient-text mb-4">
+                  Phase {phaseNum} Complete! 🎉
+                </h3>
+                <p className="text-muted-foreground mb-6">
+                  You've completed all tasks in {phaseStructure?.phaseName}. Ready to move on?
+                </p>
+                <div className="flex gap-4 justify-center">
+                  <Button 
+                    onClick={() => navigate(`/projects/${projectId}/phase/${phaseNum + 1}`)}
+                    size="lg"
+                  >
+                    Start Next Phase
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => navigate(`/projects/${projectId}`)}
+                    size="lg"
+                  >
+                    Back to Project
+                  </Button>
+                </div>
+              </Card>
+            ) : selectedTask ? (
               <PhaseTaskChat
                 projectId={projectId!}
                 phaseNumber={phaseNum}
                 task={selectedTask}
                 isCompleted={isTaskCompleted(selectedTask.id)}
-                onComplete={fetchPhaseProgress}
+                onComplete={handleTaskComplete}
               />
             ) : (
               <Card className="glass-panel p-12 text-center">

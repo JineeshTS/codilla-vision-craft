@@ -407,11 +407,56 @@ export type Database = {
         }
         Relationships: []
       }
+      phase_artifacts: {
+        Row: {
+          artifact_data: Json
+          artifact_type: string
+          created_at: string | null
+          file_url: string | null
+          id: string
+          phase_number: number
+          project_id: string
+          task_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          artifact_data?: Json
+          artifact_type: string
+          created_at?: string | null
+          file_url?: string | null
+          id?: string
+          phase_number: number
+          project_id: string
+          task_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          artifact_data?: Json
+          artifact_type?: string
+          created_at?: string | null
+          file_url?: string | null
+          id?: string
+          phase_number?: number
+          project_id?: string
+          task_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "phase_artifacts_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       phase_progress: {
         Row: {
           ai_decision: string | null
           ai_feedback: Json | null
           completed_at: string | null
+          completed_tasks: Json | null
           created_at: string | null
           id: string
           phase_name: string
@@ -421,6 +466,7 @@ export type Database = {
           stages: Json | null
           started_at: string | null
           status: string | null
+          task_outputs: Json | null
           tokens_used: number | null
           updated_at: string | null
         }
@@ -428,6 +474,7 @@ export type Database = {
           ai_decision?: string | null
           ai_feedback?: Json | null
           completed_at?: string | null
+          completed_tasks?: Json | null
           created_at?: string | null
           id?: string
           phase_name: string
@@ -437,6 +484,7 @@ export type Database = {
           stages?: Json | null
           started_at?: string | null
           status?: string | null
+          task_outputs?: Json | null
           tokens_used?: number | null
           updated_at?: string | null
         }
@@ -444,6 +492,7 @@ export type Database = {
           ai_decision?: string | null
           ai_feedback?: Json | null
           completed_at?: string | null
+          completed_tasks?: Json | null
           created_at?: string | null
           id?: string
           phase_name?: string
@@ -453,6 +502,7 @@ export type Database = {
           stages?: Json | null
           started_at?: string | null
           status?: string | null
+          task_outputs?: Json | null
           tokens_used?: number | null
           updated_at?: string | null
         }

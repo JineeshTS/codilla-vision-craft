@@ -174,33 +174,36 @@ export const PhaseTaskChat = ({
       // Fetch current phase progress
       const { data: currentProgress, error: fetchError } = await supabase
         .from("phase_progress")
-        .select("stages")
+        .select("completed_tasks")
         .eq("project_id", projectId)
         .eq("phase_number", phaseNumber)
         .single();
 
       if (fetchError) throw fetchError;
 
-      const stages = (currentProgress?.stages as any[]) || [];
-      const updatedStages = stages.map(stage => 
-        stage.taskId === task.id 
-          ? { ...stage, completed: true, completedAt: new Date().toISOString() }
-          : stage
-      );
+      const completedTasks = (currentProgress?.completed_tasks as string[]) || [];
+      
+      // Add task if not already completed
+      if (!completedTasks.includes(task.id)) {
+        const updatedCompletedTasks = [...completedTasks, task.id];
 
-      // Update phase_progress stages
-      const { error } = await supabase
-        .from("phase_progress")
-        .update({ stages: updatedStages })
-        .eq("project_id", projectId)
-        .eq("phase_number", phaseNumber);
+        // Update phase_progress with new completed task
+        const { error } = await supabase
+          .from("phase_progress")
+          .update({ 
+            completed_tasks: updatedCompletedTasks,
+            progress: Math.round((updatedCompletedTasks.length / 4) * 100) // Assuming 4 tasks per phase avg
+          })
+          .eq("project_id", projectId)
+          .eq("phase_number", phaseNumber);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: "Task completed!",
-        description: `${task.title} has been marked as complete.`,
-      });
+        toast({
+          title: "Task completed!",
+          description: `${task.title} has been marked as complete.`,
+        });
+      }
       
       onComplete();
     } catch (error: any) {

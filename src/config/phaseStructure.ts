@@ -5,6 +5,8 @@ export interface PhaseTask {
   description: string;
   estimatedTokens: number;
   aiPromptContext: string;
+  artifactType?: string; // Type of artifact this task produces
+  dependencies?: string[]; // IDs of tasks that must be completed first
 }
 
 export interface PhaseStructure {
@@ -15,6 +17,8 @@ export interface PhaseStructure {
   description: string;
   tasks: PhaseTask[];
   decisionGate: string;
+  completionCriteria?: string; // What defines phase completion
+  requiredArtifacts?: string[]; // Required artifacts to complete phase
 }
 
 export const PHASE_STRUCTURES: PhaseStructure[] = [
