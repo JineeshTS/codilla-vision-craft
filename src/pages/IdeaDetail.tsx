@@ -475,6 +475,20 @@ const IdeaDetail = () => {
                     <p className="text-muted-foreground">AI Consensus Score</p>
                   </div>
 
+                  <div className="flex justify-center gap-4 mb-6">
+                    <Button
+                      onClick={() => navigate(`/ideas/${id}/business-validation`)}
+                      className="glow-on-hover"
+                    >
+                      <TrendingUp className="w-4 h-4 mr-2" />
+                      Start Business Validation
+                    </Button>
+                    <Button onClick={handleCreateProject} variant="outline">
+                      <Rocket className="w-4 h-4 mr-2" />
+                      Create Project
+                    </Button>
+                  </div>
+
                   <div className="grid grid-cols-3 gap-4 mb-6">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-ai-claude">

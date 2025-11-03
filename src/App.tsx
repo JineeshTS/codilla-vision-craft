@@ -9,8 +9,10 @@ import Auth from "./pages/Auth";
 import Ideas from "./pages/Ideas";
 import NewIdea from "./pages/NewIdea";
 import IdeaDetail from "./pages/IdeaDetail";
+import BusinessValidation from "./pages/BusinessValidation";
 import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
+import ProductDefinition from "./pages/ProductDefinition";
 import Tokens from "./pages/Tokens";
 import Templates from "./pages/Templates";
 import Analytics from "./pages/Analytics";
@@ -33,8 +35,10 @@ const App = () => (
           <Route path="/ideas" element={<Ideas />} />
           <Route path="/ideas/new" element={<NewIdea />} />
           <Route path="/ideas/:id" element={<IdeaDetail />} />
+          <Route path="/ideas/:id/business-validation" element={<BusinessValidation />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
+          <Route path="/projects/:id/product-definition" element={<ProductDefinition />} />
           <Route path="/projects/:projectId/phase/:phaseNumber" element={<PhaseDetail />} />
           <Route path="/tokens" element={<Tokens />} />
           <Route path="/templates" element={<Templates />} />

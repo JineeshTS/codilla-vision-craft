@@ -24,3 +24,6 @@ verify_jwt = true
 
 [functions.validate-phase-2]
 verify_jwt = true
+
+[functions.generate-prd]
+verify_jwt = true

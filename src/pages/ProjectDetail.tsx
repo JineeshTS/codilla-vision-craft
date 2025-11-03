@@ -251,12 +251,18 @@ const ProjectDetail = () => {
           </p>
           <div className="flex gap-4">
             <Button
+              onClick={() => navigate(`/projects/${id}/product-definition`)}
+            >
+              Define Product (Phase 3)
+            </Button>
+            <Button
               onClick={() => {
                 toast({
                   title: "Phase System Active",
                   description: "Multi-agent validation is ready. Start your next phase when ready.",
                 });
               }}
+              variant="outline"
             >
               Start Next Phase
             </Button>
