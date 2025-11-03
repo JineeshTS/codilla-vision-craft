@@ -3,7 +3,6 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { checkRateLimit } from "../_shared/rate-limit.ts";
 import { sanitizeError, createErrorResponse } from "../_shared/error-handler.ts";
-import { callAI } from "../_shared/ai-provider.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -142,28 +141,21 @@ Evaluate the idea and respond with ONLY a valid JSON object (no markdown, no cod
   "recommendations": ["<string>", ...]
 }`;
 
-    // Get AI provider config
-    const { data: aiConfigData } = await serviceClient
-      .from("system_config")
-      .select("config_value")
-      .eq("config_key", "ai_providers")
-      .single();
-
-    const aiProvider = (aiConfigData?.config_value?.primary || "openai") as "openai" | "anthropic" | "google";
-    const aiModel = aiConfigData?.config_value?.model || "gpt-5-mini-2025-08-07";
-    
+    // Call Lovable AI Gateway (compatible with OpenAI API)
     const callAIAgent = async (agentName: string) => {
       try {
-        const response = await callAI(
-          {
-            provider: aiProvider,
-            apiKey: LOVABLE_API_KEY,
-            model: aiModel,
-            temperature: 0.7,
+        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Content-Type': 'application/json',
           },
-          [{ role: "user", content: validationPrompt }],
-          false
-        );
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash',
+            messages: [{ role: "user", content: validationPrompt }],
+            temperature: 0.7,
+          }),
+        });
 
         if (!response.ok) {
           const errorText = await response.text();
@@ -173,7 +165,16 @@ Evaluate the idea and respond with ONLY a valid JSON object (no markdown, no cod
 
         const data = await response.json();
         const content = data.choices?.[0]?.message?.content || "{}";
-        return JSON.parse(content);
+        
+        // Clean up any markdown code blocks if present
+        let cleanContent = content.trim();
+        if (cleanContent.startsWith('```json')) {
+          cleanContent = cleanContent.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+        } else if (cleanContent.startsWith('```')) {
+          cleanContent = cleanContent.replace(/```\n?/g, '');
+        }
+        
+        return JSON.parse(cleanContent);
       } catch (error) {
         console.error(`${agentName} failed:`, error);
         throw error;
