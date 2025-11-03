@@ -10,7 +10,7 @@ export const FrameworkDetail = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold mb-4">
-            Deep Dive into the <span className="gradient-text">Framework</span>
+            Deep Dive into the <span className="gradient-text">Idea to App Framework</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
             Each phase is broken down into specific tasks with AI-guided workflows.
