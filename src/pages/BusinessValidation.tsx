@@ -88,7 +88,7 @@ const BusinessValidation = () => {
     setBusinessData((prev: any) => ({ ...prev, [framework]: data }));
   };
 
-  if (loading) {
+  if (loading || isAuthenticated === null) {
     return (
       <div className="min-h-screen cosmic-bg">
         <Navbar />

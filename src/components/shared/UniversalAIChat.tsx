@@ -90,9 +90,11 @@ export default function UniversalAIChat({
     setIsLoading(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      // Get fresh session (this will refresh token if needed)
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
         toast.error("Please sign in to use AI chat");
+        setMessages(prev => prev.slice(0, -1));
         return;
       }
 
@@ -103,6 +105,7 @@ export default function UniversalAIChat({
           headers: {
             'Authorization': `Bearer ${session.access_token}`,
             'Content-Type': 'application/json',
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           },
           body: JSON.stringify({
             conversationId,
