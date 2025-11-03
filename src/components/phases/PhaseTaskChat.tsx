@@ -8,6 +8,7 @@ import { Send, Bot, User, Loader2, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { PhaseTask } from "@/config/phaseStructure";
+import { TaskRenderer } from "./TaskRenderer";
 
 interface Message {
   role: "user" | "assistant";
@@ -216,105 +217,114 @@ export const PhaseTaskChat = ({
   };
 
   return (
-    <Card className="glass-panel p-6 flex flex-col h-[600px]">
-      <div className="flex items-center justify-between mb-4 pb-4 border-b border-border">
-        <div className="flex items-center gap-2">
-          <Bot className="w-6 h-6 text-primary" />
-          <div>
-            <h3 className="text-lg font-semibold">{task.title}</h3>
-            <p className="text-xs text-muted-foreground">~{task.estimatedTokens} tokens</p>
+    <div className="space-y-6">
+      {/* Task-specific component (if available) */}
+      <TaskRenderer projectId={projectId} phaseNumber={phaseNumber} task={task} />
+      
+      {/* AI Chat Interface */}
+      <Card className="glass-panel p-6 flex flex-col h-[600px]">
+        <div className="flex items-center justify-between mb-4 pb-4 border-b border-border">
+          <div className="flex items-center gap-2">
+            <Bot className="w-6 h-6 text-primary" />
+            <div>
+              <h3 className="text-lg font-semibold">{task.title}</h3>
+              <p className="text-xs text-muted-foreground">~{task.estimatedTokens} tokens • AI Guidance</p>
+            </div>
           </div>
+          {isCompleted && (
+            <Badge className="bg-green-400/20 text-green-400 border-green-400/30">
+              <CheckCircle2 className="w-3 h-3 mr-1" />
+              Completed
+            </Badge>
+          )}
         </div>
-        {isCompleted && (
-          <Badge className="bg-green-400/20 text-green-400 border-green-400/30">
-            <CheckCircle2 className="w-3 h-3 mr-1" />
-            Completed
-          </Badge>
-        )}
-      </div>
 
-      <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
-        {messages.map((msg, idx) => (
-          <div
-            key={idx}
-            className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}
-          >
-            <Avatar className="w-8 h-8 shrink-0">
-              {msg.role === "assistant" ? (
+        <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
+          {messages.map((msg, idx) => (
+            <div
+              key={idx}
+              className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}
+            >
+              <Avatar className="w-8 h-8 shrink-0">
+                {msg.role === "assistant" ? (
+                  <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+                    <Bot className="w-5 h-5 text-primary" />
+                  </div>
+                ) : (
+                  <div className="w-full h-full bg-muted flex items-center justify-center">
+                    <User className="w-5 h-5 text-foreground" />
+                  </div>
+                )}
+              </Avatar>
+              <div
+                className={`flex-1 p-3 rounded-lg ${
+                  msg.role === "assistant"
+                    ? "bg-muted"
+                    : "bg-primary/10"
+                }`}
+              >
+                <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+              </div>
+            </div>
+          ))}
+          {isLoading && messages[messages.length - 1]?.role === "user" && (
+            <div className="flex gap-3">
+              <Avatar className="w-8 h-8 shrink-0">
                 <div className="w-full h-full bg-primary/10 flex items-center justify-center">
                   <Bot className="w-5 h-5 text-primary" />
                 </div>
-              ) : (
-                <div className="w-full h-full bg-muted flex items-center justify-center">
-                  <User className="w-5 h-5 text-foreground" />
-                </div>
-              )}
-            </Avatar>
-            <div
-              className={`flex-1 p-3 rounded-lg ${
-                msg.role === "assistant"
-                  ? "bg-muted"
-                  : "bg-primary/10"
-              }`}
-            >
-              <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-            </div>
-          </div>
-        ))}
-        {isLoading && messages[messages.length - 1]?.role === "user" && (
-          <div className="flex gap-3">
-            <Avatar className="w-8 h-8 shrink-0">
-              <div className="w-full h-full bg-primary/10 flex items-center justify-center">
-                <Bot className="w-5 h-5 text-primary" />
+              </Avatar>
+              <div className="flex-1 p-3 rounded-lg bg-muted">
+                <Loader2 className="w-4 h-4 animate-spin" />
               </div>
-            </Avatar>
-            <div className="flex-1 p-3 rounded-lg bg-muted">
-              <Loader2 className="w-4 h-4 animate-spin" />
             </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-
-      <div className="space-y-2">
-        <div className="flex gap-2">
-          <Textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Share your thoughts..."
-            className="min-h-[60px] resize-none"
-            disabled={isLoading || isCompleted}
-          />
-          <Button
-            onClick={handleSend}
-            disabled={!input.trim() || isLoading || isCompleted}
-            className="shrink-0"
-          >
-            {isLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Send className="w-4 h-4" />
-            )}
-          </Button>
+          )}
+          <div ref={messagesEndRef} />
         </div>
-        
-        {!isCompleted && (
-          <Button 
-            onClick={handleMarkComplete}
-            variant="outline" 
-            className="w-full"
-            disabled={messages.length < 3}
-          >
-            <CheckCircle2 className="w-4 h-4 mr-2" />
-            Mark Task as Complete
-          </Button>
-        )}
-        
-        <p className="text-xs text-muted-foreground text-center">
-          Press Enter to send, Shift+Enter for new line
-        </p>
-      </div>
-    </Card>
+
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <Textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Ask AI for guidance on this task..."
+              className="min-h-[60px] resize-none"
+              disabled={isLoading || isCompleted}
+            />
+            <Button
+              onClick={handleSend}
+              disabled={!input.trim() || isLoading || isCompleted}
+              className="shrink-0"
+            >
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
+            </Button>
+          </div>
+          
+          {!isCompleted && (
+            <Button 
+              onClick={handleMarkComplete}
+              variant="outline" 
+              className="w-full"
+              disabled={messages.length < 3}
+            >
+              <CheckCircle2 className="w-4 h-4 mr-2" />
+              Mark Task as Complete
+            </Button>
+          )}
+          
+          <p className="text-xs text-muted-foreground text-center">
+            Press Enter to send, Shift+Enter for new line
+          </p>
+        </div>
+      </Card>
+    </div>
   );
 };
+
+export default PhaseTaskChat;
+

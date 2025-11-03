@@ -73,28 +73,32 @@ export const PHASE_STRUCTURES: PhaseStructure[] = [
         title: "Market Research",
         description: "Comprehensive market analysis",
         estimatedTokens: 15000,
-        aiPromptContext: "Guide comprehensive market research covering market size, trends, growth rate, and market dynamics."
+        aiPromptContext: "Guide comprehensive market research covering market size, trends, growth rate, and market dynamics.",
+        artifactType: "market_research"
       },
       {
         id: "competitive-analysis",
         title: "Competitive Analysis",
         description: "Deep dive into existing solutions",
         estimatedTokens: 15000,
-        aiPromptContext: "Analyze direct and indirect competitors, their strengths, weaknesses, pricing, and market positioning."
+        aiPromptContext: "Analyze direct and indirect competitors, their strengths, weaknesses, pricing, and market positioning.",
+        artifactType: "competitive_analysis"
       },
       {
         id: "customer-interviews",
         title: "Customer Interview Analysis",
         description: "Synthesize insights from target customers",
         estimatedTokens: 15000,
-        aiPromptContext: "Help structure and analyze customer interview findings. Extract pain points, willingness to pay, and buying criteria."
+        aiPromptContext: "Help structure and analyze customer interview findings. Extract pain points, willingness to pay, and buying criteria.",
+        artifactType: "customer_interviews"
       },
       {
         id: "business-model",
         title: "Business Model Canvas",
         description: "Define the business model",
         estimatedTokens: 15000,
-        aiPromptContext: "Work through the Business Model Canvas: value proposition, customer segments, channels, revenue streams, cost structure, key resources, and partnerships."
+        aiPromptContext: "Work through the Business Model Canvas: value proposition, customer segments, channels, revenue streams, cost structure, key resources, and partnerships.",
+        artifactType: "business_model_canvas"
       }
     ]
   },
@@ -111,28 +115,32 @@ export const PHASE_STRUCTURES: PhaseStructure[] = [
         title: "User Personas",
         description: "Create detailed user personas",
         estimatedTokens: 10000,
-        aiPromptContext: "Develop 2-3 detailed user personas with demographics, goals, pain points, and behaviors."
+        aiPromptContext: "Develop 2-3 detailed user personas with demographics, goals, pain points, and behaviors.",
+        artifactType: "user_personas"
       },
       {
         id: "user-stories",
         title: "User Stories",
         description: "Write comprehensive user stories",
         estimatedTokens: 10000,
-        aiPromptContext: "Create user stories in the format: As a [user], I want to [action], so that [benefit]. Prioritize by value and effort."
+        aiPromptContext: "Create user stories in the format: As a [user], I want to [action], so that [benefit]. Prioritize by value and effort.",
+        artifactType: "user_stories"
       },
       {
         id: "feature-specification",
         title: "Feature Specification",
         description: "Detail all MVP features",
         estimatedTokens: 10000,
-        aiPromptContext: "Specify each feature with acceptance criteria, edge cases, and success metrics."
+        aiPromptContext: "Specify each feature with acceptance criteria, edge cases, and success metrics.",
+        artifactType: "feature_specification"
       },
       {
         id: "prd-generation",
         title: "PRD Generation",
         description: "Generate comprehensive Product Requirements Document",
         estimatedTokens: 10000,
-        aiPromptContext: "Compile all information into a structured PRD covering product vision, features, requirements, and success metrics."
+        aiPromptContext: "Compile all information into a structured PRD covering product vision, features, requirements, and success metrics.",
+        artifactType: "prd"
       }
     ]
   },
