@@ -23,6 +23,8 @@ import DevelopmentPrep from "./pages/DevelopmentPrep";
 import AIAssistedDev from "./pages/AIAssistedDev";
 import TemplateSelection from "./pages/TemplateSelection";
 import NotFound from "./pages/NotFound";
+import Admin from "./pages/Admin";
+import AdminSettings from "./pages/AdminSettings";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +54,8 @@ const App = () => (
           <Route path="/projects/:projectId/template-selection" element={<TemplateSelection />} />
           <Route path="/projects/:projectId/development-prep" element={<DevelopmentPrep />} />
           <Route path="/projects/:projectId/ai-development" element={<AIAssistedDev />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/settings" element={<AdminSettings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
