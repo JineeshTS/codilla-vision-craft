@@ -47,14 +47,15 @@ serve(async (req) => {
       .eq('config_key', 'ai_providers')
       .single();
 
-    if (!aiConfigData) {
-      return new Response(JSON.stringify({ error: 'AI provider not configured' }), {
+    const aiProvider = (aiConfigData?.config_value as any)?.primary || 'openai';
+    const aiApiKey = Deno.env.get(aiProvider === 'openai' ? 'OPENAI_API_KEY' : aiProvider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'GOOGLE_API_KEY') || Deno.env.get("LOVABLE_API_KEY") || '';
+    
+    if (!aiApiKey) {
+      return new Response(JSON.stringify({ error: 'AI provider API key not configured' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
-
-    const aiConfig = aiConfigData.config_value.primary;
 
     // Get or create conversation
     let conversation;
@@ -126,9 +127,11 @@ serve(async (req) => {
     // Call AI
     const aiResponse = await callAI(
       {
-        provider: aiConfig.provider,
-        apiKey: aiConfig.apiKey,
-        model: aiConfig.model,
+        provider: aiProvider as "openai" | "anthropic" | "google",
+        apiKey: aiApiKey,
+        model: aiProvider === 'openai' ? 'gpt-4o-mini' : aiProvider === 'anthropic' ? 'claude-3-5-sonnet-20241022' : 'gemini-2.0-flash-exp',
+        temperature: 0.7,
+        maxTokens: 4096,
       },
       messages,
       true // stream
