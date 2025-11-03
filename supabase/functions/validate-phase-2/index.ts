@@ -110,36 +110,32 @@ ${JSON.stringify(businessData, null, 2)}
 
 Provide a comprehensive business validation analysis with scores, recommendations, and a clear GO/PIVOT/KILL decision.`;
 
-    // Get AI provider config
-    const { data: aiConfig } = await supabase
-      .from('system_config')
-      .select('config_value')
-      .eq('config_key', 'ai_providers')
-      .single();
-
-    const aiProvider = (aiConfig?.config_value as any)?.primary || 'openai';
-    const aiApiKey = Deno.env.get(aiProvider === 'openai' ? 'OPENAI_API_KEY' : aiProvider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'GOOGLE_API_KEY') || LOVABLE_API_KEY || '';
+    const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
     
-    if (!aiApiKey) {
-      throw new Error('AI provider API key not configured');
+    if (!googleApiKey) {
+      throw new Error('Google API key not configured');
     }
 
-    // Call Lovable AI Gateway for analysis
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${aiApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        temperature: 0.7,
-      }),
-    });
+    // Call Google Gemini API for analysis
+    const aiResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${googleApiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            role: 'user',
+            parts: [{ text: userPrompt }]
+          }],
+          systemInstruction: {
+            parts: [{ text: systemPrompt }]
+          },
+          generationConfig: {
+            temperature: 0.7,
+          },
+        }),
+      }
+    );
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
@@ -148,7 +144,7 @@ Provide a comprehensive business validation analysis with scores, recommendation
     }
 
     const aiResult = await aiResponse.json();
-    const analysis = aiResult.choices[0].message.content;
+    const analysis = aiResult.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     // Calculate token usage (estimate)
     const tokensUsed = 8000; // Phase 2 comprehensive analysis

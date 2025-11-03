@@ -55,11 +55,10 @@ serve(async (req) => {
       .eq('config_key', 'ai_providers')
       .single();
 
-    const aiProvider = (aiConfig?.config_value as any)?.primary || 'openai';
-    const aiApiKey = Deno.env.get(aiProvider === 'openai' ? 'OPENAI_API_KEY' : aiProvider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'GOOGLE_API_KEY') || Deno.env.get("LOVABLE_API_KEY") || '';
+    const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
     
-    if (!aiApiKey) {
-      throw new Error('AI provider API key not configured');
+    if (!googleApiKey) {
+      throw new Error('Google API key not configured');
     }
 
     // Generate comprehensive prompts using AI
@@ -91,21 +90,25 @@ Return JSON array with this structure:
 
 Make prompts specific, actionable, and properly sequenced with dependencies.`;
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${aiApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: "Generate the complete development prompt sequence." }
-        ],
-        temperature: 0.7,
-      }),
-    });
+    const aiResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${googleApiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            role: 'user',
+            parts: [{ text: "Generate the complete development prompt sequence." }]
+          }],
+          systemInstruction: {
+            parts: [{ text: systemPrompt }]
+          },
+          generationConfig: {
+            temperature: 0.7,
+          },
+        }),
+      }
+    );
 
     if (!aiResponse.ok) {
       console.error("AI provider error:", aiResponse.status);
@@ -116,9 +119,7 @@ Make prompts specific, actionable, and properly sequenced with dependencies.`;
     }
 
     const aiData = await aiResponse.json();
-    const content = aiData.choices?.[0]?.message?.content || 
-                   aiData.candidates?.[0]?.content?.parts?.[0]?.text ||
-                   aiData.content?.[0]?.text || "{}";
+    const content = aiData.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
     const promptsData = JSON.parse(content);
     const prompts = promptsData.prompts || promptsData;
 

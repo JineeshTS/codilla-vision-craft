@@ -55,11 +55,10 @@ serve(async (req) => {
       .eq('config_key', 'ai_providers')
       .single();
 
-    const aiProvider = (aiConfigData?.config_value as any)?.primary || 'openai';
-    const aiApiKey = Deno.env.get(aiProvider === 'openai' ? 'OPENAI_API_KEY' : aiProvider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'GOOGLE_API_KEY') || Deno.env.get("LOVABLE_API_KEY") || '';
+    const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
     
-    if (!aiApiKey) {
-      return new Response(JSON.stringify({ error: 'AI provider API key not configured' }), {
+    if (!googleApiKey) {
+      return new Response(JSON.stringify({ error: 'Google API key not configured' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -132,21 +131,32 @@ serve(async (req) => {
       });
     }
 
-    // Call Lovable AI Gateway
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${aiApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages,
-        stream: true,
-        temperature: 0.7,
-        max_tokens: 4096,
-      }),
-    });
+    // Convert messages to Gemini format
+    const contents = messages
+      .filter(m => m.role !== 'system')
+      .map(m => ({
+        role: m.role === 'user' ? 'user' : 'model',
+        parts: [{ text: m.content }]
+      }));
+
+    const systemInstruction = messages.find(m => m.role === 'system');
+
+    // Call Google Gemini API
+    const aiResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:streamGenerateContent?key=${googleApiKey}&alt=sse`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents,
+          systemInstruction: systemInstruction ? { parts: [{ text: systemInstruction.content }] } : undefined,
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 4096,
+          },
+        }),
+      }
+    );
 
     // Update conversation with user message
     const updatedMessages = [

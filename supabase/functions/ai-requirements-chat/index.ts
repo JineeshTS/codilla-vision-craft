@@ -78,11 +78,11 @@ serve(async (req) => {
 
     console.log(`📝 Processing idea: ${idea.title}`);
 
-    // Get Lovable API Key
-    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
+    // Get Google API Key
+    const googleApiKey = Deno.env.get("GOOGLE_API_KEY");
     
-    if (!lovableApiKey) {
-      throw new Error('Lovable API key not configured');
+    if (!googleApiKey) {
+      throw new Error('Google API key not configured');
     }
 
     const systemPrompt = `You are an expert requirements analyst helping entrepreneurs refine their ideas through the Codilla Framework Phase 1: Requirements Analysis.
@@ -112,21 +112,31 @@ Ask ONE thoughtful, specific question at a time. Build on their previous answers
       ...messages
     ];
     
-    // Call Lovable AI Gateway with streaming
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: aiMessages,
-        stream: true,
-        temperature: 0.8,
-        max_tokens: 500,
-      }),
-    });
+    // Call Google Gemini API with streaming
+    const contents = aiMessages
+      .filter(m => m.role !== 'system')
+      .map(m => ({
+        role: m.role === 'user' ? 'user' : 'model',
+        parts: [{ text: m.content }]
+      }));
+
+    const systemInstruction = aiMessages.find(m => m.role === 'system');
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:streamGenerateContent?key=${googleApiKey}&alt=sse`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents,
+          systemInstruction: systemInstruction ? { parts: [{ text: systemInstruction.content }] } : undefined,
+          generationConfig: {
+            temperature: 0.8,
+            maxOutputTokens: 500,
+          },
+        }),
+      }
+    );
 
     if (!response.ok) {
       const errorText = await response.text();

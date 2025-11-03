@@ -191,47 +191,39 @@ For each core feature, create user stories in this format:
 async function callAI(agent: string, prompt: string, apiKey: string): Promise<string> {
   console.log(`${agent} analyzing...`);
 
-  const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
   
-  // Get AI provider config
-  const { data: aiConfig } = await supabase
-    .from('system_config')
-    .select('config_value')
-    .eq('config_key', 'ai_providers')
-    .single();
-
-  const aiProvider = (aiConfig?.config_value as any)?.primary || 'openai';
-  const aiApiKey = Deno.env.get(aiProvider === 'openai' ? 'OPENAI_API_KEY' : aiProvider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'GOOGLE_API_KEY') || apiKey || '';
-  
-  if (!aiApiKey) {
-    throw new Error('AI provider API key not configured');
+  if (!googleApiKey) {
+    throw new Error('Google API key not configured');
   }
 
-  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${aiApiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'google/gemini-2.5-flash',
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert product manager. Always return valid JSON responses.",
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${googleApiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          role: 'user',
+          parts: [{ text: prompt }]
+        }],
+        systemInstruction: {
+          parts: [{ text: "You are an expert product manager. Always return valid JSON responses." }]
         },
-        { role: "user", content: prompt },
-      ],
-      temperature: 0.7,
-    }),
-  });
+        generationConfig: {
+          temperature: 0.7,
+          responseMimeType: 'application/json'
+        },
+      }),
+    }
+  );
 
   if (!response.ok) {
     throw new Error(`${agent} AI call failed: ${response.statusText}`);
   }
 
   const data = await response.json();
-  return data.choices[0].message.content;
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
 }
 
 function parseJSON(text: string, fallback: any): any {

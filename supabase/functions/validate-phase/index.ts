@@ -148,33 +148,30 @@ Respond with ONLY a valid JSON object (no markdown, no code blocks):
   "recommendations": ["<string>", ...]
 }`;
 
-    // Get AI provider config
-    const { data: aiConfig } = await serviceClient
-      .from('system_config')
-      .select('config_value')
-      .eq('config_key', 'ai_providers')
-      .single();
-
-    const aiProvider = (aiConfig?.config_value as any)?.primary || 'openai';
-    const aiApiKey = Deno.env.get(aiProvider === 'openai' ? 'OPENAI_API_KEY' : aiProvider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'GOOGLE_API_KEY') || LOVABLE_API_KEY || '';
+    const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
     
-    if (!aiApiKey) {
-      throw new Error('AI provider API key not configured');
+    if (!googleApiKey) {
+      throw new Error('Google API key not configured');
     }
 
     const callAI = async (agentName: string) => {
-      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${aiApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
-          messages: [{ role: "user", content: validationPrompt }],
-          temperature: 0.7,
-        }),
-      });
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${googleApiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              role: 'user',
+              parts: [{ text: validationPrompt }]
+            }],
+            generationConfig: {
+              temperature: 0.7,
+              responseMimeType: 'application/json'
+            },
+          }),
+        }
+      );
 
       if (!response.ok) {
         console.error(`${agentName} error:`, response.status);
@@ -182,7 +179,7 @@ Respond with ONLY a valid JSON object (no markdown, no code blocks):
       }
 
       const data = await response.json();
-      const content = data.choices?.[0]?.message?.content || "{}";
+      const content = data.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
       return JSON.parse(content);
     };
 
