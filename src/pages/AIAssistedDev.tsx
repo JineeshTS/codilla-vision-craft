@@ -14,6 +14,7 @@ import {
   Pause, Eye, MessageSquare, AlertTriangle
 } from "lucide-react";
 import CodeGenerator from "@/components/CodeGenerator";
+import UniversalAIChat from "@/components/shared/UniversalAIChat";
 
 interface DevelopmentPrompt {
   id: string;
@@ -210,7 +211,9 @@ const AIAssistedDev = () => {
         </div>
 
         {currentPrompt && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
               <Card className="glass-panel p-6 mb-6">
                 <h3 className="text-xl font-semibold mb-4">{currentPrompt.title}</h3>
@@ -296,6 +299,38 @@ const AIAssistedDev = () => {
                   ))}
                 </div>
               </Card>
+            </div>
+            </div>
+            </div>
+
+            <div className="lg:col-span-1">
+              <UniversalAIChat
+                context={{
+                  type: "project",
+                  id: projectId,
+                  phase: 7,
+                }}
+                systemPrompt={`You are a development assistant helping execute AI-generated code prompts.
+
+Current step: ${currentPrompt.sequence_number}/${prompts.length}
+Prompt: ${currentPrompt.title}
+
+Help the user:
+1. Debug execution errors
+2. Explain generated code
+3. Suggest code improvements
+4. Identify missing features
+5. Optimize performance
+
+Be technical and specific.`}
+                suggestedQuestions={[
+                  "Explain what this code does",
+                  "Why is this execution failing?",
+                  "How can I optimize this component?",
+                  "What edge cases should I test?"
+                ]}
+                className="sticky top-4 h-[600px]"
+              />
             </div>
           </div>
         )}

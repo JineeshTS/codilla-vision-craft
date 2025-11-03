@@ -105,32 +105,45 @@ serve(async (req) => {
 
     const systemPrompt = systemPrompts[phase] || systemPrompts['1'];
 
+    // Get AI provider config
+    const { data: aiConfig } = await supabase
+      .from('system_config')
+      .select('config_value')
+      .eq('config_key', 'ai_providers')
+      .single();
+
+    const aiProvider = (aiConfig?.config_value as any)?.primary || 'openai';
+    const aiApiKey = Deno.env.get(aiProvider === 'openai' ? 'OPENAI_API_KEY' : aiProvider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'GOOGLE_API_KEY') || lovableApiKey || '';
+    
+    if (!aiApiKey) {
+      throw new Error('AI provider API key not configured');
+    }
+
     // Call all three AIs in parallel
     console.log('🤖 Calling three AIs for consensus...');
+    const { callAI: aiCall } = await import("../_shared/ai-provider.ts");
     
     const aiPromises = aiModels.map(async (ai) => {
       const startTime = Date.now();
       
       try {
-        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${lovableApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+        const response = await aiCall(
+          {
+            provider: aiProvider as "openai" | "anthropic" | "google",
+            apiKey: aiApiKey,
             model: ai.model,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { 
-                role: 'user', 
-                content: `Idea: ${idea.title}\nDescription: ${idea.description}\nContext: ${context || ''}\nUser Input: ${userInput}\n\nProvide: 1) Score (1-10), 2) Strengths (bullet points), 3) Concerns (bullet points), 4) Recommendations (bullet points)`
-              }
-            ],
             temperature: 0.7,
-            max_tokens: 1000
-          }),
-        });
+            maxTokens: 1000
+          },
+          [
+            { role: 'system' as const, content: systemPrompt },
+            { 
+              role: 'user' as const, 
+              content: `Idea: ${idea.title}\nDescription: ${idea.description}\nContext: ${context || ''}\nUser Input: ${userInput}\n\nProvide: 1) Score (1-10), 2) Strengths (bullet points), 3) Concerns (bullet points), 4) Recommendations (bullet points)`
+            }
+          ],
+          false
+        );
 
         if (!response.ok) {
           throw new Error(`${ai.name} API error: ${response.status}`);

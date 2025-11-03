@@ -110,22 +110,35 @@ ${JSON.stringify(businessData, null, 2)}
 
 Provide a comprehensive business validation analysis with scores, recommendations, and a clear GO/PIVOT/KILL decision.`;
 
-    // Call Lovable AI for analysis
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
+    // Get AI provider config
+    const { data: aiConfig } = await supabase
+      .from('system_config')
+      .select('config_value')
+      .eq('config_key', 'ai_providers')
+      .single();
+
+    const aiProvider = (aiConfig?.config_value as any)?.primary || 'openai';
+    const aiApiKey = Deno.env.get(aiProvider === 'openai' ? 'OPENAI_API_KEY' : aiProvider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'GOOGLE_API_KEY') || LOVABLE_API_KEY || '';
+    
+    if (!aiApiKey) {
+      throw new Error('AI provider API key not configured');
+    }
+
+    // Call AI for analysis
+    const { callAI: aiCall } = await import("../_shared/ai-provider.ts");
+    const aiResponse = await aiCall(
+      {
+        provider: aiProvider as "openai" | "anthropic" | "google",
+        apiKey: aiApiKey,
+        model: aiProvider === 'openai' ? 'gpt-4o-mini' : 'google/gemini-2.5-flash',
         temperature: 0.7,
-      }),
-    });
+      },
+      [
+        { role: "system" as const, content: systemPrompt },
+        { role: "user" as const, content: userPrompt },
+      ],
+      false
+    );
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();

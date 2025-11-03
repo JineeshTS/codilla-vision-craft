@@ -191,23 +191,38 @@ For each core feature, create user stories in this format:
 async function callAI(agent: string, prompt: string, apiKey: string): Promise<string> {
   console.log(`${agent} analyzing...`);
 
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
+  const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  
+  // Get AI provider config
+  const { data: aiConfig } = await supabase
+    .from('system_config')
+    .select('config_value')
+    .eq('config_key', 'ai_providers')
+    .single();
+
+  const aiProvider = (aiConfig?.config_value as any)?.primary || 'openai';
+  const aiApiKey = Deno.env.get(aiProvider === 'openai' ? 'OPENAI_API_KEY' : aiProvider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'GOOGLE_API_KEY') || apiKey || '';
+  
+  if (!aiApiKey) {
+    throw new Error('AI provider API key not configured');
+  }
+
+  const { callAI: aiCall } = await import("../_shared/ai-provider.ts");
+  const response = await aiCall(
+    {
+      provider: aiProvider as "openai" | "anthropic" | "google",
+      apiKey: aiApiKey,
+      model: aiProvider === 'openai' ? 'gpt-4o-mini' : 'google/gemini-2.5-flash',
     },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert product manager. Always return valid JSON responses.",
-        },
-        { role: "user", content: prompt },
-      ],
-    }),
-  });
+    [
+      {
+        role: "system" as const,
+        content: "You are an expert product manager. Always return valid JSON responses.",
+      },
+      { role: "user" as const, content: prompt },
+    ],
+    false
+  );
 
   if (!response.ok) {
     throw new Error(`${agent} AI call failed: ${response.statusText}`);
