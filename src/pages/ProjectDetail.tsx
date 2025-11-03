@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import Navbar from "@/components/Navbar";
-import { Rocket, CheckCircle, Clock, AlertCircle, ExternalLink, GitBranch, Send, Loader2 } from "lucide-react";
+import { PhaseValidationModal } from "@/components/PhaseValidationModal";
+import { Rocket, CheckCircle, Clock, AlertCircle, ExternalLink, GitBranch, Send, Loader2, Eye } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -39,6 +40,9 @@ interface Phase {
   tokens_spent: number;
   started_at: string | null;
   completed_at: string | null;
+  claude_validation: any;
+  gemini_validation: any;
+  codex_validation: any;
 }
 
 // Aligned with Codilla.ai 10-Phase Framework
@@ -55,6 +59,287 @@ const phaseNames = [
   "Post-Launch Operations",
 ];
 
+// Phase-specific deliverable examples and guidance
+const PHASE_EXAMPLES: Record<number, string> = {
+  1: `Example for Phase 1 - Idea Capture & Screening:
+
+**Problem Statement:** Students struggle to find affordable, quality textbooks for their courses. Current options are either expensive new books or unreliable used marketplaces.
+
+**Target Audience:** College students aged 18-24, particularly those from middle-income families who are price-sensitive but value quality education materials.
+
+**Unique Value Proposition:** A peer-to-peer textbook marketplace with verified student IDs, quality guarantees, and escrow payment protection. Students save 60% compared to bookstore prices while sellers get 40% more than buyback programs.
+
+**Market Opportunity:** $14B US college textbook market, 20M college students, average student spends $1,200/year on textbooks.
+
+**Initial Validation:** Surveyed 50 students - 92% interested, 78% would use it for their next semester.`,
+
+  2: `Example for Phase 2 - Validation & Research:
+
+**Market Research:**
+- Analyzed 5 competitors (Chegg, Amazon Textbooks, BookFinder, Facebook Marketplace)
+- Identified gap: No dedicated student-to-student platform with trust mechanisms
+- TAM: $14B, SAM: $2B (online marketplaces), SOM: $100M (target 5% in 3 years)
+
+**User Interviews:**
+- Interviewed 30 students across 5 universities
+- Key insight: Trust and speed are bigger concerns than price
+- 85% would pay 2-3% fee for verified transactions and fast shipping
+
+**Competitor Analysis:**
+- Chegg: Rental model, expensive, doesn't let students own books
+- Amazon: Generic marketplace, no student verification
+- Our advantage: Student-only, verified IDs, escrow protection, campus pickup options
+
+**Technical Feasibility:**
+- Built MVP prototype in 2 weeks using React + Node.js + Stripe
+- Tested with 20 beta users - 95% successfully completed transactions
+- Core features validated: listing, search, messaging, payments`,
+
+  3: `Example for Phase 3 - Product Definition:
+
+**MVP Feature List:**
+1. User Registration (student email verification)
+2. Profile Management (university, major, courses)
+3. Book Listing (ISBN scan, condition grading, pricing suggestions)
+4. Search & Discovery (by course, ISBN, title, author)
+5. Messaging System (buyer-seller communication)
+6. Escrow Payment (Stripe integration)
+7. Rating & Reviews (trust system)
+
+**User Stories:**
+- As a seller, I want to list my textbook in under 2 minutes so I can quickly earn money
+- As a buyer, I want to see verified condition photos so I know what I'm getting
+- As a student, I want to filter by my specific course so I find the right edition
+
+**Acceptance Criteria:**
+- Book listing takes <3 minutes on average
+- Search results return in <1 second
+- Payment processing completes in <30 seconds
+- Mobile responsive (60% of users on mobile)
+
+**Success Metrics:**
+- 1,000 registered users in first semester
+- 200 successful transactions in first 3 months
+- 4.5+ star average rating
+- <2% dispute rate`,
+
+  4: `Example for Phase 4 - Technical Planning:
+
+**Architecture:**
+- Frontend: React 18 + TypeScript + Tailwind CSS
+- Backend: Node.js + Express + PostgreSQL
+- Auth: Supabase Auth with university email verification
+- Payments: Stripe Connect for escrow
+- Image Storage: Cloudinary for book photos
+- Hosting: Vercel (frontend) + Railway (backend)
+
+**Database Schema:**
+- users (id, email, university, verified, created_at)
+- books (id, seller_id, isbn, title, condition, price, images, status)
+- transactions (id, book_id, buyer_id, seller_id, amount, status)
+- messages (id, sender_id, receiver_id, book_id, content, read)
+- reviews (id, transaction_id, rating, comment, created_at)
+
+**API Endpoints:**
+- POST /api/auth/register - Create account
+- GET /api/books - Search books
+- POST /api/books - List book
+- POST /api/transactions - Create transaction
+- POST /api/messages - Send message
+- PUT /api/reviews - Submit review
+
+**Development Workflow:**
+- Git flow: main, develop, feature branches
+- CI/CD: GitHub Actions for automated testing
+- Code review: Required PR approvals
+- Testing: Jest + React Testing Library + Playwright`,
+
+  5: `Example for Phase 5 - Design & Prototype:
+
+**Design System:**
+- Primary color: #3B82F6 (education blue)
+- Secondary: #10B981 (trust green)
+- Typography: Inter for UI, Lora for headings
+- Spacing: 8px grid system
+- Breakpoints: 640px, 768px, 1024px, 1280px
+
+**Key Screens Designed:**
+1. Landing Page - Hero, features, testimonials, CTA
+2. Book Listing Form - ISBN scanner, photo upload, condition selector
+3. Search Results - Grid view, filters, sorting
+4. Book Detail Page - Photos carousel, seller profile, buy button
+5. Checkout Flow - Address, payment, confirmation
+6. Dashboard - My listings, purchases, messages
+7. Messaging Interface - Chat view, book context sidebar
+
+**Prototype Link:** https://figma.com/proto/abc123 (interactive prototype)
+
+**Usability Testing:**
+- Tested with 15 students
+- Average task completion rate: 94%
+- SUS Score: 82/100 (Excellent)
+- Key finding: Users wanted instant price suggestions based on market data`,
+
+  6: `Example for Phase 6 - Development Preparation:
+
+**Environment Setup:**
+- Local: Node 18, PostgreSQL 15, pnpm
+- Staging: Railway preview environments per PR
+- Production: Railway production + Vercel
+
+**Repository Structure:**
+- /frontend/src (components, pages, lib)
+- /backend/src (routes, controllers, models)
+- /backend/tests
+- /.github/workflows (CI/CD)
+
+**CI/CD Pipeline:**
+1. On PR: Lint, type-check, unit tests, integration tests
+2. On merge to develop: Deploy to staging
+3. On merge to main: Deploy to production
+4. Automated database migrations via Railway
+
+**Testing Framework:**
+- Unit: Jest (85% coverage target)
+- Integration: Supertest for API
+- E2E: Playwright for critical paths
+- Load: k6 for performance testing
+
+**Code Standards:**
+- ESLint + Prettier configured
+- Husky pre-commit hooks
+- Conventional commits
+- TypeScript strict mode enabled`,
+
+  7: `Example for Phase 7 - AI-Assisted Development:
+
+**Implemented Features:**
+✅ User authentication with university email verification
+✅ Book listing with ISBN scanning (camera + manual)
+✅ Image upload with Cloudinary (up to 5 photos per book)
+✅ Search with filters (course, condition, price range, university)
+✅ Real-time messaging with WebSocket
+✅ Stripe escrow payment flow
+✅ Rating and review system
+✅ Email notifications for key events
+✅ Mobile-responsive design (tested on iOS/Android)
+✅ Admin dashboard for moderation
+
+**Repository:** https://github.com/username/textbook-marketplace
+**Staging:** https://staging.bookswap.app
+
+**Key Metrics:**
+- 45,000 lines of code written
+- 250 components created
+- 85% test coverage achieved
+- 0 critical security vulnerabilities (Snyk scan)
+- Lighthouse score: 95/100 performance
+
+**AI Tools Used:**
+- GitHub Copilot for boilerplate code
+- ChatGPT for complex algorithms (escrow logic, price suggestions)
+- Claude for code review and optimization`,
+
+  8: `Example for Phase 8 - Launch Preparation:
+
+**Testing Completed:**
+✅ Unit tests: 387 tests passing
+✅ Integration tests: 45 API endpoints tested
+✅ E2E tests: 25 critical user flows automated
+✅ Load testing: Handles 1,000 concurrent users
+✅ Security audit: No critical/high vulnerabilities
+✅ Accessibility: WCAG 2.1 AA compliant
+✅ Browser testing: Chrome, Firefox, Safari, Edge
+✅ Mobile testing: iOS 15+, Android 11+
+
+**Performance Optimizations:**
+- Code splitting: Initial bundle reduced to 150KB
+- Image optimization: WebP format, lazy loading
+- Database indexing: Query time <100ms average
+- CDN caching: 95% cache hit rate
+- API response time: P95 <500ms
+
+**Documentation:**
+- User guide created (10 pages)
+- API documentation (Swagger)
+- Admin manual
+- Troubleshooting guide
+- Video tutorials (5 videos)
+
+**Pre-Launch Checklist:**
+✅ Domain purchased: bookswap.app
+✅ SSL certificate configured
+✅ Email service configured (SendGrid)
+✅ Analytics setup (Google Analytics + Mixpanel)
+✅ Error tracking (Sentry)
+✅ Uptime monitoring (UptimeRobot)
+✅ Legal pages (Terms, Privacy, Refund Policy)`,
+
+  9: `Example for Phase 9 - Deployment & Go-Live:
+
+**Production Deployment:**
+✅ Frontend deployed to Vercel: https://bookswap.app
+✅ Backend deployed to Railway: https://api.bookswap.app
+✅ Database: PostgreSQL on Railway (automated backups)
+✅ CDN: Cloudflare configured
+✅ DNS: bookswap.app pointing to production
+
+**Monitoring Setup:**
+✅ Error tracking: Sentry integrated (real-time alerts)
+✅ Analytics: GA4 + Mixpanel tracking all events
+✅ Uptime: UptimeRobot pinging every 5 minutes
+✅ Performance: New Relic APM configured
+✅ Logs: Centralized logging with Datadog
+
+**Smoke Testing Results:**
+✅ Home page loads in 1.2s
+✅ User registration works
+✅ Book listing works
+✅ Search returns results
+✅ Payment flow completes
+✅ Email notifications sending
+✅ Mobile app responsive
+
+**Go-Live:**
+- Launch date: Monday, Jan 15, 2024 at 9 AM EST
+- Soft launch to 100 beta users first
+- Full launch after 48 hours of monitoring
+- Press release scheduled for launch day`,
+
+  10: `Example for Phase 10 - Post-Launch Operations:
+
+**Week 1 Metrics:**
+- 847 registered users (target: 500) ✅
+- 124 books listed (target: 100) ✅
+- 43 transactions completed (target: 30) ✅
+- $2,140 GMV (Gross Merchandise Value)
+- Average transaction: $49.77
+- 4.8/5 star average rating
+
+**User Feedback:**
+- #1 request: Add textbook rental option (82 votes)
+- #2 request: Campus pickup scheduling (67 votes)
+- #3 request: Price history charts (45 votes)
+
+**Issues Addressed:**
+✅ Fixed search bug with special characters (Day 2)
+✅ Improved photo upload speed (Day 3)
+✅ Added more universities to whitelist (Day 4)
+✅ Fixed mobile payment flow (Day 5)
+
+**Scaling Actions:**
+- Database connection pool increased to 50
+- CDN cache TTL optimized
+- Background job queue for email sending
+- Database indexes added for popular queries
+
+**Next Iteration:**
+- Feature: Textbook rental (2 weeks)
+- Feature: Campus pickup scheduling (1 week)
+- Marketing: Instagram campaign (ongoing)
+- Growth: Partner with 3 campus bookstores`
+};
+
 const ProjectDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -64,6 +349,7 @@ const ProjectDetail = () => {
   const [phases, setPhases] = useState<Phase[]>([]);
   const [loading, setLoading] = useState(true);
   const [submissionDialogOpen, setSubmissionDialogOpen] = useState(false);
+  const [validationModalOpen, setValidationModalOpen] = useState(false);
   const [selectedPhase, setSelectedPhase] = useState<Phase | null>(null);
   const [phaseInput, setPhaseInput] = useState("");
   const [validating, setValidating] = useState(false);
