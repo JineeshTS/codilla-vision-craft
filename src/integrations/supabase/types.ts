@@ -532,9 +532,11 @@ export type Database = {
           mvp_features: Json | null
           name: string
           phase_3_completed_at: string | null
+          phase_5_completed_at: string | null
           prd_data: Json | null
           progress_percentage: number
           repository_url: string | null
+          selected_template_id: string | null
           updated_at: string
           user_id: string
           user_personas: Json | null
@@ -549,9 +551,11 @@ export type Database = {
           mvp_features?: Json | null
           name: string
           phase_3_completed_at?: string | null
+          phase_5_completed_at?: string | null
           prd_data?: Json | null
           progress_percentage?: number
           repository_url?: string | null
+          selected_template_id?: string | null
           updated_at?: string
           user_id: string
           user_personas?: Json | null
@@ -566,9 +570,11 @@ export type Database = {
           mvp_features?: Json | null
           name?: string
           phase_3_completed_at?: string | null
+          phase_5_completed_at?: string | null
           prd_data?: Json | null
           progress_percentage?: number
           repository_url?: string | null
+          selected_template_id?: string | null
           updated_at?: string
           user_id?: string
           user_personas?: Json | null
@@ -580,6 +586,13 @@ export type Database = {
             columns: ["idea_id"]
             isOneToOne: false
             referencedRelation: "ideas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_selected_template_id_fkey"
+            columns: ["selected_template_id"]
+            isOneToOne: false
+            referencedRelation: "templates"
             referencedColumns: ["id"]
           },
         ]

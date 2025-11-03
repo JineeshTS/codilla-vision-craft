@@ -191,10 +191,19 @@ const ProjectDetail = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Button
               variant="outline"
-              onClick={() => navigate(`/projects/${id}/development-prep`)}
+              onClick={() => navigate(`/projects/${id}/template-selection`)}
               className="h-auto py-4 flex-col gap-2"
             >
               <Rocket className="w-6 h-6" />
+              <span>Select Template</span>
+              <span className="text-xs text-muted-foreground">Phase 5: Design & Prototype</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate(`/projects/${id}/development-prep`)}
+              className="h-auto py-4 flex-col gap-2"
+            >
+              <CheckCircle className="w-6 h-6" />
               <span>Development Prep</span>
               <span className="text-xs text-muted-foreground">Phase 6: Generate Prompts</span>
             </Button>
@@ -203,18 +212,9 @@ const ProjectDetail = () => {
               onClick={() => navigate(`/projects/${id}/ai-development`)}
               className="h-auto py-4 flex-col gap-2"
             >
-              <CheckCircle className="w-6 h-6" />
+              <GitBranch className="w-6 h-6" />
               <span>AI Development</span>
               <span className="text-xs text-muted-foreground">Phase 7: Execute & Review</span>
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => navigate(`/projects/${id}/product-definition`)}
-              className="h-auto py-4 flex-col gap-2"
-            >
-              <GitBranch className="w-6 h-6" />
-              <span>Product Definition</span>
-              <span className="text-xs text-muted-foreground">Phase 3: PRD & Stories</span>
             </Button>
           </div>
         </Card>

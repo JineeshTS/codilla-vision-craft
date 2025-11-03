@@ -21,6 +21,7 @@ import CodeIDE from "./pages/CodeIDE";
 import PhaseDetail from "./pages/PhaseDetail";
 import DevelopmentPrep from "./pages/DevelopmentPrep";
 import AIAssistedDev from "./pages/AIAssistedDev";
+import TemplateSelection from "./pages/TemplateSelection";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ const App = () => (
           <Route path="/templates/:templateId/apply" element={<TemplateApply />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/code-ide" element={<CodeIDE />} />
+          <Route path="/projects/:projectId/template-selection" element={<TemplateSelection />} />
           <Route path="/projects/:projectId/development-prep" element={<DevelopmentPrep />} />
           <Route path="/projects/:projectId/ai-development" element={<AIAssistedDev />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
