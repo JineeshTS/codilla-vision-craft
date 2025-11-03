@@ -157,28 +157,32 @@ export const PHASE_STRUCTURES: PhaseStructure[] = [
         title: "Technology Stack Selection",
         description: "Choose appropriate technologies",
         estimatedTokens: 8000,
-        aiPromptContext: "Recommend tech stack based on requirements, team skills, scalability needs, and timeline."
+        aiPromptContext: "Recommend tech stack based on requirements, team skills, scalability needs, and timeline.",
+        artifactType: "tech_stack"
       },
       {
         id: "architecture",
         title: "System Architecture",
         description: "Design system architecture",
         estimatedTokens: 10000,
-        aiPromptContext: "Design the system architecture including frontend, backend, database, and third-party integrations."
+        aiPromptContext: "Design the system architecture including frontend, backend, database, and third-party integrations.",
+        artifactType: "architecture"
       },
       {
         id: "data-model",
         title: "Data Model Design",
         description: "Design database schema",
         estimatedTokens: 7000,
-        aiPromptContext: "Design the data model with entities, relationships, and key attributes."
+        aiPromptContext: "Design the data model with entities, relationships, and key attributes.",
+        artifactType: "database_schema"
       },
       {
         id: "integration-plan",
         title: "Integration Planning",
         description: "Plan third-party integrations",
         estimatedTokens: 5000,
-        aiPromptContext: "Identify and plan all necessary third-party integrations, APIs, and services."
+        aiPromptContext: "Identify and plan all necessary third-party integrations, APIs, and services.",
+        artifactType: "api_design"
       }
     ]
   },
@@ -195,28 +199,32 @@ export const PHASE_STRUCTURES: PhaseStructure[] = [
         title: "Wireframes",
         description: "Create low-fidelity wireframes",
         estimatedTokens: 12000,
-        aiPromptContext: "Guide the creation of wireframes for all key screens and user flows."
+        aiPromptContext: "Guide the creation of wireframes for all key screens and user flows.",
+        artifactType: "wireframes"
       },
       {
         id: "ui-design",
         title: "UI Design",
         description: "Design high-fidelity mockups",
         estimatedTokens: 15000,
-        aiPromptContext: "Help create detailed UI designs with color schemes, typography, and component libraries."
+        aiPromptContext: "Help create detailed UI designs with color schemes, typography, and component libraries.",
+        artifactType: "design_system"
       },
       {
         id: "user-flows",
         title: "User Flow Mapping",
         description: "Map all user journeys",
         estimatedTokens: 8000,
-        aiPromptContext: "Map out complete user flows from entry points to goal completion."
+        aiPromptContext: "Map out complete user flows from entry points to goal completion.",
+        artifactType: "user_flows"
       },
       {
         id: "prototype",
         title: "Interactive Prototype",
         description: "Build clickable prototype",
         estimatedTokens: 15000,
-        aiPromptContext: "Guide the creation of an interactive prototype for user testing."
+        aiPromptContext: "Guide the creation of an interactive prototype for user testing.",
+        artifactType: "prototype"
       }
     ]
   },

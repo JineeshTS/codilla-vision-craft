@@ -5,6 +5,12 @@ import BusinessModelTask from "./tasks/BusinessModelTask";
 import UserPersonasTask from "./tasks/UserPersonasTask";
 import UserStoriesTask from "./tasks/UserStoriesTask";
 import FeatureSpecTask from "./tasks/FeatureSpecTask";
+import TechStackTask from "./tasks/TechStackTask";
+import ArchitectureTask from "./tasks/ArchitectureTask";
+import DatabaseSchemaTask from "./tasks/DatabaseSchemaTask";
+import APIDesignTask from "./tasks/APIDesignTask";
+import WireframesTask from "./tasks/WireframesTask";
+import DesignSystemTask from "./tasks/DesignSystemTask";
 
 interface TaskRendererProps {
   projectId: string;
@@ -43,7 +49,33 @@ export const TaskRenderer = ({ projectId, phaseNumber, task }: TaskRendererProps
     return <FeatureSpecTask projectId={projectId} phaseNumber={phaseNumber} taskId={task.id} />;
   }
 
-  // For tasks without special UI (like customer-interviews, prd-generation, etc.)
+  // Phase 4 Tasks
+  if (task.id === "tech-stack") {
+    return <TechStackTask projectId={projectId} phaseNumber={phaseNumber} taskId={task.id} />;
+  }
+  
+  if (task.id === "architecture") {
+    return <ArchitectureTask projectId={projectId} phaseNumber={phaseNumber} taskId={task.id} />;
+  }
+  
+  if (task.id === "data-model") {
+    return <DatabaseSchemaTask projectId={projectId} phaseNumber={phaseNumber} taskId={task.id} />;
+  }
+  
+  if (task.id === "integration-plan") {
+    return <APIDesignTask projectId={projectId} phaseNumber={phaseNumber} taskId={task.id} />;
+  }
+
+  // Phase 5 Tasks
+  if (task.id === "wireframes") {
+    return <WireframesTask projectId={projectId} phaseNumber={phaseNumber} taskId={task.id} />;
+  }
+  
+  if (task.id === "ui-design") {
+    return <DesignSystemTask projectId={projectId} phaseNumber={phaseNumber} taskId={task.id} />;
+  }
+
+  // For tasks without special UI (like customer-interviews, prd-generation, prototype, usability-testing, etc.)
   // Return null - they'll just use the AI chat interface
   return null;
 };
