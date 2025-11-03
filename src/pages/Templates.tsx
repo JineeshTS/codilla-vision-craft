@@ -72,13 +72,8 @@ const Templates = () => {
         .update({ usage_count: template.usage_count + 1 })
         .eq("id", template.id);
 
-      toast({
-        title: "Template applied!",
-        description: "Starting new idea with this template...",
-      });
-
-      // Navigate to new idea page with template data
-      navigate("/ideas/new", { state: { template: template.template_data } });
+      // Navigate to template application page
+      navigate(`/templates/${template.id}/apply`);
     } catch (error: any) {
       toast({
         variant: "destructive",

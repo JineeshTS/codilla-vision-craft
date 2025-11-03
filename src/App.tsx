@@ -15,6 +15,7 @@ import ProjectDetail from "./pages/ProjectDetail";
 import ProductDefinition from "./pages/ProductDefinition";
 import Tokens from "./pages/Tokens";
 import Templates from "./pages/Templates";
+import TemplateApply from "./pages/TemplateApply";
 import Analytics from "./pages/Analytics";
 import CodeIDE from "./pages/CodeIDE";
 import PhaseDetail from "./pages/PhaseDetail";
@@ -42,6 +43,7 @@ const App = () => (
           <Route path="/projects/:projectId/phase/:phaseNumber" element={<PhaseDetail />} />
           <Route path="/tokens" element={<Tokens />} />
           <Route path="/templates" element={<Templates />} />
+          <Route path="/templates/:templateId/apply" element={<TemplateApply />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/code-ide" element={<CodeIDE />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
