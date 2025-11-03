@@ -78,18 +78,11 @@ serve(async (req) => {
 
     console.log(`📝 Processing idea: ${idea.title}`);
 
-    // Get AI provider config
-    const { data: aiConfig } = await supabase
-      .from('system_config')
-      .select('config_value')
-      .eq('config_key', 'ai_providers')
-      .single();
-
-    const aiProvider = (aiConfig?.config_value as any)?.primary || 'openai';
-    const aiApiKey = Deno.env.get(aiProvider === 'openai' ? 'OPENAI_API_KEY' : aiProvider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'GOOGLE_API_KEY') || Deno.env.get("LOVABLE_API_KEY") || '';
+    // Get Lovable API Key
+    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
     
-    if (!aiApiKey) {
-      throw new Error('AI provider API key not configured');
+    if (!lovableApiKey) {
+      throw new Error('Lovable API key not configured');
     }
 
     const systemPrompt = `You are an expert requirements analyst helping entrepreneurs refine their ideas through the Codilla Framework Phase 1: Requirements Analysis.
@@ -114,24 +107,26 @@ ${idea.unique_value_proposition ? `- UVP: ${idea.unique_value_proposition}` : ''
 
 Ask ONE thoughtful, specific question at a time. Build on their previous answers. Be conversational, encouraging, and help them think deeper about their idea. When you identify gaps or concerns, ask clarifying questions rather than making assumptions.`;
 
-    const { callAI } = await import("../_shared/ai-provider.ts");
-    
     const aiMessages = [
-      { role: "system" as const, content: systemPrompt },
+      { role: "system", content: systemPrompt },
       ...messages
     ];
     
-    const response = await callAI(
-      {
-        provider: aiProvider as "openai" | "anthropic" | "google",
-        apiKey: aiApiKey,
-        model: aiProvider === 'openai' ? 'gpt-4o-mini' : 'google/gemini-2.5-flash',
-        temperature: 0.8,
-        maxTokens: 500,
+    // Call Lovable AI Gateway with streaming
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${lovableApiKey}`,
+        'Content-Type': 'application/json',
       },
-      aiMessages,
-      true
-    );
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: aiMessages,
+        stream: true,
+        temperature: 0.8,
+        max_tokens: 500,
+      }),
+    });
 
     if (!response.ok) {
       const errorText = await response.text();

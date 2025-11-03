@@ -119,31 +119,32 @@ serve(async (req) => {
       throw new Error('AI provider API key not configured');
     }
 
-    // Call all three AIs in parallel
+    // Call all three AIs in parallel via Lovable AI Gateway
     console.log('🤖 Calling three AIs for consensus...');
-    const { callAI: aiCall } = await import("../_shared/ai-provider.ts");
     
     const aiPromises = aiModels.map(async (ai) => {
       const startTime = Date.now();
       
       try {
-        const response = await aiCall(
-          {
-            provider: aiProvider as "openai" | "anthropic" | "google",
-            apiKey: aiApiKey,
-            model: ai.model,
-            temperature: 0.7,
-            maxTokens: 1000
+        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${aiApiKey}`,
+            'Content-Type': 'application/json',
           },
-          [
-            { role: 'system' as const, content: systemPrompt },
-            { 
-              role: 'user' as const, 
-              content: `Idea: ${idea.title}\nDescription: ${idea.description}\nContext: ${context || ''}\nUser Input: ${userInput}\n\nProvide: 1) Score (1-10), 2) Strengths (bullet points), 3) Concerns (bullet points), 4) Recommendations (bullet points)`
-            }
-          ],
-          false
-        );
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { 
+                role: 'user', 
+                content: `Idea: ${idea.title}\nDescription: ${idea.description}\nContext: ${context || ''}\nUser Input: ${userInput}\n\nProvide: 1) Score (1-10), 2) Strengths (bullet points), 3) Concerns (bullet points), 4) Recommendations (bullet points)`
+              }
+            ],
+            temperature: 0.7,
+            max_tokens: 1000
+          }),
+        });
 
         if (!response.ok) {
           throw new Error(`${ai.name} API error: ${response.status}`);

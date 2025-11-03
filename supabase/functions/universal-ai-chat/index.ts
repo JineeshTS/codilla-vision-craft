@@ -1,7 +1,15 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 import { corsHeaders } from "../_shared/cors.ts";
-import { callAI, estimateTokens, type AIMessage } from "../_shared/ai-provider.ts";
+
+interface AIMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
+function estimateTokens(text: string): number {
+  return Math.ceil(text.length / 4);
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -124,18 +132,21 @@ serve(async (req) => {
       });
     }
 
-    // Call AI
-    const aiResponse = await callAI(
-      {
-        provider: aiProvider as "openai" | "anthropic" | "google",
-        apiKey: aiApiKey,
-        model: aiProvider === 'openai' ? 'gpt-4o-mini' : aiProvider === 'anthropic' ? 'claude-3-5-sonnet-20241022' : 'gemini-2.0-flash-exp',
-        temperature: 0.7,
-        maxTokens: 4096,
+    // Call Lovable AI Gateway
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${aiApiKey}`,
+        'Content-Type': 'application/json',
       },
-      messages,
-      true // stream
-    );
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages,
+        stream: true,
+        temperature: 0.7,
+        max_tokens: 4096,
+      }),
+    });
 
     // Update conversation with user message
     const updatedMessages = [

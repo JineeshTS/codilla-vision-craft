@@ -207,22 +207,24 @@ async function callAI(agent: string, prompt: string, apiKey: string): Promise<st
     throw new Error('AI provider API key not configured');
   }
 
-  const { callAI: aiCall } = await import("../_shared/ai-provider.ts");
-  const response = await aiCall(
-    {
-      provider: aiProvider as "openai" | "anthropic" | "google",
-      apiKey: aiApiKey,
-      model: aiProvider === 'openai' ? 'gpt-4o-mini' : 'google/gemini-2.5-flash',
+  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${aiApiKey}`,
+      'Content-Type': 'application/json',
     },
-    [
-      {
-        role: "system" as const,
-        content: "You are an expert product manager. Always return valid JSON responses.",
-      },
-      { role: "user" as const, content: prompt },
-    ],
-    false
-  );
+    body: JSON.stringify({
+      model: 'google/gemini-2.5-flash',
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert product manager. Always return valid JSON responses.",
+        },
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.7,
+    }),
+  });
 
   if (!response.ok) {
     throw new Error(`${agent} AI call failed: ${response.statusText}`);

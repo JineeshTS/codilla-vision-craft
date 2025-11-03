@@ -91,21 +91,21 @@ Return JSON array with this structure:
 
 Make prompts specific, actionable, and properly sequenced with dependencies.`;
 
-    const { callAI } = await import("../_shared/ai-provider.ts");
-    
-    const aiResponse = await callAI(
-      {
-        provider: aiProvider as "openai" | "anthropic" | "google",
-        apiKey: aiApiKey,
-        model: aiProvider === 'openai' ? 'gpt-4o-mini' : 'google/gemini-2.5-flash',
-        temperature: 0.7,
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${aiApiKey}`,
+        'Content-Type': 'application/json',
       },
-      [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: "Generate the complete development prompt sequence." }
-      ],
-      false
-    );
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: "Generate the complete development prompt sequence." }
+        ],
+        temperature: 0.7,
+      }),
+    });
 
     if (!aiResponse.ok) {
       console.error("AI provider error:", aiResponse.status);

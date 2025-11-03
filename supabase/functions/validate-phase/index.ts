@@ -163,18 +163,18 @@ Respond with ONLY a valid JSON object (no markdown, no code blocks):
     }
 
     const callAI = async (agentName: string) => {
-      const { callAI: aiCall } = await import("../_shared/ai-provider.ts");
-      
-      const response = await aiCall(
-        {
-          provider: aiProvider as "openai" | "anthropic" | "google",
-          apiKey: aiApiKey,
-          model: aiProvider === 'openai' ? 'gpt-4o-mini' : 'google/gemini-2.5-flash',
-          temperature: 0.7,
+      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${aiApiKey}`,
+          'Content-Type': 'application/json',
         },
-        [{ role: "user" as const, content: validationPrompt }],
-        false
-      );
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [{ role: "user", content: validationPrompt }],
+          temperature: 0.7,
+        }),
+      });
 
       if (!response.ok) {
         console.error(`${agentName} error:`, response.status);
