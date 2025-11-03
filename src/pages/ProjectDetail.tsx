@@ -32,16 +32,16 @@ interface Phase {
 }
 
 const phaseNames = [
-  "Requirements Analysis",
-  "Architecture Design",
-  "Database Schema",
-  "API Design",
-  "UI/UX Design",
-  "Frontend Development",
-  "Backend Development",
-  "Integration & Testing",
-  "Deployment Setup",
-  "Final Review & Launch",
+  "Idea Capture & Screening",
+  "Validation & Research",
+  "Product Definition",
+  "Technical Planning",
+  "Design & Prototype",
+  "Development Preparation",
+  "AI-Assisted Development",
+  "Launch Preparation",
+  "Deployment & Go-Live",
+  "Post-Launch Operations",
 ];
 
 const ProjectDetail = () => {

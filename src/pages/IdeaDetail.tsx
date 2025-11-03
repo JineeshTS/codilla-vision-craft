@@ -185,10 +185,23 @@ const IdeaDetail = () => {
       if (error) throw error;
 
       // Create initial phases
+      const correctPhaseNames = [
+        "Idea Capture & Screening",
+        "Validation & Research",
+        "Product Definition",
+        "Technical Planning",
+        "Design & Prototype",
+        "Development Preparation",
+        "AI-Assisted Development",
+        "Launch Preparation",
+        "Deployment & Go-Live",
+        "Post-Launch Operations",
+      ];
+
       const phases = Array.from({ length: 10 }, (_, i) => ({
         project_id: project.id,
         phase_number: i + 1,
-        phase_name: `Phase ${i + 1}`,
+        phase_name: correctPhaseNames[i],
         status: "pending" as const,
       }));
 
@@ -420,7 +433,7 @@ const IdeaDetail = () => {
                 ) : (
                   <Card className="glass-panel p-8 text-center">
                     <p className="text-muted-foreground">
-                      AI discussion is only available during Phase 1: Requirements Analysis
+                      AI discussion is only available during Phase 1: Idea Capture & Screening
                     </p>
                   </Card>
                 )}

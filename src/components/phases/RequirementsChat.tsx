@@ -21,7 +21,7 @@ export const RequirementsChat = ({ ideaId, ideaTitle }: RequirementsChatProps) =
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: `Hi! I'm here to help you refine "${ideaTitle}" through deep requirements analysis. Let's explore your idea together. To start, can you tell me more about the specific problem you're trying to solve?`
+      content: `Hi! I'm here to help you capture and screen "${ideaTitle}". Let's explore your idea together and validate if it's worth pursuing. To start, can you tell me more about the specific problem you're trying to solve?`
     }
   ]);
   const [input, setInput] = useState("");
@@ -154,7 +154,7 @@ export const RequirementsChat = ({ ideaId, ideaTitle }: RequirementsChatProps) =
     <Card className="glass-panel p-6 flex flex-col h-[600px]">
       <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
         <Bot className="w-6 h-6 text-primary" />
-        <h3 className="text-lg font-semibold">AI Requirements Discussion</h3>
+        <h3 className="text-lg font-semibold">AI Idea Screening Chat</h3>
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
