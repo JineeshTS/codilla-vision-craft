@@ -310,7 +310,8 @@ export const PHASE_STRUCTURES: PhaseStructure[] = [
         title: "Launch Strategy",
         description: "Plan launch approach and channels",
         estimatedTokens: 8000,
-        aiPromptContext: "Develop a comprehensive launch strategy including target channels, messaging, and timeline."
+        aiPromptContext: "Develop a comprehensive launch strategy including target channels, messaging, and timeline.",
+        artifactType: "launch-strategy"
       },
       {
         id: "marketing-materials",
@@ -331,7 +332,8 @@ export const PHASE_STRUCTURES: PhaseStructure[] = [
         title: "Launch Checklist",
         description: "Complete pre-launch checklist",
         estimatedTokens: 5000,
-        aiPromptContext: "Work through final checklist: performance testing, security review, documentation, support setup."
+        aiPromptContext: "Work through final checklist: performance testing, security review, documentation, support setup.",
+        artifactType: "launch-checklist"
       }
     ]
   },
@@ -348,7 +350,8 @@ export const PHASE_STRUCTURES: PhaseStructure[] = [
         title: "Production Deployment",
         description: "Deploy to production environment",
         estimatedTokens: 5000,
-        aiPromptContext: "Guide production deployment, DNS setup, SSL configuration, and environment variables."
+        aiPromptContext: "Guide production deployment, DNS setup, SSL configuration, and environment variables.",
+        artifactType: "deployment"
       },
       {
         id: "smoke-testing",
@@ -393,7 +396,8 @@ export const PHASE_STRUCTURES: PhaseStructure[] = [
         title: "Metrics Analysis",
         description: "Analyze performance metrics",
         estimatedTokens: 0,
-        aiPromptContext: "Guide analysis of key metrics: user acquisition, activation, retention, revenue."
+        aiPromptContext: "Guide analysis of key metrics: user acquisition, activation, retention, revenue.",
+        artifactType: "metrics-analysis"
       },
       {
         id: "iteration-planning",

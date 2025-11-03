@@ -11,6 +11,10 @@ import DatabaseSchemaTask from "./tasks/DatabaseSchemaTask";
 import APIDesignTask from "./tasks/APIDesignTask";
 import WireframesTask from "./tasks/WireframesTask";
 import DesignSystemTask from "./tasks/DesignSystemTask";
+import { LaunchStrategyTask } from "./tasks/LaunchStrategyTask";
+import { LaunchChecklistTask } from "./tasks/LaunchChecklistTask";
+import { DeploymentTask } from "./tasks/DeploymentTask";
+import { MetricsAnalysisTask } from "./tasks/MetricsAnalysisTask";
 
 interface TaskRendererProps {
   projectId: string;
@@ -73,6 +77,25 @@ export const TaskRenderer = ({ projectId, phaseNumber, task }: TaskRendererProps
   
   if (task.id === "ui-design") {
     return <DesignSystemTask projectId={projectId} phaseNumber={phaseNumber} taskId={task.id} />;
+  }
+
+  // Phase 8 Tasks
+  if (task.id === "launch-strategy") {
+    return <LaunchStrategyTask projectId={projectId} phaseNumber={phaseNumber} taskId={task.id} />;
+  }
+  
+  if (task.id === "launch-checklist") {
+    return <LaunchChecklistTask projectId={projectId} phaseNumber={phaseNumber} taskId={task.id} />;
+  }
+
+  // Phase 9 Tasks
+  if (task.id === "production-deployment") {
+    return <DeploymentTask projectId={projectId} phaseNumber={phaseNumber} taskId={task.id} />;
+  }
+
+  // Phase 10 Tasks
+  if (task.id === "metrics-analysis") {
+    return <MetricsAnalysisTask projectId={projectId} phaseNumber={phaseNumber} taskId={task.id} />;
   }
 
   // For tasks without special UI (like customer-interviews, prd-generation, prototype, usability-testing, etc.)
