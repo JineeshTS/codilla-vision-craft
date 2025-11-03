@@ -16,6 +16,9 @@ verify_jwt = true
 [functions.ai-requirements-chat]
 verify_jwt = true
 
+[functions.phase-task-chat]
+verify_jwt = true
+
 [functions.create-razorpay-order]
 verify_jwt = true
 

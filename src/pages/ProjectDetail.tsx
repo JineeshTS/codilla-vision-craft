@@ -223,14 +223,15 @@ const ProjectDetail = () => {
           <h2 className="text-2xl font-semibold mb-6">Development Phases</h2>
           <div className="space-y-4">
             {phases.map((phase, index) => (
-              <div
-                key={phase.id}
-                className={`p-6 rounded-lg border transition-all ${
-                  phase.status === "in_progress"
-                    ? "border-primary bg-primary/5"
-                    : "border-muted bg-background/50"
-                }`}
-              >
+                <Card
+                  key={phase.id}
+                  className={`p-6 rounded-lg border transition-all cursor-pointer hover:border-primary ${
+                    phase.status === "in_progress"
+                      ? "border-primary bg-primary/5"
+                      : "border-muted bg-background/50"
+                  }`}
+                  onClick={() => navigate(`/projects/${id}/phase/${phase.phase_number}`)}
+                >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
                     {getPhaseIcon(phase.status)}
@@ -272,7 +273,7 @@ const ProjectDetail = () => {
                     </p>
                   </div>
                 )}
-              </div>
+              </Card>
             ))}
           </div>
         </Card>
