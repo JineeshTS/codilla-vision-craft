@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import TokenPackages from "@/components/tokens/TokenPackages";
+import TokenTopUp from "@/components/tokens/TokenTopUp";
 import TokenPurchaseFlow from "@/components/tokens/TokenPurchaseFlow";
 import TokenUsageChart from "@/components/tokens/TokenUsageChart";
 
@@ -83,8 +83,8 @@ const Tokens = () => {
     }
   };
 
-  const handlePackageSelect = (pkg: { name: string; tokens: number; price: number }) => {
-    setSelectedPackage(pkg);
+  const handleTopUpSelect = (amount: number, tokens: number) => {
+    setSelectedPackage({ name: `${amount} INR`, tokens, price: amount });
     setPurchaseFlowOpen(true);
   };
 
@@ -130,11 +130,7 @@ const Tokens = () => {
         </div>
 
         <div className="space-y-8 mb-8">
-          <div>
-            <h2 className="text-2xl font-semibold mb-6">Purchase Token Packages</h2>
-            <TokenPackages onSelectPackage={handlePackageSelect} />
-          </div>
-
+          <TokenTopUp onSelectAmount={handleTopUpSelect} />
           <TokenUsageChart />
         </div>
 
