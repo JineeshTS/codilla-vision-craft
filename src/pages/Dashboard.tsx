@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useNavigate } from "react-router-dom";
 import { GitHubRepoSelector } from "@/components/GitHubRepoSelector";
+import { AIUsageChart } from "@/components/analytics/AIUsageChart";
+import { CommitHistory } from "@/components/analytics/CommitHistory";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -88,6 +90,14 @@ const Dashboard = () => {
             </div>
             <p className="text-3xl font-bold">{stats.tokens.toLocaleString()}</p>
           </Card>
+        </div>
+
+        <div className="mb-8">
+          <h2 className="text-xl md:text-2xl font-semibold mb-4">Development Analytics</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <AIUsageChart />
+            <CommitHistory />
+          </div>
         </div>
 
         <div className="mb-8">

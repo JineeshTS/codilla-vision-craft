@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import CodeGenerator from "@/components/CodeGenerator";
+import CodeReview from "@/components/CodeReview";
 import { Card } from "@/components/ui/card";
 import { Code, Sparkles } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -62,6 +63,11 @@ const CodeIDE = () => {
               onCodeGenerated={(code) => {
                 console.log("Generated code:", code);
               }}
+            />
+
+            <CodeReview 
+              language="javascript"
+              model={selectedModel}
             />
 
             <Card className="glass-panel p-6">

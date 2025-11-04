@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { GitHubConnector } from "./GitHubConnector";
 
 interface GitHubRepo {
   id: number;
@@ -58,15 +59,24 @@ export const GitHubRepoSelector = () => {
   const fetchGitHubRepos = async () => {
     setIsLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.provider_token) {
-        toast.error("GitHub not connected. Please sign in with GitHub.");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get GitHub token from profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('github_token')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.github_token) {
+        toast.error("GitHub not connected. Please connect GitHub first.");
         return;
       }
 
       const response = await fetch('https://api.github.com/user/repos?per_page=100&sort=updated', {
         headers: {
-          Authorization: `Bearer ${session.provider_token}`,
+          Authorization: `Bearer ${profile.github_token}`,
           Accept: 'application/vnd.github.v3+json'
         }
       });
@@ -113,14 +123,20 @@ export const GitHubRepoSelector = () => {
   if (!githubUsername) {
     return (
       <Card className="p-6">
-        <div className="flex items-center gap-4">
-          <Github className="h-8 w-8" />
-          <div>
-            <h3 className="font-semibold">Connect GitHub</h3>
-            <p className="text-sm text-muted-foreground">
-              Sign in with GitHub to enable repository integration
-            </p>
+        <div className="space-y-4">
+          <div className="flex items-center gap-4">
+            <Github className="h-8 w-8" />
+            <div>
+              <h3 className="font-semibold">Connect GitHub</h3>
+              <p className="text-sm text-muted-foreground">
+                Connect your GitHub account to enable repository integration
+              </p>
+            </div>
           </div>
+          <GitHubConnector
+            isConnected={false}
+            onConnectionChange={loadGitHubData}
+          />
         </div>
       </Card>
     );
@@ -129,22 +145,20 @@ export const GitHubRepoSelector = () => {
   return (
     <Card className="p-6">
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Github className="h-5 w-5" />
-            <div>
-              <h3 className="font-semibold">GitHub Repository</h3>
-              <p className="text-sm text-muted-foreground">
-                Connected as @{githubUsername}
-              </p>
-            </div>
-          </div>
+        <GitHubConnector
+          isConnected={true}
+          username={githubUsername}
+          onConnectionChange={loadGitHubData}
+        />
+
+        <div>
+          <h3 className="font-semibold mb-2">Select Repository</h3>
           {selectedRepo && (
             <a
               href={repos.find(r => r.full_name === selectedRepo)?.html_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-primary hover:underline flex items-center gap-1"
+              className="text-sm text-primary hover:underline flex items-center gap-1 mb-2"
             >
               View Repo <ExternalLink className="h-3 w-3" />
             </a>
