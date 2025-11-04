@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { checkRateLimit } from "../_shared/rate-limit.ts";
 import { createErrorResponse } from "../_shared/error-handler.ts";
+import { callAI, type AIModel, type AIMessage } from "../_shared/multi-ai-provider.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,7 +22,7 @@ serve(async (req) => {
       return createErrorResponse('Authorization header required', 401, corsHeaders, errorId);
     }
 
-    const { ideaId, messages } = await req.json();
+    const { ideaId, messages, model = 'gemini' } = await req.json();
     
     if (!ideaId || !messages || !Array.isArray(messages)) {
       return createErrorResponse('Missing required fields', 400, corsHeaders, errorId);
@@ -78,13 +79,6 @@ serve(async (req) => {
 
     console.log(`📝 Processing idea: ${idea.title}`);
 
-    // Get Google API Key
-    const googleApiKey = Deno.env.get("GOOGLE_API_KEY");
-    
-    if (!googleApiKey) {
-      throw new Error('Google API key not configured');
-    }
-
     const systemPrompt = `You are an expert idea screening consultant helping entrepreneurs validate their ideas through Phase 1: Idea Capture & Screening.
 
 Your goal is to help them quickly determine if their idea is worth pursuing through thoughtful questions and discussion. Focus on:
@@ -107,45 +101,23 @@ ${idea.unique_value_proposition ? `- UVP: ${idea.unique_value_proposition}` : ''
 
 Ask ONE thoughtful, specific question at a time to screen the idea quickly. Be direct but encouraging. Help them see if this idea passes the initial "smell test" - is it worth 2-4 weeks of validation research? When concerns arise, probe deeper rather than dismiss.`;
 
-    const aiMessages = [
-      { role: "system", content: systemPrompt },
-      ...messages
+    const aiMessages: AIMessage[] = [
+      { role: 'system', content: systemPrompt },
+      ...messages.map((m: any) => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content
+      }))
     ];
-    
-    // Call Google Gemini API with streaming
-    const contents = aiMessages
-      .filter(m => m.role !== 'system')
-      .map(m => ({
-        role: m.role === 'user' ? 'user' : 'model',
-        parts: [{ text: m.content }]
-      }));
 
-    const systemInstruction = aiMessages.find(m => m.role === 'system');
+    const aiResponse = await callAI({
+      model: model as AIModel,
+      messages: aiMessages,
+      stream: true,
+      temperature: 0.8,
+      maxTokens: 500,
+    });
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:streamGenerateContent?key=${googleApiKey}&alt=sse`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents,
-          systemInstruction: systemInstruction ? { parts: [{ text: systemInstruction.content }] } : undefined,
-          generationConfig: {
-            temperature: 0.8,
-            maxOutputTokens: 500,
-          },
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AI provider error:', response.status, errorText);
-      return createErrorResponse('AI service unavailable', 500, corsHeaders, errorId);
-    }
-
-    // Stream the response back
-    return new Response(response.body, {
+    return new Response(aiResponse.body, {
       headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' }
     });
 

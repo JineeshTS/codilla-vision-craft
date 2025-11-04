@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 import { checkRateLimit } from "../_shared/rate-limit.ts";
 import { sanitizeError, createErrorResponse } from "../_shared/error-handler.ts";
+import { callAI, type AIModel, type AIMessage } from "../_shared/multi-ai-provider.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,6 +14,8 @@ const corsHeaders = {
 const requestSchema = z.object({
   prompt: z.string().min(1).max(5000, { message: "Prompt must be between 1 and 5000 characters" }),
   context: z.string().max(2000, { message: "Context must be less than 2000 characters" }).optional(),
+  model: z.enum(['claude', 'gemini', 'codex']).optional(),
+  optimizeForLovable: z.boolean().optional(),
 });
 
 serve(async (req) => {
@@ -41,7 +44,7 @@ serve(async (req) => {
       );
     }
 
-    const { prompt, context } = validation.data;
+    const { prompt, context, model = 'gemini', optimizeForLovable = false } = validation.data;
 
     // Verify user is authenticated
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
@@ -90,50 +93,37 @@ serve(async (req) => {
       return createErrorResponse('Service configuration error', 500, corsHeaders, errorId);
     }
 
-    const serviceClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-    // Get AI provider config
-    const { data: aiConfig } = await serviceClient
-      .from('system_config')
-      .select('config_value')
-      .eq('config_key', 'ai_providers')
-      .single();
-
-    const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
-    
-    if (!googleApiKey) {
-      throw new Error('Google API key not configured');
-    }
-
-    const systemPrompt = context 
+    let systemPrompt = context 
       ? `You are a code generation assistant. Use this context: ${context}\n\nGenerate clean, production-ready code.`
       : "You are a code generation assistant. Generate clean, production-ready code.";
 
-    const aiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:streamGenerateContent?key=${googleApiKey}&alt=sse`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{
-            role: 'user',
-            parts: [{ text: prompt }]
-          }],
-          systemInstruction: {
-            parts: [{ text: systemPrompt }]
-          },
-          generationConfig: {
-            temperature: 0.7,
-          },
-        }),
-      }
-    );
+    if (optimizeForLovable) {
+      systemPrompt = `You are a code generation assistant specialized in Lovable.dev projects.
 
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error("AI provider error:", aiResponse.status, errorText);
-      return createErrorResponse("AI service unavailable", 503, corsHeaders, errorId);
+Generate code optimized for Lovable.dev that follows these patterns:
+- Use shadcn/ui components from @/components/ui
+- Use Tailwind CSS utility classes with semantic tokens from index.css
+- Use Supabase client from @/integrations/supabase/client
+- Use React Router with useNavigate for navigation
+- Use Sonner for toast notifications
+- Follow component-based architecture with focused, reusable components
+- Use TypeScript with proper type safety
+${context ? `\nContext: ${context}` : ''}
+
+Generate clean, production-ready code suitable for immediate use in Lovable.dev.`;
     }
+
+    const messages: AIMessage[] = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: prompt }
+    ];
+
+    const aiResponse = await callAI({
+      model: model as AIModel,
+      messages,
+      stream: true,
+      temperature: 0.7,
+    });
 
     return new Response(aiResponse.body, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },

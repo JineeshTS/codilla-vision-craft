@@ -198,7 +198,7 @@ async function callAI(agent: string, prompt: string, apiKey: string): Promise<st
   }
 
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${googleApiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${googleApiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

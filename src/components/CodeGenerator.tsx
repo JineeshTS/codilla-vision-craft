@@ -2,20 +2,23 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Code, Sparkles, Copy, Check } from "lucide-react";
 
 interface CodeGeneratorProps {
   context?: string;
+  model?: 'claude' | 'gemini' | 'codex';
   onCodeGenerated?: (code: string) => void;
 }
 
-const CodeGenerator = ({ context, onCodeGenerated }: CodeGeneratorProps) => {
+const CodeGenerator = ({ context, model = 'gemini', onCodeGenerated }: CodeGeneratorProps) => {
   const { toast } = useToast();
   const [prompt, setPrompt] = useState("");
   const [generatedCode, setGeneratedCode] = useState("");
   const [generating, setGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [optimizeForLovable, setOptimizeForLovable] = useState(false);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -38,7 +41,7 @@ const CodeGenerator = ({ context, onCodeGenerated }: CodeGeneratorProps) => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ prompt, context }),
+        body: JSON.stringify({ prompt, context, model, optimizeForLovable }),
       });
 
       if (response.status === 429) {
@@ -139,6 +142,20 @@ const CodeGenerator = ({ context, onCodeGenerated }: CodeGeneratorProps) => {
             rows={4}
             disabled={generating}
           />
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Checkbox 
+            id="lovable-optimize" 
+            checked={optimizeForLovable}
+            onCheckedChange={(checked) => setOptimizeForLovable(checked as boolean)}
+          />
+          <label
+            htmlFor="lovable-optimize"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            Optimize for Lovable.dev
+          </label>
         </div>
 
         <Button

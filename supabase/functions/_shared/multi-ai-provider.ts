@@ -101,10 +101,10 @@ export async function callGemini(
   }
 
   const endpoint = stream 
-    ? 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:streamGenerateContent'
-    : 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent';
+    ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:streamGenerateContent?key=${googleApiKey}&alt=sse`
+    : `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${googleApiKey}`;
 
-  const response = await fetch(`${endpoint}?key=${googleApiKey}`, {
+  const response = await fetch(endpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

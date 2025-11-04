@@ -6,11 +6,13 @@ import { useAuthGuard } from "@/hooks/useAuthGuard";
 import CodeGenerator from "@/components/CodeGenerator";
 import { Card } from "@/components/ui/card";
 import { Code, Sparkles } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const CodeIDE = () => {
   const navigate = useNavigate();
   const isAuthenticated = useAuthGuard();
   const [user, setUser] = useState<any>(null);
+  const [selectedModel, setSelectedModel] = useState<'claude' | 'gemini' | 'codex'>('gemini');
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -28,12 +30,27 @@ const CodeIDE = () => {
       <Navbar />
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <Code className="w-8 h-8 text-primary" />
-            <h1 className="text-4xl font-bold gradient-text">AI Development IDE</h1>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Code className="w-8 h-8 text-primary" />
+              <h1 className="text-4xl font-bold gradient-text">AI Development IDE</h1>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">AI Model:</span>
+              <Select value={selectedModel} onValueChange={(value: any) => setSelectedModel(value)}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="claude">Claude (Sonnet 4.5)</SelectItem>
+                  <SelectItem value="gemini">Gemini (2.5 Pro)</SelectItem>
+                  <SelectItem value="codex">Codex (GPT-5)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <p className="text-muted-foreground">
-            Generate code with AI assistance powered by Lovable AI Gateway
+            Generate code with multi-AI assistance (Claude, Gemini, Codex)
           </p>
         </div>
 
@@ -41,6 +58,7 @@ const CodeIDE = () => {
           <div className="space-y-6">
             <CodeGenerator 
               context="Full-stack web application development"
+              model={selectedModel}
               onCodeGenerated={(code) => {
                 console.log("Generated code:", code);
               }}
@@ -55,21 +73,21 @@ const CodeIDE = () => {
                 <div className="flex items-start gap-2">
                   <div className="w-2 h-2 rounded-full bg-ai-claude mt-2" />
                   <div>
-                    <p className="font-medium text-ai-claude">Claude (Gemini 2.5 Pro)</p>
+                    <p className="font-medium text-ai-claude">Claude (Anthropic Sonnet 4.5)</p>
                     <p className="text-muted-foreground">Best for complex reasoning and architecture design</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
                   <div className="w-2 h-2 rounded-full bg-ai-gemini mt-2" />
                   <div>
-                    <p className="font-medium text-ai-gemini">Gemini (Gemini 2.5 Flash)</p>
+                    <p className="font-medium text-ai-gemini">Gemini (Google 2.5 Pro)</p>
                     <p className="text-muted-foreground">Balanced performance for general development</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
                   <div className="w-2 h-2 rounded-full bg-ai-codex mt-2" />
                   <div>
-                    <p className="font-medium text-ai-codex">Codex (Gemini 2.5 Flash Lite)</p>
+                    <p className="font-medium text-ai-codex">Codex (OpenAI GPT-5)</p>
                     <p className="text-muted-foreground">Fast code generation and simple tasks</p>
                   </div>
                 </div>
