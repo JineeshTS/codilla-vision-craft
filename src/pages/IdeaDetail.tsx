@@ -36,43 +36,7 @@ interface Idea {
   screening_score: number | null;
   decision_status: string | null;
   current_phase: number | null;
-  business_models?: {
-    swot?: {
-      strengths: string[];
-      weaknesses: string[];
-      opportunities: string[];
-      threats: string[];
-    };
-    portersFiveForces?: {
-      threatOfNewEntrants: string;
-      bargainingPowerOfSuppliers: string;
-      bargainingPowerOfBuyers: string;
-      threatOfSubstitutes: string;
-      competitiveRivalry: string;
-    };
-    blueOcean?: {
-      eliminate: string[];
-      reduce: string[];
-      raise: string[];
-      create: string[];
-    };
-    leanCanvas?: {
-      problem: string[];
-      solution: string[];
-      keyMetrics: string[];
-      uniqueValueProposition: string;
-      unfairAdvantage: string;
-      channels: string[];
-      customerSegments: string[];
-      costStructure: string[];
-      revenueStreams: string[];
-    };
-    riskAssessment?: {
-      high: string[];
-      medium: string[];
-      low: string[];
-    };
-  };
+  business_models?: any; // Using any to handle Json type from database
 }
 
 const IdeaDetail = () => {

@@ -335,6 +335,7 @@ export type Database = {
         Row: {
           audience_size: string | null
           business_model: string | null
+          business_models: Json | null
           business_validation_score: number | null
           category: string | null
           consensus_score: number | null
@@ -366,6 +367,7 @@ export type Database = {
         Insert: {
           audience_size?: string | null
           business_model?: string | null
+          business_models?: Json | null
           business_validation_score?: number | null
           category?: string | null
           consensus_score?: number | null
@@ -397,6 +399,7 @@ export type Database = {
         Update: {
           audience_size?: string | null
           business_model?: string | null
+          business_models?: Json | null
           business_validation_score?: number | null
           category?: string | null
           consensus_score?: number | null
