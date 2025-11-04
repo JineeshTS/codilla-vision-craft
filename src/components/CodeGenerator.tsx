@@ -4,7 +4,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Code, Sparkles, Copy, Check } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Code, Sparkles, Copy, Check, Github } from "lucide-react";
 
 interface CodeGeneratorProps {
   context?: string;
@@ -19,6 +20,7 @@ const CodeGenerator = ({ context, model = 'gemini', onCodeGenerated }: CodeGener
   const [generating, setGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [optimizeForLovable, setOptimizeForLovable] = useState(false);
+  const [isCommitting, setIsCommitting] = useState(false);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -123,6 +125,82 @@ const CodeGenerator = ({ context, model = 'gemini', onCodeGenerated }: CodeGener
     });
   };
 
+  const handleCommitToGitHub = async () => {
+    if (!generatedCode) {
+      toast({
+        variant: "destructive",
+        title: "No code to commit",
+        description: "Please generate code first",
+      });
+      return;
+    }
+
+    try {
+      setIsCommitting(true);
+
+      // Get user's GitHub repo
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('selected_github_repo, github_token')
+        .single();
+
+      if (!profile?.selected_github_repo || !profile?.github_token) {
+        toast({
+          variant: "destructive",
+          title: "GitHub not configured",
+          description: "Please connect GitHub and select a repository in your dashboard",
+        });
+        return;
+      }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const fileName = prompt.trim().slice(0, 30).replace(/\s+/g, '') || 'Component';
+      
+      const response = await fetch(
+        `https://numyfjzmrtvzclgyfkpx.supabase.co/functions/v1/commit-to-github`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            code: generatedCode,
+            filePath: `src/components/${fileName}.tsx`,
+            commitMessage: `AI Generated: ${prompt.slice(0, 50)}`,
+            githubRepo: profile.selected_github_repo,
+            githubToken: profile.github_token,
+            projectId: null,
+            phaseNumber: null,
+            taskId: null,
+            aiModel: model,
+            optimizeForLovable
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) throw new Error(result.error);
+
+      toast({
+        title: "Committed to GitHub!",
+        description: "Code has been committed to your repository",
+      });
+
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Commit failed",
+        description: error.message,
+      });
+    } finally {
+      setIsCommitting(false);
+    }
+  };
+
   return (
     <Card className="glass-panel p-6">
       <div className="flex items-center gap-2 mb-4">
@@ -158,14 +236,28 @@ const CodeGenerator = ({ context, model = 'gemini', onCodeGenerated }: CodeGener
           </label>
         </div>
 
-        <Button
-          onClick={handleGenerate}
-          disabled={generating || !prompt.trim()}
-          className="w-full"
-        >
-          <Sparkles className="w-4 h-4 mr-2" />
-          {generating ? "Generating..." : "Generate Code"}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={handleGenerate}
+            disabled={generating || !prompt.trim()}
+            className="flex-1"
+          >
+            <Sparkles className="w-4 h-4 mr-2" />
+            {generating ? "Generating..." : "Generate Code"}
+          </Button>
+          
+          {generatedCode && (
+            <Button
+              onClick={handleCommitToGitHub}
+              disabled={isCommitting}
+              variant="outline"
+              className="flex-1"
+            >
+              <Github className="w-4 h-4 mr-2" />
+              {isCommitting ? "Committing..." : "Commit to GitHub"}
+            </Button>
+          )}
+        </div>
 
         {generatedCode && (
           <div className="space-y-2">
