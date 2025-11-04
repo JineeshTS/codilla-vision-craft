@@ -48,3 +48,12 @@ verify_jwt = true
 
 [functions.universal-ai-chat]
 verify_jwt = true
+
+[functions.code-review]
+verify_jwt = true
+
+[functions.commit-to-github]
+verify_jwt = true
+
+[functions.github-oauth-callback]
+verify_jwt = true

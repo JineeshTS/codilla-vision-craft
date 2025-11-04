@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Lightbulb, Rocket, CheckCircle, TrendingUp, Plus } from "lucide-react";
+import { Lightbulb, Rocket, CheckCircle, TrendingUp, Plus, Code } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
@@ -112,14 +112,23 @@ const Dashboard = () => {
               <p className="text-muted-foreground text-sm">Start the validation process</p>
             </Card>
 
-            <Card 
-              className="glass-panel p-6 hover:scale-105 transition-transform cursor-pointer"
-              onClick={() => navigate("/projects")}
-            >
-              <Rocket className="w-8 h-8 text-primary mb-4" />
-              <h3 className="text-xl font-semibold mb-2">View Projects</h3>
-              <p className="text-muted-foreground text-sm">Track your development</p>
-            </Card>
+          <Card 
+            className="glass-panel p-6 hover:scale-105 transition-transform cursor-pointer"
+            onClick={() => navigate("/code-ide")}
+          >
+            <Code className="w-8 h-8 text-primary mb-4" />
+            <h3 className="text-xl font-semibold mb-2">AI Code IDE</h3>
+            <p className="text-muted-foreground text-sm">Generate & review code with AI</p>
+          </Card>
+
+          <Card 
+            className="glass-panel p-6 hover:scale-105 transition-transform cursor-pointer"
+            onClick={() => navigate("/deployment")}
+          >
+            <Rocket className="w-8 h-8 text-primary mb-4" />
+            <h3 className="text-xl font-semibold mb-2">Deploy & Test</h3>
+            <p className="text-muted-foreground text-sm">Production readiness checks</p>
+          </Card>
 
             <Card 
               className="glass-panel p-6 hover:scale-105 transition-transform cursor-pointer"

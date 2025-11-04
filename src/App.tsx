@@ -23,6 +23,7 @@ import PhaseDetail from "./pages/PhaseDetail";
 import DevelopmentPrep from "./pages/DevelopmentPrep";
 import AIAssistedDev from "./pages/AIAssistedDev";
 import TemplateSelection from "./pages/TemplateSelection";
+import Deployment from "./pages/Deployment";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import AdminSettings from "./pages/AdminSettings";
@@ -53,6 +54,7 @@ const App = () => (
           <Route path="/template/:templateId" element={<TemplateCustomizer />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/code-ide" element={<CodeIDE />} />
+          <Route path="/deployment" element={<Deployment />} />
           <Route path="/projects/:projectId/template-selection" element={<TemplateSelection />} />
           <Route path="/projects/:projectId/development-prep" element={<DevelopmentPrep />} />
           <Route path="/projects/:projectId/ai-development" element={<AIAssistedDev />} />
