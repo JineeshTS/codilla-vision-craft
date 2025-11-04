@@ -207,17 +207,39 @@ Conduct thorough research and provide comprehensive analysis. Respond with ONLY 
         }
 
         const data = await response.json();
-        const content = data.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
-        
-        // Clean up any markdown code blocks if present
-        let cleanContent = content.trim();
-        if (cleanContent.startsWith('```json')) {
-          cleanContent = cleanContent.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-        } else if (cleanContent.startsWith('```')) {
-          cleanContent = cleanContent.replace(/```\n?/g, '');
+        const content: string = data.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+
+        // Helper to sanitize and extract JSON robustly
+        const sanitizeToJson = (raw: string) => {
+          let s = raw.trim();
+          if (s.startsWith('```json')) {
+            s = s.replace(/```json\s*/g, '').replace(/```\s*$/g, '').trim();
+          } else if (s.startsWith('```')) {
+            s = s.replace(/```\s*/g, '').replace(/```\s*$/g, '').trim();
+          }
+          const start = s.indexOf('{');
+          const end = s.lastIndexOf('}');
+          if (start !== -1 && end !== -1) {
+            s = s.slice(start, end + 1);
+          }
+          s = s.replace(/\r/g, '');
+          // Remove trailing commas before object/array end
+          s = s.replace(/,(\s*[}\]])/g, '$1');
+          // Escape invalid backslashes not forming a valid JSON escape sequence
+          s = s.replace(/\\(?![\\\/"bfnrtu]|u[0-9a-fA-F]{4})/g, '\\\\');
+          // Remove unprintable control characters
+          s = s.replace(/[\u0000-\u0019]/g, '');
+          return s;
+        };
+
+        const cleaned = sanitizeToJson(content);
+        try {
+          return JSON.parse(cleaned);
+        } catch (e) {
+          console.error('JSON parse failed. Raw content (truncated):', content.slice(0, 600));
+          console.error('Cleaned content (truncated):', cleaned.slice(0, 600));
+          throw e;
         }
-        
-        return JSON.parse(cleanContent);
       } catch (error) {
         console.error(`${agentName} failed:`, error);
         throw error;
