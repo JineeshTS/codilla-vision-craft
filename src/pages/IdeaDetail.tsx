@@ -17,6 +17,7 @@ import { ThreeAIIndicator } from "@/components/ThreeAIIndicator";
 import { RequirementsChat } from "@/components/phases/RequirementsChat";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResearchReport } from "@/components/ResearchReport";
+import { BusinessResearchEditor } from "@/components/business/BusinessResearchEditor";
 
 interface Idea {
   id: string;
@@ -332,7 +333,7 @@ const IdeaDetail = () => {
         ) : (
           <>
             <Tabs defaultValue="overview" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="discussion">
                   AI Discussion
@@ -342,6 +343,7 @@ const IdeaDetail = () => {
                     </span>
                   )}
                 </TabsTrigger>
+                <TabsTrigger value="business-research">Business Research</TabsTrigger>
                 <TabsTrigger value="workflow">Workflow</TabsTrigger>
               </TabsList>
 
@@ -439,6 +441,14 @@ const IdeaDetail = () => {
                     </p>
                   </Card>
                 )}
+              </TabsContent>
+
+              <TabsContent value="business-research" className="h-[calc(100vh-300px)]">
+                <BusinessResearchEditor
+                  ideaId={idea.id}
+                  ideaTitle={idea.title}
+                  ideaDescription={idea.description}
+                />
               </TabsContent>
 
               <TabsContent value="workflow">

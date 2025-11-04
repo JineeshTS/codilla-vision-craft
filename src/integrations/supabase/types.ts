@@ -336,6 +336,7 @@ export type Database = {
           audience_size: string | null
           business_model: string | null
           business_models: Json | null
+          business_research_data: Json | null
           business_validation_score: number | null
           category: string | null
           competitive_landscape: string | null
@@ -373,6 +374,7 @@ export type Database = {
           audience_size?: string | null
           business_model?: string | null
           business_models?: Json | null
+          business_research_data?: Json | null
           business_validation_score?: number | null
           category?: string | null
           competitive_landscape?: string | null
@@ -410,6 +412,7 @@ export type Database = {
           audience_size?: string | null
           business_model?: string | null
           business_models?: Json | null
+          business_research_data?: Json | null
           business_validation_score?: number | null
           category?: string | null
           competitive_landscape?: string | null
