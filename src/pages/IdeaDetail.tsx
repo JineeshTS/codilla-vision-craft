@@ -16,6 +16,7 @@ import { PhaseWorkflow } from "@/components/phases/PhaseWorkflow";
 import { ThreeAIIndicator } from "@/components/ThreeAIIndicator";
 import { RequirementsChat } from "@/components/phases/RequirementsChat";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ResearchReport } from "@/components/ResearchReport";
 
 interface Idea {
   id: string;
@@ -592,169 +593,11 @@ const IdeaDetail = () => {
                   </div>
                 </Card>
 
-                {/* Auto-populated Business Models */}
-                {idea.business_models && (
-                  <Card className="glass-panel p-8 mb-6">
-                    <h3 className="text-2xl font-bold mb-4">📈 Auto-Generated Business Models</h3>
-                    <p className="text-sm text-muted-foreground mb-6">
-                      These models were automatically generated based on deep AI research and analysis
-                    </p>
-
-                    <div className="space-y-8">
-                      {/* SWOT Analysis */}
-                      {idea.business_models.swot && (
-                        <div>
-                          <h4 className="font-bold text-lg mb-4">SWOT Analysis</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Card className="p-4 bg-success/10 border-success/30">
-                              <p className="font-bold text-success mb-3 text-lg">💪 Strengths</p>
-                              <ul className="text-sm space-y-2">
-                                {idea.business_models.swot.strengths?.map((s: string, i: number) => (
-                                  <li key={i} className="flex items-start gap-2">
-                                    <span className="text-success">✓</span>
-                                    <span>{s}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </Card>
-                            <Card className="p-4 bg-destructive/10 border-destructive/30">
-                              <p className="font-bold text-destructive mb-3 text-lg">⚠️ Weaknesses</p>
-                              <ul className="text-sm space-y-2">
-                                {idea.business_models.swot.weaknesses?.map((w: string, i: number) => (
-                                  <li key={i} className="flex items-start gap-2">
-                                    <span className="text-destructive">×</span>
-                                    <span>{w}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </Card>
-                            <Card className="p-4 bg-primary/10 border-primary/30">
-                              <p className="font-bold text-primary mb-3 text-lg">🚀 Opportunities</p>
-                              <ul className="text-sm space-y-2">
-                                {idea.business_models.swot.opportunities?.map((o: string, i: number) => (
-                                  <li key={i} className="flex items-start gap-2">
-                                    <span className="text-primary">→</span>
-                                    <span>{o}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </Card>
-                            <Card className="p-4 bg-warning/10 border-warning/30">
-                              <p className="font-bold text-warning mb-3 text-lg">⚡ Threats</p>
-                              <ul className="text-sm space-y-2">
-                                {idea.business_models.swot.threats?.map((t: string, i: number) => (
-                                  <li key={i} className="flex items-start gap-2">
-                                    <span className="text-warning">!</span>
-                                    <span>{t}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </Card>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Porter's Five Forces */}
-                      {idea.business_models.portersFiveForces && (
-                        <div>
-                          <h4 className="font-bold text-lg mb-4">Porter's Five Forces</h4>
-                          <div className="space-y-3">
-                            {Object.entries(idea.business_models.portersFiveForces).map(([key, value]) => (
-                              <Card key={key} className="p-4 bg-muted/30">
-                                <p className="font-bold text-sm mb-2 capitalize">
-                                  {key.replace(/([A-Z])/g, ' $1').trim()}
-                                </p>
-                                <p className="text-sm">{value as string}</p>
-                              </Card>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Lean Canvas */}
-                      {idea.business_models.leanCanvas && (
-                        <div>
-                          <h4 className="font-bold text-lg mb-4">Lean Canvas</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            {Object.entries(idea.business_models.leanCanvas).map(([key, value]) => (
-                              <Card key={key} className="p-4 bg-muted/20">
-                                <p className="font-bold text-sm mb-3 capitalize">
-                                  {key.replace(/([A-Z])/g, ' $1').trim()}
-                                </p>
-                                {Array.isArray(value) ? (
-                                  <ul className="text-sm space-y-1">
-                                    {value.map((item, i) => (
-                                      <li key={i} className="flex items-start gap-2">
-                                        <span>•</span>
-                                        <span>{item}</span>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                ) : (
-                                  <p className="text-sm">{value as string}</p>
-                                )}
-                              </Card>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Risk Assessment */}
-                      {idea.business_models.riskAssessment && (
-                        <div>
-                          <h4 className="font-bold text-lg mb-4">Risk Assessment</h4>
-                          <div className="space-y-3">
-                            {Object.entries(idea.business_models.riskAssessment).map(([level, risks]) => (
-                              Array.isArray(risks) && risks.length > 0 && (
-                                <Card key={level} className={`p-4 ${
-                                  level === 'high' ? 'bg-destructive/10 border-destructive/30' :
-                                  level === 'medium' ? 'bg-warning/10 border-warning/30' : 
-                                  'bg-success/10 border-success/30'
-                                }`}>
-                                  <p className={`font-bold text-sm mb-3 capitalize ${
-                                    level === 'high' ? 'text-destructive' :
-                                    level === 'medium' ? 'text-warning' : 'text-success'
-                                  }`}>
-                                    {level === 'high' ? '🔴' : level === 'medium' ? '🟡' : '🟢'} {level} Risk
-                                  </p>
-                                  <ul className="text-sm space-y-2">
-                                    {risks.map((risk: string, i: number) => (
-                                      <li key={i} className="flex items-start gap-2">
-                                        <span>•</span>
-                                        <span>{risk}</span>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </Card>
-                              )
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Blue Ocean Strategy */}
-                      {idea.business_models.blueOcean && (
-                        <div>
-                          <h4 className="font-bold text-lg mb-4">Blue Ocean Strategy</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {Object.entries(idea.business_models.blueOcean).map(([key, factors]) => (
-                              Array.isArray(factors) && factors.length > 0 && (
-                                <Card key={key} className="p-4 bg-muted/20">
-                                  <p className="font-bold text-sm mb-3 capitalize">{key}</p>
-                                  <ul className="text-sm space-y-1">
-                                    {factors.map((factor: string, i: number) => (
-                                      <li key={i}>• {factor}</li>
-                                    ))}
-                                  </ul>
-                                </Card>
-                              )
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </Card>
-                )}
+                {/* Replace old business models with Research Report */}
+                <ResearchReport 
+                  idea={idea} 
+                  validations={idea.validation_summary.validations || []} 
+                />
 
                 <Card className="glass-panel p-8">
                   <div className="text-center">

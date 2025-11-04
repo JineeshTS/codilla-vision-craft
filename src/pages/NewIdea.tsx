@@ -30,9 +30,18 @@ const NewIdea = () => {
     audience_size: "",
     inspiration_source: "",
     
-    // Problem Statement
+    // Problem Statement & Market Research
     problem_statement: "",
     target_audience: "",
+    target_geography: "",
+    estimated_market_size: "",
+    demographics: {
+      age_range: "",
+      gender: "",
+      income_level: ""
+    },
+    psychographics: "",
+    competitive_landscape: "",
     current_solutions: [] as any[],
     
     // Solution Overview
@@ -109,6 +118,11 @@ const NewIdea = () => {
           inspiration_source: formData.inspiration_source || null,
           problem_statement: formData.problem_statement ? sanitizeText(formData.problem_statement) : null,
           target_audience: formData.target_audience ? sanitizeText(formData.target_audience) : null,
+          target_geography: formData.target_geography || null,
+          estimated_market_size: formData.estimated_market_size || null,
+          demographics: formData.demographics,
+          psychographics: formData.psychographics || null,
+          competitive_landscape: formData.competitive_landscape || null,
           current_solutions: formData.current_solutions,
           unique_value_proposition: formData.unique_value_proposition ? sanitizeText(formData.unique_value_proposition) : null,
           key_differentiator: formData.key_differentiator || null,

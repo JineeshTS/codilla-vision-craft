@@ -338,13 +338,16 @@ export type Database = {
           business_models: Json | null
           business_validation_score: number | null
           category: string | null
+          competitive_landscape: string | null
           consensus_score: number | null
           created_at: string
           current_phase: number | null
           current_solutions: Json | null
           decision_status: string | null
+          demographics: Json | null
           description: string
           domain_knowledge_score: number | null
+          estimated_market_size: string | null
           expected_outcomes: Json | null
           id: string
           inspiration_source: string | null
@@ -354,9 +357,11 @@ export type Database = {
           phase_2_data: Json | null
           phase_2_decision: string | null
           problem_statement: string | null
+          psychographics: string | null
           screening_score: number | null
           status: Database["public"]["Enums"]["idea_status"]
           target_audience: string | null
+          target_geography: string | null
           title: string
           tokens_spent: number
           unique_value_proposition: string | null
@@ -370,13 +375,16 @@ export type Database = {
           business_models?: Json | null
           business_validation_score?: number | null
           category?: string | null
+          competitive_landscape?: string | null
           consensus_score?: number | null
           created_at?: string
           current_phase?: number | null
           current_solutions?: Json | null
           decision_status?: string | null
+          demographics?: Json | null
           description: string
           domain_knowledge_score?: number | null
+          estimated_market_size?: string | null
           expected_outcomes?: Json | null
           id?: string
           inspiration_source?: string | null
@@ -386,9 +394,11 @@ export type Database = {
           phase_2_data?: Json | null
           phase_2_decision?: string | null
           problem_statement?: string | null
+          psychographics?: string | null
           screening_score?: number | null
           status?: Database["public"]["Enums"]["idea_status"]
           target_audience?: string | null
+          target_geography?: string | null
           title: string
           tokens_spent?: number
           unique_value_proposition?: string | null
@@ -402,13 +412,16 @@ export type Database = {
           business_models?: Json | null
           business_validation_score?: number | null
           category?: string | null
+          competitive_landscape?: string | null
           consensus_score?: number | null
           created_at?: string
           current_phase?: number | null
           current_solutions?: Json | null
           decision_status?: string | null
+          demographics?: Json | null
           description?: string
           domain_knowledge_score?: number | null
+          estimated_market_size?: string | null
           expected_outcomes?: Json | null
           id?: string
           inspiration_source?: string | null
@@ -418,9 +431,11 @@ export type Database = {
           phase_2_data?: Json | null
           phase_2_decision?: string | null
           problem_statement?: string | null
+          psychographics?: string | null
           screening_score?: number | null
           status?: Database["public"]["Enums"]["idea_status"]
           target_audience?: string | null
+          target_geography?: string | null
           title?: string
           tokens_spent?: number
           unique_value_proposition?: string | null

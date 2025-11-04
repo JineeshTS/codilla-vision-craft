@@ -192,6 +192,99 @@ export const Phase1Form = ({ formData, errors, onChange, step }: Phase1FormProps
               maxLength={1000}
             />
           </div>
+
+          <div className="grid grid-cols-2 gap-4 mt-6">
+            <div className="space-y-2">
+              <Label htmlFor="geography">Target Geography</Label>
+              <Input
+                id="geography"
+                placeholder="e.g., USA, Europe, Global"
+                value={formData.target_geography}
+                onChange={(e) => onChange("target_geography", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="market_size">Estimated Market Size ($)</Label>
+              <Input
+                id="market_size"
+                type="text"
+                placeholder="e.g., $50M TAM"
+                value={formData.estimated_market_size}
+                onChange={(e) => onChange("estimated_market_size", e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Demographics</Label>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="age_range" className="text-sm">Age Range</Label>
+                <Input
+                  id="age_range"
+                  placeholder="e.g., 25-40"
+                  value={formData.demographics?.age_range}
+                  onChange={(e) => onChange("demographics", { ...formData.demographics, age_range: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="gender" className="text-sm">Gender</Label>
+                <Select 
+                  value={formData.demographics?.gender} 
+                  onValueChange={(val) => onChange("demographics", { ...formData.demographics, gender: val })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="non-binary">Non-binary</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="income" className="text-sm">Income Level</Label>
+                <Select 
+                  value={formData.demographics?.income_level} 
+                  onValueChange={(val) => onChange("demographics", { ...formData.demographics, income_level: val })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low (&lt;$30K)</SelectItem>
+                    <SelectItem value="medium">Medium ($30K-$100K)</SelectItem>
+                    <SelectItem value="high">High ($100K-$250K)</SelectItem>
+                    <SelectItem value="very-high">Very High (&gt;$250K)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="psychographics">Psychographics</Label>
+            <Textarea
+              id="psychographics"
+              placeholder="Interests, values, lifestyle, behaviors, tech-savviness, etc."
+              rows={3}
+              value={formData.psychographics}
+              onChange={(e) => onChange("psychographics", e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="competitors">Known Competitors / Current Solutions</Label>
+            <Textarea
+              id="competitors"
+              placeholder="List 3-5 existing solutions and their key weaknesses"
+              rows={4}
+              value={formData.competitive_landscape}
+              onChange={(e) => onChange("competitive_landscape", e.target.value)}
+            />
+          </div>
         </div>
       )}
 

@@ -130,8 +130,20 @@ Description: ${idea.description}
 ${idea.problem_statement ? `Problem: ${idea.problem_statement}` : ''}
 ${idea.target_audience ? `Target Audience: ${idea.target_audience}` : ''}
 ${idea.unique_value_proposition ? `Value Proposition: ${idea.unique_value_proposition}` : ''}
+${idea.target_geography ? `Target Geography: ${idea.target_geography}` : ''}
+${idea.estimated_market_size ? `Estimated Market Size: ${idea.estimated_market_size}` : ''}
+${idea.demographics ? `Demographics: Age ${idea.demographics.age_range}, Gender: ${idea.demographics.gender}, Income: ${idea.demographics.income_level}` : ''}
+${idea.psychographics ? `Psychographics: ${idea.psychographics}` : ''}
+${idea.competitive_landscape ? `Competitive Landscape: ${idea.competitive_landscape}` : ''}
 
-Conduct thorough research and provide comprehensive analysis. Respond with ONLY a valid JSON object (no markdown, no code blocks) in this exact format:
+Conduct thorough McKinsey-level research and provide comprehensive analysis. Your research should be:
+1. Data-driven with specific market insights
+2. Competitive analysis with concrete comparisons
+3. Risk assessment with mitigation strategies
+4. Financial projections and unit economics
+5. Strategic recommendations backed by evidence
+
+Respond with ONLY a valid JSON object (no markdown, no code blocks) in this exact format:
 {
   "score": <number between 0-100>,
   "approved": <boolean>,
@@ -139,43 +151,54 @@ Conduct thorough research and provide comprehensive analysis. Respond with ONLY 
   "strengths": ["<string>", ...],
   "concerns": ["<string>", ...],
   "recommendations": ["<string>", ...],
-  "researchProcess": "<Detailed explanation of your research methodology and sources considered>",
-  "marketAnalysis": "<Deep market analysis with trends, size, growth>",
-  "competitorInsights": "<Analysis of existing solutions and competitive landscape>",
+  "researchProcess": "<Detailed explanation of your research methodology, data sources considered, and analytical framework used>",
+  "marketAnalysis": "<Deep market analysis with specific trends, TAM/SAM/SOM breakdown, growth projections, and key market drivers>",
+  "competitorInsights": "<Comprehensive analysis of top 5 competitors, their strengths/weaknesses, market share, positioning, and white space opportunities>",
   "swot": {
-    "strengths": ["<string>", ...],
-    "weaknesses": ["<string>", ...],
-    "opportunities": ["<string>", ...],
-    "threats": ["<string>", ...]
+    "strengths": ["<specific, actionable strength>", ...],
+    "weaknesses": ["<specific weakness with severity>", ...],
+    "opportunities": ["<market opportunity with potential>", ...],
+    "threats": ["<threat with likelihood and impact>", ...]
   },
   "portersFiveForces": {
-    "threatOfNewEntrants": "<analysis>",
-    "bargainingPowerOfSuppliers": "<analysis>",
-    "bargainingPowerOfBuyers": "<analysis>",
-    "threatOfSubstitutes": "<analysis>",
-    "competitiveRivalry": "<analysis>"
+    "threatOfNewEntrants": "<analysis with barriers to entry and market saturation>",
+    "bargainingPowerOfSuppliers": "<analysis with dependency and alternatives>",
+    "bargainingPowerOfBuyers": "<analysis with switching costs and price sensitivity>",
+    "threatOfSubstitutes": "<analysis with substitute products and adoption barriers>",
+    "competitiveRivalry": "<analysis with market concentration and differentiation>"
   },
   "blueOcean": {
-    "eliminate": ["<factor>", ...],
-    "reduce": ["<factor>", ...],
-    "raise": ["<factor>", ...],
-    "create": ["<factor>", ...]
+    "eliminate": ["<factor to eliminate with rationale>", ...],
+    "reduce": ["<factor to reduce with target level>", ...],
+    "raise": ["<factor to raise with competitive advantage>", ...],
+    "create": ["<factor to create as innovation>", ...]
   },
   "leanCanvas": {
-    "problem": ["<string>", ...],
-    "solution": ["<string>", ...],
-    "keyMetrics": ["<string>", ...],
-    "uniqueValueProposition": "<string>",
-    "unfairAdvantage": "<string>",
-    "channels": ["<string>", ...],
-    "customerSegments": ["<string>", ...],
-    "costStructure": ["<string>", ...],
-    "revenueStreams": ["<string>", ...]
+    "problem": ["<top 3 problems ranked>", ...],
+    "solution": ["<key features>", ...],
+    "keyMetrics": ["<measurable KPI>", ...],
+    "uniqueValueProposition": "<single clear statement>",
+    "unfairAdvantage": "<sustainable advantage>",
+    "channels": ["<distribution channel>", ...],
+    "customerSegments": ["<specific segment>", ...],
+    "costStructure": ["<major cost item>", ...],
+    "revenueStreams": ["<revenue model>", ...]
+  },
+  "businessModelCanvas": {
+    "keyPartners": ["<strategic partner>", ...],
+    "keyActivities": ["<core activity>", ...],
+    "keyResources": ["<critical resource>", ...],
+    "valuePropositions": "<clear value>",
+    "customerRelationships": "<relationship type>",
+    "channels": ["<channel>", ...],
+    "customerSegments": ["<segment>", ...],
+    "costStructure": ["<cost>", ...],
+    "revenueStreams": ["<revenue>", ...]
   },
   "riskAssessment": {
-    "high": ["<risk>", ...],
-    "medium": ["<risk>", ...],
-    "low": ["<risk>", ...]
+    "high": ["<critical risk with mitigation>", ...],
+    "medium": ["<moderate risk>", ...],
+    "low": ["<manageable risk>", ...]
   }
 }`;
 

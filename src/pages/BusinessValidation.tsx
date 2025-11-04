@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import Navbar from "@/components/Navbar";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
@@ -126,6 +127,24 @@ const BusinessValidation = () => {
           </Card>
         )}
 
+        {/* Display auto-generated business models if available */}
+        {idea?.business_models && Object.keys(idea.business_models).length > 0 && (
+          <Card className="glass-panel p-6 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-xl font-bold">📈 Auto-Generated Business Models</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  AI-generated frameworks based on your idea validation
+                </p>
+              </div>
+              <Badge variant="secondary">AI Generated</Badge>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              Review the AI-generated models below and customize them using the interactive canvases.
+            </p>
+          </Card>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <Tabs defaultValue="bmc" className="space-y-6">
@@ -144,14 +163,14 @@ const BusinessValidation = () => {
 
           <TabsContent value="bmc">
             <BusinessModelCanvas
-              data={businessData.bmc}
+              data={businessData.bmc || idea?.business_models?.businessModelCanvas}
               onChange={(data) => updateFramework("bmc", data)}
             />
           </TabsContent>
 
           <TabsContent value="lean">
             <LeanCanvas
-              data={businessData.lean}
+              data={businessData.lean || idea?.business_models?.leanCanvas}
               onChange={(data) => updateFramework("lean", data)}
             />
           </TabsContent>
@@ -165,14 +184,14 @@ const BusinessValidation = () => {
 
           <TabsContent value="swot">
             <SWOTAnalysis
-              data={businessData.swot}
+              data={businessData.swot || idea?.business_models?.swot}
               onChange={(data) => updateFramework("swot", data)}
             />
           </TabsContent>
 
           <TabsContent value="porter">
             <PortersFiveForces
-              data={businessData.porter}
+              data={businessData.porter || idea?.business_models?.portersFiveForces}
               onChange={(data) => updateFramework("porter", data)}
             />
           </TabsContent>
@@ -186,14 +205,14 @@ const BusinessValidation = () => {
 
           <TabsContent value="blue">
             <BlueOceanCanvas
-              data={businessData.blue}
+              data={businessData.blue || idea?.business_models?.blueOcean}
               onChange={(data) => updateFramework("blue", data)}
             />
           </TabsContent>
 
           <TabsContent value="risk">
             <RiskMatrix
-              data={businessData.risk}
+              data={businessData.risk || idea?.business_models?.riskAssessment}
               onChange={(data) => updateFramework("risk", data)}
             />
           </TabsContent>
