@@ -36,6 +36,43 @@ interface Idea {
   screening_score: number | null;
   decision_status: string | null;
   current_phase: number | null;
+  business_models?: {
+    swot?: {
+      strengths: string[];
+      weaknesses: string[];
+      opportunities: string[];
+      threats: string[];
+    };
+    portersFiveForces?: {
+      threatOfNewEntrants: string;
+      bargainingPowerOfSuppliers: string;
+      bargainingPowerOfBuyers: string;
+      threatOfSubstitutes: string;
+      competitiveRivalry: string;
+    };
+    blueOcean?: {
+      eliminate: string[];
+      reduce: string[];
+      raise: string[];
+      create: string[];
+    };
+    leanCanvas?: {
+      problem: string[];
+      solution: string[];
+      keyMetrics: string[];
+      uniqueValueProposition: string;
+      unfairAdvantage: string;
+      channels: string[];
+      customerSegments: string[];
+      costStructure: string[];
+      revenueStreams: string[];
+    };
+    riskAssessment?: {
+      high: string[];
+      medium: string[];
+      low: string[];
+    };
+  };
 }
 
 const IdeaDetail = () => {
@@ -502,54 +539,250 @@ const IdeaDetail = () => {
                     </Button>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4 mb-6">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-ai-claude">
-                        {idea.validation_summary.validations?.[0]?.score || 0}%
-                      </div>
-                      <p className="text-sm text-muted-foreground">Claude</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-ai-gemini">
-                        {idea.validation_summary.validations?.[1]?.score || 0}%
-                      </div>
-                      <p className="text-sm text-muted-foreground">Gemini</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-ai-codex">
-                        {idea.validation_summary.validations?.[2]?.score || 0}%
-                      </div>
-                      <p className="text-sm text-muted-foreground">Codex</p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="font-semibold mb-2 text-green-400">Strengths</h3>
-                      <ul className="list-disc list-inside space-y-1">
-                        {idea.validation_summary.validations?.flatMap((v: any) => v.strengths || []).map((s: string, i: number) => (
-                          <li key={i} className="text-muted-foreground">{s}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-2 text-yellow-400">Concerns</h3>
-                      <ul className="list-disc list-inside space-y-1">
-                        {idea.validation_summary.validations?.flatMap((v: any) => v.concerns || []).map((c: string, i: number) => (
-                          <li key={i} className="text-muted-foreground">{c}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-2 text-primary">Recommendations</h3>
-                      <ul className="list-disc list-inside space-y-1">
-                        {idea.validation_summary.validations?.flatMap((v: any) => v.recommendations || []).map((r: string, i: number) => (
-                          <li key={i} className="text-muted-foreground">{r}</li>
-                        ))}
-                      </ul>
-                    </div>
+                  <div className="space-y-6 mt-8">
+                    <h3 className="text-xl font-bold mb-4">🤖 AI Agent Research & Analysis</h3>
+                    {idea.validation_summary.validations?.map((validation: any, idx: number) => (
+                      <Card key={idx} className="p-6 space-y-4 border-2">
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="font-bold capitalize text-2xl">
+                            {validation.agent === 'claude' && '🔵'} 
+                            {validation.agent === 'gemini' && '🟢'} 
+                            {validation.agent === 'codex' && '🟣'} 
+                            {validation.agent} AI
+                          </span>
+                          <Badge variant={validation.approved ? "default" : "secondary"} className="text-lg px-4 py-2">
+                            Score: {validation.score}%
+                          </Badge>
+                        </div>
+                        
+                        {validation.researchProcess && (
+                          <div className="border-l-4 border-primary pl-4 py-3 bg-primary/5 rounded-r">
+                            <p className="text-sm font-bold text-primary mb-2">📊 Research Methodology:</p>
+                            <p className="text-sm whitespace-pre-line">{validation.researchProcess}</p>
+                          </div>
+                        )}
+                        
+                        {validation.marketAnalysis && (
+                          <div className="bg-muted/30 p-4 rounded">
+                            <p className="text-sm font-bold mb-2">🎯 Market Analysis:</p>
+                            <p className="text-sm whitespace-pre-line">{validation.marketAnalysis}</p>
+                          </div>
+                        )}
+                        
+                        {validation.competitorInsights && (
+                          <div className="bg-muted/30 p-4 rounded">
+                            <p className="text-sm font-bold mb-2">⚔️ Competitor Insights:</p>
+                            <p className="text-sm whitespace-pre-line">{validation.competitorInsights}</p>
+                          </div>
+                        )}
+                        
+                        <div className="bg-muted/20 p-4 rounded">
+                          <p className="text-sm font-bold mb-2">💬 Overall Feedback:</p>
+                          <p className="text-sm whitespace-pre-line">{validation.feedback}</p>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                          {validation.strengths?.length > 0 && (
+                            <div className="bg-success/10 p-3 rounded">
+                              <p className="text-sm font-bold text-success mb-2">✓ Strengths:</p>
+                              <ul className="text-sm list-disc list-inside space-y-1">
+                                {validation.strengths.map((s: string, i: number) => (
+                                  <li key={i}>{s}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          {validation.concerns?.length > 0 && (
+                            <div className="bg-destructive/10 p-3 rounded">
+                              <p className="text-sm font-bold text-destructive mb-2">⚠ Concerns:</p>
+                              <ul className="text-sm list-disc list-inside space-y-1">
+                                {validation.concerns.map((c: string, i: number) => (
+                                  <li key={i}>{c}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          {validation.recommendations?.length > 0 && (
+                            <div className="bg-primary/10 p-3 rounded">
+                              <p className="text-sm font-bold text-primary mb-2">→ Recommendations:</p>
+                              <ul className="text-sm list-disc list-inside space-y-1">
+                                {validation.recommendations.map((r: string, i: number) => (
+                                  <li key={i}>{r}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      </Card>
+                    ))}
                   </div>
                 </Card>
+
+                {/* Auto-populated Business Models */}
+                {idea.business_models && (
+                  <Card className="glass-panel p-8 mb-6">
+                    <h3 className="text-2xl font-bold mb-4">📈 Auto-Generated Business Models</h3>
+                    <p className="text-sm text-muted-foreground mb-6">
+                      These models were automatically generated based on deep AI research and analysis
+                    </p>
+
+                    <div className="space-y-8">
+                      {/* SWOT Analysis */}
+                      {idea.business_models.swot && (
+                        <div>
+                          <h4 className="font-bold text-lg mb-4">SWOT Analysis</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Card className="p-4 bg-success/10 border-success/30">
+                              <p className="font-bold text-success mb-3 text-lg">💪 Strengths</p>
+                              <ul className="text-sm space-y-2">
+                                {idea.business_models.swot.strengths?.map((s: string, i: number) => (
+                                  <li key={i} className="flex items-start gap-2">
+                                    <span className="text-success">✓</span>
+                                    <span>{s}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </Card>
+                            <Card className="p-4 bg-destructive/10 border-destructive/30">
+                              <p className="font-bold text-destructive mb-3 text-lg">⚠️ Weaknesses</p>
+                              <ul className="text-sm space-y-2">
+                                {idea.business_models.swot.weaknesses?.map((w: string, i: number) => (
+                                  <li key={i} className="flex items-start gap-2">
+                                    <span className="text-destructive">×</span>
+                                    <span>{w}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </Card>
+                            <Card className="p-4 bg-primary/10 border-primary/30">
+                              <p className="font-bold text-primary mb-3 text-lg">🚀 Opportunities</p>
+                              <ul className="text-sm space-y-2">
+                                {idea.business_models.swot.opportunities?.map((o: string, i: number) => (
+                                  <li key={i} className="flex items-start gap-2">
+                                    <span className="text-primary">→</span>
+                                    <span>{o}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </Card>
+                            <Card className="p-4 bg-warning/10 border-warning/30">
+                              <p className="font-bold text-warning mb-3 text-lg">⚡ Threats</p>
+                              <ul className="text-sm space-y-2">
+                                {idea.business_models.swot.threats?.map((t: string, i: number) => (
+                                  <li key={i} className="flex items-start gap-2">
+                                    <span className="text-warning">!</span>
+                                    <span>{t}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </Card>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Porter's Five Forces */}
+                      {idea.business_models.portersFiveForces && (
+                        <div>
+                          <h4 className="font-bold text-lg mb-4">Porter's Five Forces</h4>
+                          <div className="space-y-3">
+                            {Object.entries(idea.business_models.portersFiveForces).map(([key, value]) => (
+                              <Card key={key} className="p-4 bg-muted/30">
+                                <p className="font-bold text-sm mb-2 capitalize">
+                                  {key.replace(/([A-Z])/g, ' $1').trim()}
+                                </p>
+                                <p className="text-sm">{value as string}</p>
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Lean Canvas */}
+                      {idea.business_models.leanCanvas && (
+                        <div>
+                          <h4 className="font-bold text-lg mb-4">Lean Canvas</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            {Object.entries(idea.business_models.leanCanvas).map(([key, value]) => (
+                              <Card key={key} className="p-4 bg-muted/20">
+                                <p className="font-bold text-sm mb-3 capitalize">
+                                  {key.replace(/([A-Z])/g, ' $1').trim()}
+                                </p>
+                                {Array.isArray(value) ? (
+                                  <ul className="text-sm space-y-1">
+                                    {value.map((item, i) => (
+                                      <li key={i} className="flex items-start gap-2">
+                                        <span>•</span>
+                                        <span>{item}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                ) : (
+                                  <p className="text-sm">{value as string}</p>
+                                )}
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Risk Assessment */}
+                      {idea.business_models.riskAssessment && (
+                        <div>
+                          <h4 className="font-bold text-lg mb-4">Risk Assessment</h4>
+                          <div className="space-y-3">
+                            {Object.entries(idea.business_models.riskAssessment).map(([level, risks]) => (
+                              Array.isArray(risks) && risks.length > 0 && (
+                                <Card key={level} className={`p-4 ${
+                                  level === 'high' ? 'bg-destructive/10 border-destructive/30' :
+                                  level === 'medium' ? 'bg-warning/10 border-warning/30' : 
+                                  'bg-success/10 border-success/30'
+                                }`}>
+                                  <p className={`font-bold text-sm mb-3 capitalize ${
+                                    level === 'high' ? 'text-destructive' :
+                                    level === 'medium' ? 'text-warning' : 'text-success'
+                                  }`}>
+                                    {level === 'high' ? '🔴' : level === 'medium' ? '🟡' : '🟢'} {level} Risk
+                                  </p>
+                                  <ul className="text-sm space-y-2">
+                                    {risks.map((risk: string, i: number) => (
+                                      <li key={i} className="flex items-start gap-2">
+                                        <span>•</span>
+                                        <span>{risk}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </Card>
+                              )
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Blue Ocean Strategy */}
+                      {idea.business_models.blueOcean && (
+                        <div>
+                          <h4 className="font-bold text-lg mb-4">Blue Ocean Strategy</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {Object.entries(idea.business_models.blueOcean).map(([key, factors]) => (
+                              Array.isArray(factors) && factors.length > 0 && (
+                                <Card key={key} className="p-4 bg-muted/20">
+                                  <p className="font-bold text-sm mb-3 capitalize">{key}</p>
+                                  <ul className="text-sm space-y-1">
+                                    {factors.map((factor: string, i: number) => (
+                                      <li key={i}>• {factor}</li>
+                                    ))}
+                                  </ul>
+                                </Card>
+                              )
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                )}
 
                 <Card className="glass-panel p-8">
                   <div className="text-center">

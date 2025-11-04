@@ -123,7 +123,7 @@ serve(async (req) => {
     }
 
     const validationPrompt = `
-You are a startup idea validator. Analyze this startup idea and provide structured feedback.
+You are a startup idea validator and business analyst. Conduct DEEP research and analysis on this startup idea.
 
 Idea Title: ${idea.title}
 Description: ${idea.description}
@@ -131,14 +131,52 @@ ${idea.problem_statement ? `Problem: ${idea.problem_statement}` : ''}
 ${idea.target_audience ? `Target Audience: ${idea.target_audience}` : ''}
 ${idea.unique_value_proposition ? `Value Proposition: ${idea.unique_value_proposition}` : ''}
 
-Evaluate the idea and respond with ONLY a valid JSON object (no markdown, no code blocks) in this exact format:
+Conduct thorough research and provide comprehensive analysis. Respond with ONLY a valid JSON object (no markdown, no code blocks) in this exact format:
 {
   "score": <number between 0-100>,
   "approved": <boolean>,
-  "feedback": "<string>",
+  "feedback": "<detailed feedback string>",
   "strengths": ["<string>", ...],
   "concerns": ["<string>", ...],
-  "recommendations": ["<string>", ...]
+  "recommendations": ["<string>", ...],
+  "researchProcess": "<Detailed explanation of your research methodology and sources considered>",
+  "marketAnalysis": "<Deep market analysis with trends, size, growth>",
+  "competitorInsights": "<Analysis of existing solutions and competitive landscape>",
+  "swot": {
+    "strengths": ["<string>", ...],
+    "weaknesses": ["<string>", ...],
+    "opportunities": ["<string>", ...],
+    "threats": ["<string>", ...]
+  },
+  "portersFiveForces": {
+    "threatOfNewEntrants": "<analysis>",
+    "bargainingPowerOfSuppliers": "<analysis>",
+    "bargainingPowerOfBuyers": "<analysis>",
+    "threatOfSubstitutes": "<analysis>",
+    "competitiveRivalry": "<analysis>"
+  },
+  "blueOcean": {
+    "eliminate": ["<factor>", ...],
+    "reduce": ["<factor>", ...],
+    "raise": ["<factor>", ...],
+    "create": ["<factor>", ...]
+  },
+  "leanCanvas": {
+    "problem": ["<string>", ...],
+    "solution": ["<string>", ...],
+    "keyMetrics": ["<string>", ...],
+    "uniqueValueProposition": "<string>",
+    "unfairAdvantage": "<string>",
+    "channels": ["<string>", ...],
+    "customerSegments": ["<string>", ...],
+    "costStructure": ["<string>", ...],
+    "revenueStreams": ["<string>", ...]
+  },
+  "riskAssessment": {
+    "high": ["<risk>", ...],
+    "medium": ["<risk>", ...],
+    "low": ["<risk>", ...]
+  }
 }`;
 
     // Call Google Gemini API directly
@@ -206,6 +244,15 @@ Evaluate the idea and respond with ONLY a valid JSON object (no markdown, no cod
 
     const tokensUsed = 150;
 
+    // Aggregate business models from all AIs
+    const aggregatedModels = {
+      swot: results[0].swot,
+      portersFiveForces: results[0].portersFiveForces,
+      blueOcean: results[0].blueOcean,
+      leanCanvas: results[0].leanCanvas,
+      riskAssessment: results[0].riskAssessment,
+    };
+
     const { error: updateError } = await serviceClient
       .from("ideas")
       .update({
@@ -216,6 +263,7 @@ Evaluate the idea and respond with ONLY a valid JSON object (no markdown, no cod
           avgScore,
           validations: results,
         },
+        business_models: aggregatedModels,
         tokens_spent: tokensUsed,
       })
       .eq("id", ideaId);
