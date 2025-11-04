@@ -16,6 +16,7 @@ import ProductDefinition from "./pages/ProductDefinition";
 import Tokens from "./pages/Tokens";
 import Templates from "./pages/Templates";
 import TemplateApply from "./pages/TemplateApply";
+import TemplateCustomizer from "./pages/TemplateCustomizer";
 import Analytics from "./pages/Analytics";
 import CodeIDE from "./pages/CodeIDE";
 import PhaseDetail from "./pages/PhaseDetail";
@@ -49,6 +50,7 @@ const App = () => (
           <Route path="/tokens" element={<Tokens />} />
           <Route path="/templates" element={<Templates />} />
           <Route path="/templates/:templateId/apply" element={<TemplateApply />} />
+          <Route path="/template/:templateId" element={<TemplateCustomizer />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/code-ide" element={<CodeIDE />} />
           <Route path="/projects/:projectId/template-selection" element={<TemplateSelection />} />
