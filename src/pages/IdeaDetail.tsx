@@ -511,89 +511,9 @@ const IdeaDetail = () => {
                       Create Project
                     </Button>
                   </div>
-
-                  <div className="space-y-6 mt-8">
-                    <h3 className="text-xl font-bold mb-4">🤖 AI Agent Research & Analysis</h3>
-                    {idea.validation_summary.validations?.map((validation: any, idx: number) => (
-                      <Card key={idx} className="p-6 space-y-4 border-2">
-                        <div className="flex items-center justify-between mb-4">
-                          <span className="font-bold capitalize text-2xl">
-                            {validation.agent === 'claude' && '🔵'} 
-                            {validation.agent === 'gemini' && '🟢'} 
-                            {validation.agent === 'codex' && '🟣'} 
-                            {validation.agent} AI
-                          </span>
-                          <Badge variant={validation.approved ? "default" : "secondary"} className="text-lg px-4 py-2">
-                            Score: {validation.score}%
-                          </Badge>
-                        </div>
-                        
-                        {validation.researchProcess && (
-                          <div className="border-l-4 border-primary pl-4 py-3 bg-primary/5 rounded-r">
-                            <p className="text-sm font-bold text-primary mb-2">📊 Research Methodology:</p>
-                            <p className="text-sm whitespace-pre-line">{validation.researchProcess}</p>
-                          </div>
-                        )}
-                        
-                        {validation.marketAnalysis && (
-                          <div className="bg-muted/30 p-4 rounded">
-                            <p className="text-sm font-bold mb-2">🎯 Market Analysis:</p>
-                            <p className="text-sm whitespace-pre-line">{validation.marketAnalysis}</p>
-                          </div>
-                        )}
-                        
-                        {validation.competitorInsights && (
-                          <div className="bg-muted/30 p-4 rounded">
-                            <p className="text-sm font-bold mb-2">⚔️ Competitor Insights:</p>
-                            <p className="text-sm whitespace-pre-line">{validation.competitorInsights}</p>
-                          </div>
-                        )}
-                        
-                        <div className="bg-muted/20 p-4 rounded">
-                          <p className="text-sm font-bold mb-2">💬 Overall Feedback:</p>
-                          <p className="text-sm whitespace-pre-line">{validation.feedback}</p>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                          {validation.strengths?.length > 0 && (
-                            <div className="bg-success/10 p-3 rounded">
-                              <p className="text-sm font-bold text-success mb-2">✓ Strengths:</p>
-                              <ul className="text-sm list-disc list-inside space-y-1">
-                                {validation.strengths.map((s: string, i: number) => (
-                                  <li key={i}>{s}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                          
-                          {validation.concerns?.length > 0 && (
-                            <div className="bg-destructive/10 p-3 rounded">
-                              <p className="text-sm font-bold text-destructive mb-2">⚠ Concerns:</p>
-                              <ul className="text-sm list-disc list-inside space-y-1">
-                                {validation.concerns.map((c: string, i: number) => (
-                                  <li key={i}>{c}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                          
-                          {validation.recommendations?.length > 0 && (
-                            <div className="bg-primary/10 p-3 rounded">
-                              <p className="text-sm font-bold text-primary mb-2">→ Recommendations:</p>
-                              <ul className="text-sm list-disc list-inside space-y-1">
-                                {validation.recommendations.map((r: string, i: number) => (
-                                  <li key={i}>{r}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
                 </Card>
 
-                {/* Replace old business models with Research Report */}
+                {/* Professional Research Report - No duplication */}
                 <ResearchReport 
                   idea={idea} 
                   validations={idea.validation_summary.validations || []} 
