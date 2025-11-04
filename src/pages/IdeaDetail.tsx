@@ -533,6 +533,14 @@ const IdeaDetail = () => {
                       <TrendingUp className="w-4 h-4 mr-2" />
                       Start Business Validation
                     </Button>
+                    <Button 
+                      onClick={handleStartValidation} 
+                      disabled={validating}
+                      variant="outline"
+                    >
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      {validating ? "Re-validating..." : "Re-validate Idea"}
+                    </Button>
                     <Button onClick={handleCreateProject} variant="outline">
                       <Rocket className="w-4 h-4 mr-2" />
                       Create Project
