@@ -100,14 +100,14 @@ const Navbar = () => {
 
   return (
     <nav className="border-b border-white/10 backdrop-blur-sm sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <Link to="/" className="flex items-center gap-2">
-          <Sparkles className="w-6 h-6 text-primary" />
-          <span className="text-xl font-bold gradient-text">Codilla.ai</span>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex justify-between items-center">
+        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+          <span className="text-lg sm:text-xl font-bold gradient-text">Codilla.ai</span>
         </Link>
         
         {/* Desktop Navigation */}
-        <div className="hidden lg:flex items-center gap-4">
+        <div className="hidden lg:flex items-center gap-3 xl:gap-4">
           <NavLinks />
         </div>
 
@@ -115,11 +115,11 @@ const Navbar = () => {
         <div className="lg:hidden">
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="w-6 h-6" />
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                <Menu className="w-5 h-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[280px] sm:w-[350px]">
+            <SheetContent side="right" className="w-[85vw] sm:w-80">
               <div className="flex flex-col gap-4 mt-8">
                 <NavLinks mobile onNavigate={() => setMobileMenuOpen(false)} />
               </div>
