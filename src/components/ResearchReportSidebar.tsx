@@ -34,24 +34,29 @@ export const ResearchReportSidebar = ({
   };
 
   return (
-    <div className="w-64 border-r border-border bg-card h-full sticky top-0">
-      <div className="p-4 border-b border-border">
-        <div className="flex items-center gap-2 mb-2">
-          <FileText className="w-5 h-5 text-primary" />
-          <h3 className="font-bold text-lg">Research Report</h3>
+    <div className="w-72 border-r border-border bg-card h-screen sticky top-0 flex flex-col">
+      <div className="p-6 border-b border-border bg-muted/30">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <FileText className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h3 className="font-bold text-base">Research Report</h3>
+            <p className="text-xs text-muted-foreground">Table of Contents</p>
+          </div>
         </div>
-        <p className="text-xs text-muted-foreground">Navigate sections</p>
       </div>
 
-      <ScrollArea className="h-[calc(100vh-120px)]">
-        <div className="p-2">
-          {sections.map((section) => (
-            <div key={section.id} className="mb-1">
+      <ScrollArea className="flex-1">
+        <div className="p-4 space-y-1">
+          {sections.map((section, idx) => (
+            <div key={section.id}>
               <Button
                 variant="ghost"
                 className={cn(
-                  "w-full justify-start text-sm font-medium px-2 py-1.5 h-auto",
-                  activeSection === section.id && "bg-muted text-primary"
+                  "w-full justify-start text-sm font-medium px-3 py-2 h-auto rounded-md",
+                  activeSection === section.id && "bg-primary/10 text-primary hover:bg-primary/15",
+                  !activeSection.includes(section.id) && "hover:bg-muted"
                 )}
                 onClick={() => {
                   if (section.subsections) {
@@ -64,27 +69,29 @@ export const ResearchReportSidebar = ({
                 {section.subsections && (
                   <ChevronRight 
                     className={cn(
-                      "w-4 h-4 mr-1 transition-transform",
+                      "w-4 h-4 mr-2 transition-transform shrink-0",
                       expandedSections.includes(section.id) && "rotate-90"
                     )}
                   />
                 )}
-                <span className="truncate">{section.title}</span>
+                <span className="truncate text-left flex-1">{section.title}</span>
+                <span className="text-xs text-muted-foreground ml-2">{idx + 1}</span>
               </Button>
 
               {section.subsections && expandedSections.includes(section.id) && (
-                <div className="ml-4 mt-1 space-y-1">
+                <div className="ml-6 mt-1 space-y-1 border-l-2 border-muted pl-3">
                   {section.subsections.map((subsection) => (
                     <Button
                       key={subsection.id}
                       variant="ghost"
                       className={cn(
-                        "w-full justify-start text-sm px-2 py-1 h-auto",
-                        activeSection === subsection.id && "bg-muted text-primary font-medium"
+                        "w-full justify-start text-xs px-3 py-1.5 h-auto rounded-md",
+                        activeSection === subsection.id && "bg-primary/10 text-primary font-medium hover:bg-primary/15",
+                        activeSection !== subsection.id && "text-muted-foreground hover:bg-muted hover:text-foreground"
                       )}
                       onClick={() => onSectionClick(subsection.id)}
                     >
-                      <span className="truncate">{subsection.title}</span>
+                      <span className="truncate text-left">{subsection.title}</span>
                     </Button>
                   ))}
                 </div>
