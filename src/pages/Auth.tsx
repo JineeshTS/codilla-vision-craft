@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Rocket, AlertCircle } from "lucide-react";
+import { Sparkles, Rocket, AlertCircle, Github } from "lucide-react";
 import { signUpSchema, signInSchema, calculatePasswordStrength } from "@/lib/validation";
 import { z } from "zod";
 
@@ -167,6 +167,28 @@ const Auth = () => {
     }
   };
 
+  const handleGitHubSignIn = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          scopes: 'repo',
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "GitHub sign in failed",
+        description: error.message,
+      });
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 cosmic-bg">
       <div className="w-full max-w-md">
@@ -225,6 +247,28 @@ const Auth = () => {
                   {loading ? "Signing in..." : "Sign In"}
                 </Button>
               </form>
+
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    Or continue with
+                  </span>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={handleGitHubSignIn}
+                disabled={loading}
+              >
+                <Github className="mr-2 h-4 w-4" />
+                GitHub
+              </Button>
             </TabsContent>
 
             <TabsContent value="signup">

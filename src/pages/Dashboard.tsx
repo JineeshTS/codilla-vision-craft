@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { useNavigate } from "react-router-dom";
+import { GitHubRepoSelector } from "@/components/GitHubRepoSelector";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -49,6 +50,10 @@ const Dashboard = () => {
         <div className="mb-8">
           <h1 className="text-4xl font-bold gradient-text mb-2">Dashboard</h1>
           <p className="text-muted-foreground">Transform your ideas into reality</p>
+        </div>
+
+        <div className="mb-8">
+          <GitHubRepoSelector />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">

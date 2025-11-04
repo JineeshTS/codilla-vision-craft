@@ -213,6 +213,65 @@ export type Database = {
           },
         ]
       }
+      code_commits: {
+        Row: {
+          ai_model_used: string | null
+          code_content: string | null
+          commit_message: string | null
+          commit_sha: string
+          commit_url: string
+          created_at: string | null
+          file_path: string
+          github_repo: string
+          id: string
+          optimized_for_lovable: boolean | null
+          phase_number: number | null
+          project_id: string | null
+          task_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          ai_model_used?: string | null
+          code_content?: string | null
+          commit_message?: string | null
+          commit_sha: string
+          commit_url: string
+          created_at?: string | null
+          file_path: string
+          github_repo: string
+          id?: string
+          optimized_for_lovable?: boolean | null
+          phase_number?: number | null
+          project_id?: string | null
+          task_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          ai_model_used?: string | null
+          code_content?: string | null
+          commit_message?: string | null
+          commit_sha?: string
+          commit_url?: string
+          created_at?: string | null
+          file_path?: string
+          github_repo?: string
+          id?: string
+          optimized_for_lovable?: boolean | null
+          phase_number?: number | null
+          project_id?: string | null
+          task_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "code_commits_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       development_prompts: {
         Row: {
           category: string
@@ -581,7 +640,11 @@ export type Database = {
           created_at: string
           email: string
           full_name: string | null
+          github_avatar_url: string | null
+          github_token: string | null
+          github_username: string | null
           id: string
+          selected_github_repo: string | null
           token_balance: number
           tokens_used: number
           total_tokens: number
@@ -592,7 +655,11 @@ export type Database = {
           created_at?: string
           email: string
           full_name?: string | null
+          github_avatar_url?: string | null
+          github_token?: string | null
+          github_username?: string | null
           id: string
+          selected_github_repo?: string | null
           token_balance?: number
           tokens_used?: number
           total_tokens?: number
@@ -603,7 +670,11 @@ export type Database = {
           created_at?: string
           email?: string
           full_name?: string | null
+          github_avatar_url?: string | null
+          github_token?: string | null
+          github_username?: string | null
           id?: string
+          selected_github_repo?: string | null
           token_balance?: number
           tokens_used?: number
           total_tokens?: number
@@ -860,6 +931,57 @@ export type Database = {
           metadata?: Json | null
           transaction_type?: Database["public"]["Enums"]["token_transaction_type"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      ui_templates: {
+        Row: {
+          category: string
+          component_code: string | null
+          created_at: string | null
+          created_by: string | null
+          customizable_fields: Json | null
+          dependencies: Json | null
+          description: string | null
+          id: string
+          is_public: boolean | null
+          name: string
+          preview_image_url: string | null
+          tailwind_config: Json | null
+          updated_at: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          category: string
+          component_code?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          customizable_fields?: Json | null
+          dependencies?: Json | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name: string
+          preview_image_url?: string | null
+          tailwind_config?: Json | null
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          category?: string
+          component_code?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          customizable_fields?: Json | null
+          dependencies?: Json | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          preview_image_url?: string | null
+          tailwind_config?: Json | null
+          updated_at?: string | null
+          usage_count?: number | null
         }
         Relationships: []
       }
