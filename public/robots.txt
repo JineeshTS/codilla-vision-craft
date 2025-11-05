@@ -1,8 +1,36 @@
+# robots.txt for Codilla.ai
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /admin/*
+Disallow: /dashboard
+Disallow: /projects/
+Disallow: /ideas/
+Disallow: /tokens
+Disallow: /analytics
+
+# Allow public pages
+Allow: /auth
+Allow: /reset-password
+Allow: /$
+
+# Sitemap
+Sitemap: https://codilla.ai/sitemap.xml
+
+# Crawl delay
+Crawl-delay: 1
+
+# Search engine specific rules
 User-agent: Googlebot
 Allow: /
+Disallow: /admin/
+Disallow: /dashboard
 
 User-agent: Bingbot
 Allow: /
+Disallow: /admin/
+Disallow: /dashboard
 
 User-agent: Twitterbot
 Allow: /
@@ -10,5 +38,18 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
-Allow: /
+# Block AI scraping bots for content protection
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /

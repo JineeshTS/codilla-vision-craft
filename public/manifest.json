@@ -1,0 +1,29 @@
+{
+  "name": "Codilla.ai - AI-Powered Development Platform",
+  "short_name": "Codilla.ai",
+  "description": "Transform ideas into reality with AI consensus and structured development framework",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0a1e",
+  "theme_color": "#8B5CF6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "categories": ["productivity", "development", "business"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "scope": "/",
+  "prefer_related_applications": false
+}
