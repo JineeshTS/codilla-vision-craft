@@ -154,6 +154,57 @@ export type Database = {
           },
         ]
       }
+      artifact_versions: {
+        Row: {
+          artifact_data: Json
+          artifact_id: string
+          change_summary: string | null
+          created_at: string
+          created_by: string
+          id: string
+          is_auto_save: boolean | null
+          project_id: string
+          version_number: number
+        }
+        Insert: {
+          artifact_data?: Json
+          artifact_id: string
+          change_summary?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          is_auto_save?: boolean | null
+          project_id: string
+          version_number: number
+        }
+        Update: {
+          artifact_data?: Json
+          artifact_id?: string
+          change_summary?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_auto_save?: boolean | null
+          project_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artifact_versions_artifact_id_fkey"
+            columns: ["artifact_id"]
+            isOneToOne: false
+            referencedRelation: "phase_artifacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artifact_versions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       change_requests: {
         Row: {
           affected_components: string[] | null
@@ -1035,6 +1086,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_next_version_number: {
+        Args: { p_artifact_id: string }
+        Returns: number
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

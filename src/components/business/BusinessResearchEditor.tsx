@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, Loader2 } from 'lucide-react';
+import { Download, FileText, Loader2, History } from 'lucide-react';
+import ArtifactVersionHistory from '@/components/shared/ArtifactVersionHistory';
+import { useArtifactAutoSave } from '@/hooks/useArtifactAutoSave';
 import { ResearchReportSidebar } from '@/components/ResearchReportSidebar';
 import { EditableSection } from './EditableSection';
 import SWOTAnalysis from './SWOTAnalysis';
@@ -32,6 +34,20 @@ export const BusinessResearchEditor = ({
   const { data, loading, saving, saveData } = useBusinessResearch(ideaId);
   const [activeSection, setActiveSection] = useState('cover');
   const [exporting, setExporting] = useState(false);
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [artifactId, setArtifactId] = useState<string | null>(null);
+
+  // Auto-save functionality
+  const { createManualVersion } = useArtifactAutoSave({
+    artifactId,
+    projectId: ideaId,
+    data,
+    enabled: !!artifactId,
+  });
+
+  const handleRestore = async (versionData: any) => {
+    await saveData(versionData);
+  };
 
   const sections = [
     { id: 'cover', title: 'Cover Page' },
@@ -176,6 +192,10 @@ export const BusinessResearchEditor = ({
                 {exporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileText className="h-4 w-4 mr-2" />}
                 Export Word
               </Button>
+              <Button onClick={() => setShowVersionHistory(true)} variant="outline">
+                <History className="h-4 w-4 mr-2" />
+                Version History
+              </Button>
             </div>
           </div>
 
@@ -314,6 +334,14 @@ export const BusinessResearchEditor = ({
           Saving...
         </div>
       )}
+
+      <ArtifactVersionHistory
+        open={showVersionHistory}
+        onOpenChange={setShowVersionHistory}
+        artifactId={artifactId || ''}
+        currentData={data}
+        onRestore={handleRestore}
+      />
     </div>
   );
 };
