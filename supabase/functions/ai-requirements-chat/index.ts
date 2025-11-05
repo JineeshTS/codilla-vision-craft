@@ -164,7 +164,7 @@ Start by helping them articulate what problem they're trying to solve and who ha
       messages: aiMessages,
       stream: true,
       temperature: 0.8,
-      maxTokens: 500,
+      maxTokens: 2000,
     });
 
     // Transform the response stream to match OpenAI delta format
