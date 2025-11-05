@@ -38,7 +38,7 @@ export async function callClaude(
     }));
 
   const body = {
-    model: 'claude-sonnet-4-5-20250514',
+    model: 'claude-sonnet-4-5',
     max_tokens: maxTokens,
     temperature,
     system: systemMessage,
