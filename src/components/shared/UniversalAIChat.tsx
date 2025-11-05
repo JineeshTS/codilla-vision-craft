@@ -119,9 +119,24 @@ export default function UniversalAIChat({
       if (!response.ok) {
         const errorData = await response.json();
         if (response.status === 402) {
-          toast.error(`Insufficient tokens. Required: ${errorData.required}, Balance: ${errorData.balance}`);
+          toast.error(`Insufficient tokens. Required: ${errorData.required}, Balance: ${errorData.balance}`, {
+            description: "Purchase more tokens to continue using AI features"
+          });
+        } else if (response.status === 429) {
+          const retryAfter = errorData.retryAfter || 60;
+          toast.error("Rate limit exceeded", {
+            description: `Please wait ${Math.ceil(retryAfter / 60)} minutes before trying again`
+          });
+        } else if (response.status === 401) {
+          toast.error("Authentication required", {
+            description: "Please sign in again to continue"
+          });
+          // Optionally redirect to login
+          setTimeout(() => window.location.href = '/auth', 2000);
         } else {
-          toast.error(errorData.error || "Failed to get AI response");
+          toast.error(errorData.error || "Failed to get AI response", {
+            description: "Please try again or contact support if the issue persists"
+          });
         }
         setMessages(prev => prev.slice(0, -1));
         return;

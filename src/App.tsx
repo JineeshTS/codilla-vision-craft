@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import { useSessionTimeout } from "@/hooks/useSessionTimeout";
+import { useActivityTracking } from "@/hooks/useActivityTracking";
 
 // Eager load critical pages
 import Index from "./pages/Index";
@@ -57,14 +59,18 @@ const PageLoader = () => (
   </div>
 );
 
-const App = () => (
-  <HelmetProvider>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Suspense fallback={<PageLoader />}>
+const AppContent = () => {
+  // Enable session timeout (30 minutes of inactivity)
+  useSessionTimeout({
+    timeout: 30 * 60 * 1000, // 30 minutes
+    warningDuration: 2 * 60 * 1000, // 2 minute warning
+  });
+
+  // Track user activity for analytics
+  useActivityTracking();
+
+  return (
+    <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
@@ -96,6 +102,17 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
+  );
+};
+
+const App = () => (
+  <HelmetProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AppContent />
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

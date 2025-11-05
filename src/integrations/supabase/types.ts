@@ -665,6 +665,7 @@ export type Database = {
           github_token: string | null
           github_username: string | null
           id: string
+          last_active_at: string | null
           selected_github_repo: string | null
           token_balance: number
           tokens_used: number
@@ -680,6 +681,7 @@ export type Database = {
           github_token?: string | null
           github_username?: string | null
           id: string
+          last_active_at?: string | null
           selected_github_repo?: string | null
           token_balance?: number
           tokens_used?: number
@@ -695,6 +697,7 @@ export type Database = {
           github_token?: string | null
           github_username?: string | null
           id?: string
+          last_active_at?: string | null
           selected_github_repo?: string | null
           token_balance?: number
           tokens_used?: number

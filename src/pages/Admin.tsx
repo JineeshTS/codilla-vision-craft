@@ -91,9 +91,15 @@ export default function Admin() {
       // Estimate revenue (₹0.10 per 1k tokens)
       totalRevenue = (totalTokensSold / 1000) * 0.10;
 
+      // Get active users today (updated last_active_at within last 24 hours)
+      const { count: activeCount } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .gte('last_active_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+
       setStats({
         totalUsers: usersCount || 0,
-        activeToday: 0, // TODO: Implement active users tracking
+        activeToday: activeCount || 0,
         totalRevenue,
         totalTokensSold,
         totalTokensConsumed,
