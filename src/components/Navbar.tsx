@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import NotificationCenter from "@/components/shared/NotificationCenter";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -82,6 +83,7 @@ const Navbar = () => {
             </Link>
           </Button>
           {!mobile && <NotificationCenter />}
+          <ThemeToggle mobile={mobile} />
           <Button variant="ghost" size={mobile ? "default" : "icon"} onClick={() => { handleSignOut(); onNavigate?.(); }} className={mobile ? "w-full justify-start" : ""}>
             <LogOut className="w-4 h-4" />
             {mobile && <span className="ml-2">Sign Out</span>}
