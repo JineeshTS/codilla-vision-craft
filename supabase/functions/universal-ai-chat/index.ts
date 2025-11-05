@@ -40,7 +40,7 @@ serve(async (req) => {
       });
     }
 
-    const { conversationId, message, context, systemPrompt } = await req.json();
+    const { conversationId, message, context, systemPrompt, model = 'google/gemini-2.5-flash' } = await req.json();
 
     if (!message) {
       return new Response(JSON.stringify({ error: 'Message is required' }), {
@@ -49,17 +49,10 @@ serve(async (req) => {
       });
     }
 
-    // Get AI provider configuration
-    const { data: aiConfigData } = await supabase
-      .from('system_config')
-      .select('config_value')
-      .eq('config_key', 'ai_providers')
-      .single();
-
-    const googleApiKey = Deno.env.get('GOOGLE_API_KEY');
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     
-    if (!googleApiKey) {
-      return new Response(JSON.stringify({ error: 'Google API key not configured' }), {
+    if (!lovableApiKey) {
+      return new Response(JSON.stringify({ error: 'Lovable API key not configured' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -132,32 +125,42 @@ serve(async (req) => {
       });
     }
 
-    // Convert messages to Gemini format
-    const contents = messages
-      .filter(m => m.role !== 'system')
-      .map(m => ({
-        role: m.role === 'user' ? 'user' : 'model',
-        parts: [{ text: m.content }]
-      }));
+    // Call Lovable AI Gateway
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${lovableApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        stream: true,
+        temperature: 0.7,
+        max_tokens: 4096,
+      }),
+    });
 
-    const systemInstruction = messages.find(m => m.role === 'system');
-
-    // Call Google Gemini API
-    const aiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:streamGenerateContent?key=${googleApiKey}&alt=sse`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents,
-          systemInstruction: systemInstruction ? { parts: [{ text: systemInstruction.content }] } : undefined,
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 4096,
-          },
-        }),
+    if (!aiResponse.ok) {
+      if (aiResponse.status === 429) {
+        return new Response(JSON.stringify({ error: 'Rate limits exceeded, please try again later.' }), {
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
-    );
+      if (aiResponse.status === 402) {
+        return new Response(JSON.stringify({ error: 'Payment required, please add funds to your Lovable AI workspace.' }), {
+          status: 402,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      const errorText = await aiResponse.text();
+      console.error('AI gateway error:', aiResponse.status, errorText);
+      return new Response(JSON.stringify({ error: 'AI gateway error' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // Update conversation with user message
     const updatedMessages = [
