@@ -45,7 +45,18 @@ serve(async (req) => {
       });
     }
 
-    const { configKey, configType } = await req.json();
+    let configKey, configType;
+    
+    // Parse request body if present
+    if (req.method === 'POST' && req.body) {
+      try {
+        const body = await req.json();
+        configKey = body.configKey;
+        configType = body.configType;
+      } catch (e) {
+        // No body or invalid JSON, proceed with default query
+      }
+    }
 
     let data, error;
 
