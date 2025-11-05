@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import NotificationCenter from "@/components/shared/NotificationCenter";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -80,6 +81,7 @@ const Navbar = () => {
               {tokens}
             </Link>
           </Button>
+          {!mobile && <NotificationCenter />}
           <Button variant="ghost" size={mobile ? "default" : "icon"} onClick={() => { handleSignOut(); onNavigate?.(); }} className={mobile ? "w-full justify-start" : ""}>
             <LogOut className="w-4 h-4" />
             {mobile && <span className="ml-2">Sign Out</span>}
