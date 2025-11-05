@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import TokenCostPreview from "@/components/shared/TokenCostPreview";
 
 interface Message {
   role: "user" | "assistant";
@@ -29,6 +30,8 @@ export const RequirementsChat = ({ ideaId, ideaTitle }: RequirementsChatProps) =
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState<"claude" | "gemini" | "gpt-5">("gemini");
+  const [showCostPreview, setShowCostPreview] = useState(false);
+  const [pendingMessage, setPendingMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -136,7 +139,15 @@ export const RequirementsChat = ({ ideaId, ideaTitle }: RequirementsChatProps) =
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
-    const userMessage: Message = { role: "user", content: input.trim() };
+    setPendingMessage(input.trim());
+    setShowCostPreview(true);
+  };
+
+  const handleConfirmSend = async () => {
+    const textToSend = pendingMessage;
+    setPendingMessage("");
+
+    const userMessage: Message = { role: "user", content: textToSend };
     const newMessages = [...messages, userMessage];
     
     setMessages(newMessages);
@@ -243,6 +254,14 @@ export const RequirementsChat = ({ ideaId, ideaTitle }: RequirementsChatProps) =
       <p className="text-xs text-muted-foreground mt-2">
         Tip: Press Enter to send, Shift+Enter for new line
       </p>
+
+      <TokenCostPreview
+        open={showCostPreview}
+        onOpenChange={setShowCostPreview}
+        onConfirm={handleConfirmSend}
+        messages={[...messages, { role: 'user', content: pendingMessage }]}
+        model={selectedModel}
+      />
     </Card>
   );
 };

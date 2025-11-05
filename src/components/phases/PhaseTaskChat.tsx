@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { PhaseTask } from "@/config/phaseStructure";
 import { TaskRenderer } from "./TaskRenderer";
+import TokenCostPreview from "@/components/shared/TokenCostPreview";
 
 interface Message {
   role: "user" | "assistant";
@@ -38,6 +39,8 @@ export const PhaseTaskChat = ({
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showCostPreview, setShowCostPreview] = useState(false);
+  const [pendingMessage, setPendingMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -150,7 +153,15 @@ export const PhaseTaskChat = ({
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
-    const userMessage: Message = { role: "user", content: input.trim() };
+    setPendingMessage(input.trim());
+    setShowCostPreview(true);
+  };
+
+  const handleConfirmSend = async () => {
+    const textToSend = pendingMessage;
+    setPendingMessage("");
+
+    const userMessage: Message = { role: "user", content: textToSend };
     const newMessages = [...messages, userMessage];
     
     setMessages(newMessages);
@@ -321,6 +332,14 @@ export const PhaseTaskChat = ({
             Press Enter to send, Shift+Enter for new line
           </p>
         </div>
+
+        <TokenCostPreview
+          open={showCostPreview}
+          onOpenChange={setShowCostPreview}
+          onConfirm={handleConfirmSend}
+          messages={[...messages, { role: 'user', content: pendingMessage }]}
+          model="gemini"
+        />
       </Card>
     </div>
   );
