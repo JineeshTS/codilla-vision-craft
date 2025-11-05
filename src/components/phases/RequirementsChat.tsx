@@ -6,6 +6,8 @@ import { Avatar } from "@/components/ui/avatar";
 import { Send, Bot, User, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 interface Message {
   role: "user" | "assistant";
@@ -26,6 +28,7 @@ export const RequirementsChat = ({ ideaId, ideaTitle }: RequirementsChatProps) =
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<"claude" | "gemini" | "gpt-5">("gemini");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -46,7 +49,7 @@ export const RequirementsChat = ({ ideaId, ideaTitle }: RequirementsChatProps) =
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ ideaId, messages: newMessages }),
+        body: JSON.stringify({ ideaId, messages: newMessages, model: selectedModel }),
       });
 
       if (!resp.ok) {
@@ -152,9 +155,24 @@ export const RequirementsChat = ({ ideaId, ideaTitle }: RequirementsChatProps) =
 
   return (
     <Card className="glass-panel p-6 flex flex-col h-[600px]">
-      <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
-        <Bot className="w-6 h-6 text-primary" />
-        <h3 className="text-lg font-semibold">AI Idea Screening Chat</h3>
+      <div className="flex items-center justify-between mb-4 pb-4 border-b border-border">
+        <div className="flex items-center gap-2">
+          <Bot className="w-6 h-6 text-primary" />
+          <h3 className="text-lg font-semibold">AI Idea Screening Chat</h3>
+        </div>
+        <div className="flex items-center gap-2">
+          <Label htmlFor="model-select" className="text-sm text-muted-foreground">Model:</Label>
+          <Select value={selectedModel} onValueChange={(value: any) => setSelectedModel(value)} disabled={isLoading}>
+            <SelectTrigger id="model-select" className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="gemini">Gemini Pro</SelectItem>
+              <SelectItem value="claude">Claude</SelectItem>
+              <SelectItem value="gpt-5">GPT-5</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
