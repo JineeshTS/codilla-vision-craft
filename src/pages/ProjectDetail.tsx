@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import Navbar from "@/components/Navbar";
 import { Rocket, CheckCircle, Clock, AlertCircle, ExternalLink, GitBranch } from "lucide-react";
+import { ProjectActivityFeed } from "@/components/analytics/ProjectActivityFeed";
 
 interface Project {
   id: string;
@@ -186,9 +187,10 @@ const ProjectDetail = () => {
           </Card>
         )}
 
-
-        <Card className="glass-panel p-6">
-          <h2 className="text-2xl font-semibold mb-6">Development Phases</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="lg:col-span-2">
+            <Card className="glass-panel p-6">
+              <h2 className="text-2xl font-semibold mb-6">Development Phases</h2>
           <div className="space-y-4">
             {phases.map((phase, index) => (
                 <Card
@@ -244,7 +246,13 @@ const ProjectDetail = () => {
               </Card>
             ))}
           </div>
-        </Card>
+            </Card>
+          </div>
+          
+          <div>
+            <ProjectActivityFeed projectId={id!} />
+          </div>
+        </div>
 
         <div className="mt-6 flex justify-start">
           <Button
