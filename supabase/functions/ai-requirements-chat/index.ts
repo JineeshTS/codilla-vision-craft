@@ -172,82 +172,162 @@ Start by helping them articulate what problem they're trying to solve and who ha
       async start(controller) {
         const reader = aiResponse.body?.getReader();
         if (!reader) {
+          console.error('❌ No reader available from AI response');
           controller.close();
           return;
         }
 
         const decoder = new TextDecoder();
         const encoder = new TextEncoder();
+        let buffer = ''; // Buffer for incomplete chunks
+        let streamTimeout: number;
+        let hasReceivedData = false;
+
+        // Set max stream duration (60 seconds)
+        const timeoutDuration = 60000;
+        streamTimeout = setTimeout(() => {
+          console.error('⏱️ Stream timeout after 60s');
+          if (!hasReceivedData) {
+            controller.enqueue(encoder.encode('data: [ERROR]\n\n'));
+          }
+          controller.close();
+          reader.cancel();
+        }, timeoutDuration);
 
         try {
+          console.log(`🚀 Starting ${model} stream transformation`);
+          
           while (true) {
             const { done, value } = await reader.read();
-            if (done) break;
+            if (done) {
+              console.log('✅ Stream completed normally');
+              break;
+            }
 
+            hasReceivedData = true;
             const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split('\n');
+            buffer += chunk;
 
-            for (const line of lines) {
-              if (!line.trim() || line.startsWith(':')) continue; // ignore keepalives
+            // Process complete lines from buffer
+            let newlineIndex;
+            while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
+              const line = buffer.slice(0, newlineIndex).trim();
+              buffer = buffer.slice(newlineIndex + 1);
 
-              if (!line.startsWith('data: ')) continue;
-              const data = line.slice(6);
-              if (data === '[DONE]') {
-                controller.enqueue(encoder.encode('data: [DONE]\n\n'));
-                continue;
-              }
+              // Skip empty lines and SSE comments
+              if (!line || line.startsWith(':')) continue;
 
-              try {
-                const parsed = JSON.parse(data);
-
-                // Normalize Gemini streaming → OpenAI delta
-                if (model === 'gemini') {
-                  const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                  if (text) {
-                    controller.enqueue(
-                      encoder.encode(
-                        `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`
-                      )
-                    );
-                  }
+              // Handle SSE data lines
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6).trim();
+                
+                if (data === '[DONE]') {
+                  console.log('📝 Received [DONE] signal');
+                  controller.enqueue(encoder.encode('data: [DONE]\n\n'));
                   continue;
                 }
 
-                // Normalize Claude (Anthropic) streaming → OpenAI delta
-                if (model === 'claude') {
-                  const type = parsed?.type;
-                  if (type === 'ping' || type === 'message_start' || type === 'content_block_start') {
-                    continue; // ignore non-token events
-                  }
-                  if (type === 'content_block_delta' && parsed?.delta?.text) {
-                    const text = parsed.delta.text as string;
-                    controller.enqueue(
-                      encoder.encode(
-                        `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`
-                      )
-                    );
-                    continue;
-                  }
-                  if (type === 'message_stop') {
-                    controller.enqueue(encoder.encode('data: [DONE]\n\n'));
-                    continue;
-                  }
-                  // Ignore other event types
-                  continue;
-                }
+                try {
+                  const parsed = JSON.parse(data);
 
-                // OpenAI (gpt-5) is already in OpenAI format → forward
-                controller.enqueue(encoder.encode(`data: ${data}\n\n`));
-              } catch (e) {
-                // Incomplete JSON or split events: skip and wait for next line
-                // Note: Our reader is line-buffered above; Anthropic/Gemini send one JSON per line
+                  // Normalize Gemini streaming → OpenAI delta
+                  if (model === 'gemini') {
+                    const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                    if (text) {
+                      controller.enqueue(
+                        encoder.encode(
+                          `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`
+                        )
+                      );
+                    }
+                    // Check for finish reason
+                    const finishReason = parsed?.candidates?.[0]?.finishReason;
+                    if (finishReason && finishReason !== 'STOP') {
+                      console.warn(`⚠️ Gemini finish reason: ${finishReason}`);
+                    }
+                    continue;
+                  }
+
+                  // Normalize Claude (Anthropic) streaming → OpenAI delta
+                  if (model === 'claude') {
+                    const type = parsed?.type;
+                    
+                    // Skip meta events
+                    if (type === 'ping' || type === 'message_start' || type === 'content_block_start') {
+                      continue;
+                    }
+                    
+                    // Handle content deltas
+                    if (type === 'content_block_delta' && parsed?.delta?.text) {
+                      const text = parsed.delta.text as string;
+                      controller.enqueue(
+                        encoder.encode(
+                          `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`
+                        )
+                      );
+                      continue;
+                    }
+                    
+                    // Handle stream end
+                    if (type === 'message_stop' || type === 'message_delta') {
+                      console.log('📝 Claude stream complete');
+                      controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+                      continue;
+                    }
+                    
+                    // Handle errors
+                    if (type === 'error') {
+                      console.error('❌ Claude error:', parsed);
+                      controller.enqueue(encoder.encode('data: [ERROR]\n\n'));
+                      continue;
+                    }
+                    
+                    continue;
+                  }
+
+                  // OpenAI (gpt-5) is already in OpenAI format → forward as-is
+                  if (model === 'gpt-5' || model === 'codex') {
+                    controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+                    
+                    // Check for completion
+                    if (parsed?.choices?.[0]?.finish_reason) {
+                      console.log(`📝 OpenAI finish reason: ${parsed.choices[0].finish_reason}`);
+                    }
+                    continue;
+                  }
+
+                } catch (parseError) {
+                  // JSON parsing error - might be incomplete chunk
+                  console.warn('⚠️ JSON parse error (might be incomplete):', parseError);
+                  // Put the line back in buffer for next iteration
+                  buffer = `data: ${data}\n` + buffer;
+                  break; // Wait for more data
+                }
               }
             }
           }
+
+          // Send final [DONE] if not already sent
+          if (hasReceivedData) {
+            console.log('✅ Sending final [DONE]');
+            controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+          }
+
         } catch (error) {
-          console.error('Stream error:', error);
+          console.error('❌ Stream transformation error:', error);
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ 
+                error: 'Stream processing error', 
+                details: errorMessage 
+              })}\n\n`
+            )
+          );
         } finally {
+          clearTimeout(streamTimeout);
           controller.close();
+          reader.cancel();
         }
       },
     });
