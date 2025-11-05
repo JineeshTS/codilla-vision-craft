@@ -37,7 +37,7 @@ export const RequirementsChat = ({ ideaId, ideaTitle }: RequirementsChatProps) =
   }, [messages]);
 
   const streamChat = async (newMessages: Message[]) => {
-    const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-requirements-chat`;
+    const CHAT_URL = `https://numyfjzmrtvzclgyfkpx.supabase.co/functions/v1/ai-requirements-chat`;
     
     try {
       const { data: { session } } = await supabase.auth.getSession();

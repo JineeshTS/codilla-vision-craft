@@ -167,7 +167,66 @@ Start by helping them articulate what problem they're trying to solve and who ha
       maxTokens: 500,
     });
 
-    return new Response(aiResponse.body, {
+    // Transform the response stream to match OpenAI format
+    const transformedStream = new ReadableStream({
+      async start(controller) {
+        const reader = aiResponse.body?.getReader();
+        if (!reader) {
+          controller.close();
+          return;
+        }
+
+        const decoder = new TextDecoder();
+        const encoder = new TextEncoder();
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+              if (!line.trim() || line.startsWith(':')) continue;
+
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6);
+                if (data === '[DONE]') {
+                  controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+                  continue;
+                }
+
+                try {
+                  // Parse different provider formats
+                  if (model === 'gemini') {
+                    const parsed = JSON.parse(data);
+                    const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                    if (text) {
+                      const openAIFormat = {
+                        choices: [{ delta: { content: text } }]
+                      };
+                      controller.enqueue(encoder.encode(`data: ${JSON.stringify(openAIFormat)}\n\n`));
+                    }
+                  } else {
+                    // Claude and GPT-5 already in correct format
+                    controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+                  }
+                } catch (e) {
+                  console.error('Parse error:', e);
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Stream error:', error);
+        } finally {
+          controller.close();
+        }
+      }
+    });
+
+    return new Response(transformedStream, {
       headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' }
     });
 
