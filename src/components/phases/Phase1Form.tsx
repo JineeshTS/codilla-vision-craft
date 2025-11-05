@@ -89,14 +89,14 @@ export const Phase1Form = ({ formData, errors, onChange, step }: Phase1FormProps
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">One-Line Description *</Label>
+            <Label htmlFor="description">Idea Description *</Label>
             <Textarea
               id="description"
-              placeholder="A [platform/app/tool] that [core function] for [target user] to [achieve outcome]"
-              rows={3}
+              placeholder="Describe your idea in detail. Explain what it does, who it's for, and what problem it solves. Feel free to be as detailed as you need - the AI Mentor can help you refine this."
+              rows={6}
               value={formData.description}
               onChange={(e) => onChange("description", e.target.value)}
-              maxLength={160}
+              maxLength={5000}
             />
             {errors.description && (
               <div className="flex items-center gap-1 text-xs text-destructive">
@@ -104,6 +104,9 @@ export const Phase1Form = ({ formData, errors, onChange, step }: Phase1FormProps
                 <span>{errors.description}</span>
               </div>
             )}
+            <p className="text-xs text-muted-foreground">
+              {formData.description.length}/5000 characters
+            </p>
           </div>
 
           <div className="space-y-2">

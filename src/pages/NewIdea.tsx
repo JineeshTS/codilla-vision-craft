@@ -7,12 +7,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
-import { Lightbulb, ArrowRight, Save, AlertCircle } from "lucide-react";
+import { Lightbulb, ArrowRight, Save, AlertCircle, MessageSquare } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { ideaSchema, sanitizeText } from "@/lib/validation";
 import { z } from "zod";
 import { Phase1Form } from "@/components/phases/Phase1Form";
+import UniversalAIChat from "@/components/shared/UniversalAIChat";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const NewIdea = () => {
   const navigate = useNavigate();
@@ -21,6 +23,7 @@ const NewIdea = () => {
   const [step, setStep] = useState(1);
   const totalSteps = 5;
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showAIMentor, setShowAIMentor] = useState(false);
   const [formData, setFormData] = useState({
     // Phase 1: Basic Information
     title: "",
@@ -177,12 +180,62 @@ const NewIdea = () => {
       <Navbar />
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         <div className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Lightbulb className="w-8 h-8 text-primary" />
-            <h1 className="text-4xl font-bold gradient-text">Capture Your Idea</h1>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Lightbulb className="w-8 h-8 text-primary" />
+              <h1 className="text-4xl font-bold gradient-text">Capture Your Idea</h1>
+            </div>
+            <Sheet open={showAIMentor} onOpenChange={setShowAIMentor}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="lg">
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  AI Mentor
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto">
+                <SheetHeader>
+                  <SheetTitle>AI Startup Mentor</SheetTitle>
+                  <SheetDescription>
+                    Get help structuring your idea, defining your target audience, and crafting a compelling value proposition
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="mt-6">
+                  <UniversalAIChat
+                    context={{
+                      type: 'general',
+                      data: {
+                        formData,
+                        currentStep: step
+                      }
+                    }}
+                    systemPrompt={`You are an experienced startup mentor helping an entrepreneur fill out an idea capture form. Current form data:
+Title: ${formData.title || 'Not provided yet'}
+Description: ${formData.description || 'Not provided yet'}
+Problem Statement: ${formData.problem_statement || 'Not provided yet'}
+Target Audience: ${formData.target_audience || 'Not provided yet'}
+Value Proposition: ${formData.unique_value_proposition || 'Not provided yet'}
+
+Help them:
+1. Craft a clear, compelling description
+2. Define specific target audiences
+3. Articulate the problem they're solving
+4. Develop a strong value proposition
+5. Think through business model options
+
+Be proactive - suggest specific improvements, give examples, and help them refine their thinking. Don't just ask questions, guide them with concrete advice.`}
+                    suggestedQuestions={[
+                      "Help me write a clear description",
+                      "Who should my target audience be?",
+                      "What makes a good value proposition?",
+                      "How do I identify the problem I'm solving?"
+                    ]}
+                  />
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
           <p className="text-muted-foreground">
-            Let's bring your vision to life through AI-powered validation
+            Let's bring your vision to life through AI-powered validation. Click "AI Mentor" anytime for guidance.
           </p>
         </div>
 
