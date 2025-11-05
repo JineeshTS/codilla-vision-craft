@@ -139,7 +139,7 @@ export async function callCodex(
       content: m.content
     })),
     temperature,
-    max_tokens: maxTokens,
+    max_completion_tokens: maxTokens,
     stream
   };
 
