@@ -8,6 +8,7 @@ import { Users, DollarSign, Zap, TrendingUp, Activity, Brain, AlertTriangle, Spa
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import AnalyticsExport from "@/components/analytics/AnalyticsExport";
 
 interface TokenTrend {
   date: string;
@@ -246,6 +247,7 @@ export default function Analytics() {
           <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
           <p className="text-muted-foreground">Monitor platform performance and usage</p>
         </div>
+        <AnalyticsExport />
       </div>
 
       {/* Key Metrics */}
