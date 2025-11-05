@@ -523,12 +523,6 @@ const IdeaDetail = () => {
                   </div>
                 </Card>
 
-                {/* Professional Research Report - No duplication */}
-                <ResearchReport 
-                  idea={idea} 
-                  validations={idea.validation_summary.validations || []} 
-                />
-
                 <Card className="glass-panel p-8">
                   <div className="text-center">
                     <Rocket className="w-16 h-16 mx-auto mb-4 text-primary" />
