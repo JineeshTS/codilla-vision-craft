@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import { useActivityTracking } from "@/hooks/useActivityTracking";
+import { SessionTimeoutDialog } from "@/components/shared/SessionTimeoutDialog";
 
 // Eager load critical pages
 import Index from "./pages/Index";
@@ -61,16 +62,23 @@ const PageLoader = () => (
 
 const AppContent = () => {
   // Enable session timeout (30 minutes of inactivity)
-  useSessionTimeout({
-    timeout: 30 * 60 * 1000, // 30 minutes
-    warningDuration: 2 * 60 * 1000, // 2 minute warning
+  const { showWarning, secondsRemaining, extendSession, logout } = useSessionTimeout({
+    timeoutMinutes: 30,
+    warningMinutes: 5,
   });
 
   // Track user activity for analytics
   useActivityTracking();
 
   return (
-    <Suspense fallback={<PageLoader />}>
+    <>
+      <SessionTimeoutDialog
+        open={showWarning}
+        secondsRemaining={secondsRemaining}
+        onExtend={extendSession}
+        onLogout={logout}
+      />
+      <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
@@ -102,6 +110,7 @@ const AppContent = () => {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
+    </>
   );
 };
 

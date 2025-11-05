@@ -1,17 +1,13 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
 
 interface UseSessionTimeoutOptions {
-  /** Timeout duration in milliseconds (default: 30 minutes) */
-  timeout?: number;
-  /** Warning duration before timeout in milliseconds (default: 2 minutes) */
-  warningDuration?: number;
-  /** Callback when session is about to timeout */
-  onWarning?: () => void;
-  /** Callback when session times out */
-  onTimeout?: () => void;
+  /** Timeout duration in minutes (default: 30) */
+  timeoutMinutes?: number;
+  /** Warning duration before timeout in minutes (default: 5) */
+  warningMinutes?: number;
 }
 
 /**
@@ -20,118 +16,124 @@ interface UseSessionTimeoutOptions {
  */
 export function useSessionTimeout(options: UseSessionTimeoutOptions = {}) {
   const {
-    timeout = 30 * 60 * 1000, // 30 minutes
-    warningDuration = 2 * 60 * 1000, // 2 minutes
-    onWarning,
-    onTimeout,
+    timeoutMinutes = 30,
+    warningMinutes = 5,
   } = options;
 
+  const [showWarning, setShowWarning] = useState(false);
+  const [secondsRemaining, setSecondsRemaining] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const timeoutRef = useRef<NodeJS.Timeout>();
-  const warningRef = useRef<NodeJS.Timeout>();
+  
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const warningRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownRef = useRef<NodeJS.Timeout | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
 
-  const signOut = useCallback(async () => {
+  const clearTimers = useCallback(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (warningRef.current) clearTimeout(warningRef.current);
+    if (countdownRef.current) clearInterval(countdownRef.current);
+  }, []);
+
+  const logout = useCallback(async () => {
+    clearTimers();
     await supabase.auth.signOut();
-
     toast({
-      title: 'Session expired',
-      description: 'You have been signed out due to inactivity.',
-      variant: 'destructive',
+      title: "Session Expired",
+      description: "You've been logged out due to inactivity.",
+      variant: "destructive",
     });
-
     navigate('/auth');
+  }, [clearTimers, navigate, toast]);
 
-    if (onTimeout) {
-      onTimeout();
-    }
-  }, [navigate, toast, onTimeout]);
-
-  const showWarning = useCallback(() => {
-    toast({
-      title: 'Session expiring soon',
-      description: 'Your session will expire in 2 minutes due to inactivity.',
-    });
-
-    if (onWarning) {
-      onWarning();
-    }
-  }, [toast, onWarning]);
+  const startCountdown = useCallback(() => {
+    const warningSeconds = warningMinutes * 60;
+    setSecondsRemaining(warningSeconds);
+    
+    countdownRef.current = setInterval(() => {
+      setSecondsRemaining((prev) => {
+        if (prev <= 1) {
+          if (countdownRef.current) clearInterval(countdownRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, [warningMinutes]);
 
   const resetTimer = useCallback(() => {
+    clearTimers();
+    setShowWarning(false);
     lastActivityRef.current = Date.now();
 
-    // Clear existing timers
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    if (warningRef.current) {
-      clearTimeout(warningRef.current);
-    }
+    const timeoutMs = timeoutMinutes * 60 * 1000;
+    const warningMs = (timeoutMinutes - warningMinutes) * 60 * 1000;
 
-    // Set warning timer
     warningRef.current = setTimeout(() => {
-      showWarning();
-    }, timeout - warningDuration);
+      setShowWarning(true);
+      startCountdown();
+    }, warningMs);
 
-    // Set timeout timer
     timeoutRef.current = setTimeout(() => {
-      signOut();
-    }, timeout);
-  }, [timeout, warningDuration, showWarning, signOut]);
+      logout();
+    }, timeoutMs);
+  }, [clearTimers, timeoutMinutes, warningMinutes, startCountdown, logout]);
 
-  const handleActivity = useCallback(() => {
-    // Only reset if it's been more than 1 minute since last activity
-    // This prevents excessive timer resets
-    const timeSinceLastActivity = Date.now() - lastActivityRef.current;
-    if (timeSinceLastActivity > 60 * 1000) {
-      resetTimer();
-    }
-  }, [resetTimer]);
+  const extendSession = useCallback(() => {
+    setShowWarning(false);
+    resetTimer();
+    toast({
+      title: "Session Extended",
+      description: "Your session has been extended.",
+    });
+  }, [resetTimer, toast]);
 
   useEffect(() => {
-    // Check if user is authenticated
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-
-      if (session) {
-        resetTimer();
-
-        // Activity event listeners
-        const events = [
-          'mousedown',
-          'mousemove',
-          'keypress',
-          'scroll',
-          'touchstart',
-          'click',
-        ];
-
-        events.forEach(event => {
-          document.addEventListener(event, handleActivity);
-        });
-
-        return () => {
-          events.forEach(event => {
-            document.removeEventListener(event, handleActivity);
-          });
-
-          if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-          }
-          if (warningRef.current) {
-            clearTimeout(warningRef.current);
-          }
-        };
+      if (!session) {
+        clearTimers();
+        return;
       }
+      resetTimer();
     };
 
     checkAuth();
-  }, [resetTimer, handleActivity]);
+
+    const events = [
+      'mousedown',
+      'mousemove',
+      'keypress',
+      'scroll',
+      'touchstart',
+      'click',
+    ];
+
+    const handleActivity = () => {
+      const now = Date.now();
+      // Only reset if more than 1 second has passed since last activity
+      if (now - lastActivityRef.current > 1000) {
+        resetTimer();
+      }
+    };
+
+    events.forEach((event) => {
+      document.addEventListener(event, handleActivity);
+    });
+
+    return () => {
+      clearTimers();
+      events.forEach((event) => {
+        document.removeEventListener(event, handleActivity);
+      });
+    };
+  }, [resetTimer, clearTimers]);
 
   return {
-    resetTimer,
-    lastActivity: lastActivityRef.current,
+    showWarning,
+    secondsRemaining,
+    extendSession,
+    logout,
   };
 }
