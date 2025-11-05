@@ -336,7 +336,7 @@ const IdeaDetail = () => {
               <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="discussion">
-                  AI Discussion
+                  AI Mentor
                   {idea.current_phase === 1 && (
                     <span className="ml-2 px-2 py-0.5 bg-primary text-primary-foreground text-xs rounded-full">
                       Active
