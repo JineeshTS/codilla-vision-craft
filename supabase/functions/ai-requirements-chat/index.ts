@@ -167,7 +167,7 @@ Start by helping them articulate what problem they're trying to solve and who ha
       maxTokens: 500,
     });
 
-    // Transform the response stream to match OpenAI format
+    // Transform the response stream to match OpenAI delta format
     const transformedStream = new ReadableStream({
       async start(controller) {
         const reader = aiResponse.body?.getReader();
@@ -188,33 +188,59 @@ Start by helping them articulate what problem they're trying to solve and who ha
             const lines = chunk.split('\n');
 
             for (const line of lines) {
-              if (!line.trim() || line.startsWith(':')) continue;
+              if (!line.trim() || line.startsWith(':')) continue; // ignore keepalives
 
-              if (line.startsWith('data: ')) {
-                const data = line.slice(6);
-                if (data === '[DONE]') {
-                  controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+              if (!line.startsWith('data: ')) continue;
+              const data = line.slice(6);
+              if (data === '[DONE]') {
+                controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+                continue;
+              }
+
+              try {
+                const parsed = JSON.parse(data);
+
+                // Normalize Gemini streaming → OpenAI delta
+                if (model === 'gemini') {
+                  const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                  if (text) {
+                    controller.enqueue(
+                      encoder.encode(
+                        `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`
+                      )
+                    );
+                  }
                   continue;
                 }
 
-                try {
-                  // Parse different provider formats
-                  if (model === 'gemini') {
-                    const parsed = JSON.parse(data);
-                    const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                    if (text) {
-                      const openAIFormat = {
-                        choices: [{ delta: { content: text } }]
-                      };
-                      controller.enqueue(encoder.encode(`data: ${JSON.stringify(openAIFormat)}\n\n`));
-                    }
-                  } else {
-                    // Claude and GPT-5 already in correct format
-                    controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+                // Normalize Claude (Anthropic) streaming → OpenAI delta
+                if (model === 'claude') {
+                  const type = parsed?.type;
+                  if (type === 'ping' || type === 'message_start' || type === 'content_block_start') {
+                    continue; // ignore non-token events
                   }
-                } catch (e) {
-                  console.error('Parse error:', e);
+                  if (type === 'content_block_delta' && parsed?.delta?.text) {
+                    const text = parsed.delta.text as string;
+                    controller.enqueue(
+                      encoder.encode(
+                        `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`
+                      )
+                    );
+                    continue;
+                  }
+                  if (type === 'message_stop') {
+                    controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+                    continue;
+                  }
+                  // Ignore other event types
+                  continue;
                 }
+
+                // OpenAI (gpt-5) is already in OpenAI format → forward
+                controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+              } catch (e) {
+                // Incomplete JSON or split events: skip and wait for next line
+                // Note: Our reader is line-buffered above; Anthropic/Gemini send one JSON per line
               }
             }
           }
@@ -223,11 +249,11 @@ Start by helping them articulate what problem they're trying to solve and who ha
         } finally {
           controller.close();
         }
-      }
+      },
     });
 
     return new Response(transformedStream, {
-      headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' }
+      headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' },
     });
 
   } catch (error) {

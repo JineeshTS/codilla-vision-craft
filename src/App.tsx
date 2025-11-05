@@ -56,47 +56,51 @@ const PageLoader = () => (
   </div>
 );
 
+import { HelmetProvider } from "react-helmet-async";
+
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/verify-email" element={<VerifyEmail />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/ideas" element={<Ideas />} />
-            <Route path="/ideas/new" element={<NewIdea />} />
-            <Route path="/ideas/:id" element={<IdeaDetail />} />
-            <Route path="/ideas/:id/business-validation" element={<BusinessValidation />} />
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/projects/:id" element={<ProjectDetail />} />
-            <Route path="/projects/:id/product-definition" element={<ProductDefinition />} />
-            <Route path="/projects/:projectId/phase/:phaseNumber" element={<PhaseDetail />} />
-            <Route path="/tokens" element={<Tokens />} />
-            <Route path="/templates" element={<Templates />} />
-            <Route path="/templates/:templateId/apply" element={<TemplateApply />} />
-            <Route path="/template/:templateId" element={<TemplateCustomizer />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/code-ide" element={<CodeIDE />} />
-            <Route path="/deployment" element={<Deployment />} />
-            <Route path="/projects/:projectId/template-selection" element={<TemplateSelection />} />
-            <Route path="/projects/:projectId/development-prep" element={<DevelopmentPrep />} />
-            <Route path="/projects/:projectId/ai-development" element={<AIAssistedDev />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/admin/settings" element={<AdminSettings />} />
-            <Route path="/admin/analytics" element={<Analytics />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <HelmetProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/ideas" element={<Ideas />} />
+              <Route path="/ideas/new" element={<NewIdea />} />
+              <Route path="/ideas/:id" element={<IdeaDetail />} />
+              <Route path="/ideas/:id/business-validation" element={<BusinessValidation />} />
+              <Route path="/projects" element={<Projects />} />
+              <Route path="/projects/:id" element={<ProjectDetail />} />
+              <Route path="/projects/:id/product-definition" element={<ProductDefinition />} />
+              <Route path="/projects/:projectId/phase/:phaseNumber" element={<PhaseDetail />} />
+              <Route path="/tokens" element={<Tokens />} />
+              <Route path="/templates" element={<Templates />} />
+              <Route path="/templates/:templateId/apply" element={<TemplateApply />} />
+              <Route path="/template/:templateId" element={<TemplateCustomizer />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/code-ide" element={<CodeIDE />} />
+              <Route path="/deployment" element={<Deployment />} />
+              <Route path="/projects/:projectId/template-selection" element={<TemplateSelection />} />
+              <Route path="/projects/:projectId/development-prep" element={<DevelopmentPrep />} />
+              <Route path="/projects/:projectId/ai-development" element={<AIAssistedDev />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
+              <Route path="/admin/analytics" element={<Analytics />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </HelmetProvider>
 );
 
 export default App;
