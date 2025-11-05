@@ -10,7 +10,18 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import Navbar from "@/components/Navbar";
-import { Lightbulb, Sparkles, Rocket, Edit, Save, X, TrendingUp } from "lucide-react";
+import { Lightbulb, Sparkles, Rocket, Edit, Save, X, TrendingUp, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 import { PhaseWorkflow } from "@/components/phases/PhaseWorkflow";
 import { ThreeAIIndicator } from "@/components/ThreeAIIndicator";
@@ -168,6 +179,30 @@ const IdeaDetail = () => {
     }
   };
 
+  const handleDelete = async () => {
+    try {
+      const { error } = await supabase
+        .from("ideas")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Idea Deleted",
+        description: "Your idea has been permanently deleted.",
+      });
+
+      navigate("/ideas");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error deleting idea",
+        description: error.message,
+      });
+    }
+  };
+
   const handleCreateProject = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -273,6 +308,27 @@ const IdeaDetail = () => {
                 Edit
               </Button>
             )}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Idea?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete your idea "{idea.title}".
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
 
