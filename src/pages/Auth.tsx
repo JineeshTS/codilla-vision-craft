@@ -242,6 +242,14 @@ const Auth = () => {
                       <span>{errors.password}</span>
                     </div>
                   )}
+                  <div className="text-right">
+                    <a
+                      href="/reset-password"
+                      className="text-xs text-primary hover:underline"
+                    >
+                      Forgot password?
+                    </a>
+                  </div>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Signing in..." : "Sign In"}
@@ -343,7 +351,7 @@ const Auth = () => {
                   {loading ? "Creating account..." : "Create Account"}
                 </Button>
                 <p className="text-xs text-center text-muted-foreground">
-                  Get 100 free tokens to start building!
+                  Get 10,000 free tokens to start building!
                 </p>
               </form>
             </TabsContent>
