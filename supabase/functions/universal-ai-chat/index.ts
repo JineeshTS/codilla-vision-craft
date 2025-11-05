@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 import { corsHeaders } from "../_shared/cors.ts";
+import { callAI, type AIModel, type AIMessage as ProviderMessage } from "../_shared/multi-ai-provider.ts";
 
 interface AIMessage {
   role: 'system' | 'user' | 'assistant';
@@ -40,20 +41,11 @@ serve(async (req) => {
       });
     }
 
-    const { conversationId, message, context, systemPrompt, model = 'google/gemini-2.5-flash' } = await req.json();
+    const { conversationId, message, context, systemPrompt, model = 'gemini' } = await req.json();
 
     if (!message) {
       return new Response(JSON.stringify({ error: 'Message is required' }), {
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    
-    if (!lovableApiKey) {
-      return new Response(JSON.stringify({ error: 'Lovable API key not configured' }), {
-        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
@@ -125,42 +117,13 @@ serve(async (req) => {
       });
     }
 
-    // Call Lovable AI Gateway
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model,
-        messages,
-        stream: true,
-        temperature: 0.7,
-        max_tokens: 4096,
-      }),
+    const aiResponse = await callAI({
+      model: model as AIModel,
+      messages: messages as any,
+      stream: true,
+      temperature: 0.7,
+      maxTokens: 4096,
     });
-
-    if (!aiResponse.ok) {
-      if (aiResponse.status === 429) {
-        return new Response(JSON.stringify({ error: 'Rate limits exceeded, please try again later.' }), {
-          status: 429,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      if (aiResponse.status === 402) {
-        return new Response(JSON.stringify({ error: 'Payment required, please add funds to your Lovable AI workspace.' }), {
-          status: 402,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      const errorText = await aiResponse.text();
-      console.error('AI gateway error:', aiResponse.status, errorText);
-      return new Response(JSON.stringify({ error: 'AI gateway error' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
 
     // Update conversation with user message
     const updatedMessages = [
