@@ -3,9 +3,23 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { Users, DollarSign, Zap, TrendingUp, Activity, Brain } from "lucide-react";
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from "recharts";
+import { Users, DollarSign, Zap, TrendingUp, Activity, Brain, AlertTriangle, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+
+interface TokenTrend {
+  date: string;
+  consumed: number;
+  purchased: number;
+}
+
+interface FeatureUsage {
+  feature: string;
+  tokens: number;
+  calls: number;
+}
 
 interface AnalyticsData {
   users: {
@@ -22,10 +36,14 @@ interface AnalyticsData {
     consumed: number;
     purchased: number;
     avgPerUser: number;
+    trends: TokenTrend[];
+    byFeature: FeatureUsage[];
+    projectedDaysRemaining: number;
+    optimizationPotential: number;
   };
   aiUsage: {
     totalCalls: number;
-    byProvider: Array<{ provider: string; count: number }>;
+    byProvider: Array<{ provider: string; count: number; tokens: number }>;
     avgResponseTime: number;
   };
 }
@@ -99,12 +117,79 @@ export default function Analytics() {
       const tokensPurchased = transactions?.filter(t => t.transaction_type === "purchase").reduce((sum, t) => sum + t.amount, 0) || 0;
       const tokensConsumed = transactions?.filter(t => t.transaction_type === "consumption").reduce((sum, t) => sum + Math.abs(t.amount), 0) || 0;
 
-      // Mock AI usage data (audit_logs table will be created in future)
-      const byProvider = [
-        { provider: "openai", count: 150 },
-        { provider: "anthropic", count: 85 },
-        { provider: "google", count: 65 },
-      ];
+      // Fetch AI requests for detailed analytics
+      const { data: aiRequests } = await supabase
+        .from("ai_requests")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(1000);
+
+      // Calculate token trends (last 30 days)
+      const trends: TokenTrend[] = [];
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        
+        const dayTransactions = transactions?.filter(t => 
+          t.created_at?.startsWith(dateStr)
+        ) || [];
+        
+        trends.push({
+          date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          consumed: dayTransactions
+            .filter(t => t.transaction_type === "consumption")
+            .reduce((sum, t) => sum + Math.abs(t.amount), 0),
+          purchased: dayTransactions
+            .filter(t => t.transaction_type === "purchase")
+            .reduce((sum, t) => sum + t.amount, 0),
+        });
+      }
+
+      // Group by feature/request type
+      const featureMap = new Map<string, { tokens: number; calls: number }>();
+      aiRequests?.forEach(req => {
+        const feature = req.request_type || "other";
+        const existing = featureMap.get(feature) || { tokens: 0, calls: 0 };
+        featureMap.set(feature, {
+          tokens: existing.tokens + (req.tokens_used || 0),
+          calls: existing.calls + 1
+        });
+      });
+
+      const byFeature: FeatureUsage[] = Array.from(featureMap.entries()).map(([feature, data]) => ({
+        feature,
+        tokens: data.tokens,
+        calls: data.calls
+      })).sort((a, b) => b.tokens - a.tokens);
+
+      // Calculate projections
+      const last7DaysConsumption = trends.slice(-7).reduce((sum, t) => sum + t.consumed, 0);
+      const avgDailyConsumption = last7DaysConsumption / 7;
+      const { data: profiles } = await supabase.from("profiles").select("token_balance");
+      const totalBalance = profiles?.reduce((sum, p) => sum + (p.token_balance || 0), 0) || 0;
+      const projectedDaysRemaining = avgDailyConsumption > 0 ? Math.floor(totalBalance / avgDailyConsumption) : 999;
+
+      // Calculate optimization potential (identify high-cost, low-value operations)
+      const highCostFeatures = byFeature.filter(f => f.tokens / f.calls > 5000).length;
+      const optimizationPotential = Math.min(100, (highCostFeatures / Math.max(byFeature.length, 1)) * 100);
+
+      // Group AI usage by provider
+      const providerMap = new Map<string, { count: number; tokens: number }>();
+      aiRequests?.forEach(req => {
+        const provider = req.ai_agent || "unknown";
+        const existing = providerMap.get(provider) || { count: 0, tokens: 0 };
+        providerMap.set(provider, {
+          count: existing.count + 1,
+          tokens: existing.tokens + (req.tokens_used || 0)
+        });
+      });
+
+      const byProvider = Array.from(providerMap.entries()).map(([provider, data]) => ({
+        provider,
+        count: data.count,
+        tokens: data.tokens
+      }));
 
       setAnalytics({
         users: {
@@ -121,9 +206,13 @@ export default function Analytics() {
           consumed: tokensConsumed,
           purchased: tokensPurchased,
           avgPerUser: totalUsers ? Math.round(tokensConsumed / totalUsers) : 0,
+          trends,
+          byFeature,
+          projectedDaysRemaining,
+          optimizationPotential,
         },
         aiUsage: {
-          totalCalls: 300,
+          totalCalls: aiRequests?.length || 0,
           byProvider,
           avgResponseTime: 1250,
         },
@@ -212,13 +301,154 @@ export default function Analytics() {
         </Card>
       </div>
 
+      {/* Token Insights */}
+      {analytics.tokens.projectedDaysRemaining < 30 && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Token Balance Warning</AlertTitle>
+          <AlertDescription>
+            At current usage rates, platform tokens will run out in approximately{" "}
+            <strong>{analytics.tokens.projectedDaysRemaining} days</strong>. Consider purchasing more tokens or optimizing usage.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {analytics.tokens.optimizationPotential > 30 && (
+        <Alert>
+          <Sparkles className="h-4 w-4" />
+          <AlertTitle>Optimization Opportunity</AlertTitle>
+          <AlertDescription>
+            We've identified <strong>{analytics.tokens.optimizationPotential.toFixed(0)}%</strong> optimization potential. 
+            Some features are using high token counts per request. Review the feature breakdown below for details.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Detailed Analytics */}
-      <Tabs defaultValue="users" className="space-y-4">
+      <Tabs defaultValue="token-analytics" className="space-y-4">
         <TabsList>
+          <TabsTrigger value="token-analytics">Token Analytics</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="tokens">Tokens</TabsTrigger>
           <TabsTrigger value="ai">AI Usage</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="token-analytics" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Token Usage Trends</CardTitle>
+                <CardDescription>Daily consumption and purchases over last 30 days</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={analytics.tokens.trends}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Area type="monotone" dataKey="consumed" stackId="1" stroke="hsl(var(--destructive))" fill="hsl(var(--destructive))" fillOpacity={0.6} name="Consumed" />
+                    <Area type="monotone" dataKey="purchased" stackId="2" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.6} name="Purchased" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Usage by Feature</CardTitle>
+                <CardDescription>Token consumption breakdown</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={analytics.tokens.byFeature.slice(0, 8)} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" />
+                    <YAxis dataKey="feature" type="category" width={120} />
+                    <Tooltip />
+                    <Bar dataKey="tokens" fill="hsl(var(--primary))">
+                      {analytics.tokens.byFeature.slice(0, 8).map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <CardTitle>Efficiency Metrics</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-muted-foreground">Avg Tokens/Request</span>
+                    <Badge variant="outline">
+                      {analytics.tokens.byFeature.length > 0 
+                        ? Math.round(analytics.tokens.consumed / analytics.aiUsage.totalCalls)
+                        : 0}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-muted-foreground">Projected Days Remaining</span>
+                    <Badge variant={analytics.tokens.projectedDaysRemaining < 30 ? "destructive" : "default"}>
+                      {analytics.tokens.projectedDaysRemaining > 365 ? "365+" : analytics.tokens.projectedDaysRemaining}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Optimization Potential</span>
+                    <Badge variant={analytics.tokens.optimizationPotential > 50 ? "destructive" : "secondary"}>
+                      {analytics.tokens.optimizationPotential.toFixed(0)}%
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Consumers</CardTitle>
+                <CardDescription>Features using most tokens</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {analytics.tokens.byFeature.slice(0, 5).map((feature, idx) => (
+                    <div key={idx} className="flex justify-between items-center text-sm">
+                      <span className="truncate">{feature.feature}</span>
+                      <Badge variant="outline">{feature.tokens.toLocaleString()}</Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Recommendations</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="text-sm space-y-2 text-muted-foreground">
+                  {analytics.tokens.optimizationPotential > 30 && (
+                    <li>• Review high-cost features and consider caching</li>
+                  )}
+                  {analytics.tokens.projectedDaysRemaining < 60 && (
+                    <li>• Consider purchasing additional tokens soon</li>
+                  )}
+                  {analytics.aiUsage.byProvider.length > 2 && (
+                    <li>• Evaluate provider costs for optimization</li>
+                  )}
+                  {analytics.tokens.avgPerUser > 10000 && (
+                    <li>• Implement usage limits per user</li>
+                  )}
+                  <li>• Monitor daily trends for anomalies</li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
 
         <TabsContent value="users" className="space-y-4">
           <Card>
@@ -249,24 +479,22 @@ export default function Analytics() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="tokens" className="space-y-4">
+
+        <TabsContent value="ai" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Token Usage</CardTitle>
-                <CardDescription>Purchased vs Consumed</CardDescription>
+                <CardTitle>AI Provider Usage</CardTitle>
+                <CardDescription>Distribution of AI calls by provider</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={[
-                    { name: "Purchased", value: analytics.tokens.purchased },
-                    { name: "Consumed", value: analytics.tokens.consumed },
-                  ]}>
+                  <BarChart data={analytics.aiUsage.byProvider}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
+                    <XAxis dataKey="provider" />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey="value" fill="hsl(var(--primary))" />
+                    <Bar dataKey="count" fill="hsl(var(--primary))" />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -274,28 +502,23 @@ export default function Analytics() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Token Distribution</CardTitle>
-                <CardDescription>How tokens are being used</CardDescription>
+                <CardTitle>Token Consumption by Provider</CardTitle>
+                <CardDescription>Total tokens used per AI provider</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
-                      data={[
-                        { name: "Idea Validation", value: 35 },
-                        { name: "Code Generation", value: 25 },
-                        { name: "Chat Assistance", value: 20 },
-                        { name: "PRD Generation", value: 20 },
-                      ]}
+                      data={analytics.aiUsage.byProvider}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      label={({ provider, tokens }) => `${provider}: ${tokens.toLocaleString()}`}
                       outerRadius={80}
                       fill="#8884d8"
-                      dataKey="value"
+                      dataKey="tokens"
                     >
-                      {[0, 1, 2, 3].map((entry, index) => (
+                      {analytics.aiUsage.byProvider.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
@@ -305,26 +528,6 @@ export default function Analytics() {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
-
-        <TabsContent value="ai" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>AI Provider Usage</CardTitle>
-              <CardDescription>Distribution of AI calls by provider</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={analytics.aiUsage.byProvider}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="provider" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="hsl(var(--primary))" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
     </div>
