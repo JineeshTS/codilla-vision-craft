@@ -25,6 +25,9 @@ verify_jwt = true
 [functions.verify-razorpay-payment]
 verify_jwt = true
 
+[functions.estimate-tokens]
+verify_jwt = true
+
 [functions.validate-phase-2]
 verify_jwt = true
 

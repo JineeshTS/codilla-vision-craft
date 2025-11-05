@@ -7,6 +7,7 @@ import { Loader2, Send, Sparkles, Copy, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ReactMarkdown from 'react-markdown';
+import TokenCostPreview from "./TokenCostPreview";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -41,6 +42,8 @@ export default function UniversalAIChat({
   const [conversationId, setConversationId] = useState(initialConversationId);
   const [totalTokens, setTotalTokens] = useState(0);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [showCostPreview, setShowCostPreview] = useState(false);
+  const [pendingMessage, setPendingMessage] = useState<string>("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -79,6 +82,15 @@ export default function UniversalAIChat({
     const textToSend = messageText || input;
     if (!textToSend.trim() || isLoading) return;
 
+    // Show cost preview before sending
+    setPendingMessage(textToSend);
+    setShowCostPreview(true);
+  };
+
+  const handleConfirmSend = async () => {
+    const textToSend = pendingMessage;
+    setPendingMessage("");
+    
     const userMessage: Message = {
       role: 'user',
       content: textToSend,
@@ -314,6 +326,14 @@ export default function UniversalAIChat({
           </Button>
         </div>
       </div>
+
+      <TokenCostPreview
+        open={showCostPreview}
+        onOpenChange={setShowCostPreview}
+        onConfirm={handleConfirmSend}
+        messages={[...messages, { role: 'user', content: pendingMessage }]}
+        model="gemini"
+      />
     </Card>
   );
 }
