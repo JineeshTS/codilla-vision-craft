@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import UniversalAIChat from "@/components/shared/UniversalAIChat";
+import { RequirementsChat } from "@/components/phases/RequirementsChat";
 import { 
   Loader2, CheckCircle, Clock, Rocket, 
   Code, Database, Plug, TestTube, Upload,
@@ -235,31 +235,9 @@ const DevelopmentPrep = () => {
             </div>
 
             <div className="lg:col-span-1">
-              <UniversalAIChat
-                context={{
-                  type: "project",
-                  id: projectId,
-                  phase: 6,
-                }}
-                systemPrompt={`You are a technical planning assistant helping refine development prompts for "${projectName}".
-
-The user has generated ${prompts.length} development prompts and is reviewing them before AI execution.
-
-Help them:
-1. Refine and improve prompt clarity
-2. Add missing technical details
-3. Suggest better sequencing
-4. Identify dependencies between prompts
-5. Estimate token usage more accurately
-
-Be specific and actionable.`}
-                suggestedQuestions={[
-                  "Review prompt #3 and suggest improvements",
-                  "What dependencies should I add to the authentication prompts?",
-                  "How can I optimize the prompt sequence?",
-                  "Estimate total development time"
-                ]}
-                className="sticky top-4 h-[600px]"
+              <RequirementsChat 
+                ideaId={projectId!} 
+                ideaTitle={projectName || "Development Preparation"} 
               />
             </div>
           </div>

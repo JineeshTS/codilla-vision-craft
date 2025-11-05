@@ -14,7 +14,7 @@ import {
   Pause, Eye, MessageSquare, AlertTriangle
 } from "lucide-react";
 import CodeGenerator from "@/components/CodeGenerator";
-import UniversalAIChat from "@/components/shared/UniversalAIChat";
+import { RequirementsChat } from "@/components/phases/RequirementsChat";
 
 interface DevelopmentPrompt {
   id: string;
@@ -304,32 +304,9 @@ const AIAssistedDev = () => {
             </div>
 
             <div className="lg:col-span-1">
-              <UniversalAIChat
-                context={{
-                  type: "project",
-                  id: projectId,
-                  phase: 7,
-                }}
-                systemPrompt={`You are a development assistant helping execute AI-generated code prompts.
-
-Current step: ${currentPrompt.sequence_number}/${prompts.length}
-Prompt: ${currentPrompt.title}
-
-Help the user:
-1. Debug execution errors
-2. Explain generated code
-3. Suggest code improvements
-4. Identify missing features
-5. Optimize performance
-
-Be technical and specific.`}
-                suggestedQuestions={[
-                  "Explain what this code does",
-                  "Why is this execution failing?",
-                  "How can I optimize this component?",
-                  "What edge cases should I test?"
-                ]}
-                className="sticky top-4 h-[600px]"
+              <RequirementsChat 
+                ideaId={projectId!} 
+                ideaTitle="AI Development Assistant" 
               />
             </div>
           </div>

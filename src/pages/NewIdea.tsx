@@ -13,7 +13,7 @@ import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { ideaSchema, sanitizeText } from "@/lib/validation";
 import { z } from "zod";
 import { Phase1Form } from "@/components/phases/Phase1Form";
-import UniversalAIChat from "@/components/shared/UniversalAIChat";
+import { RequirementsChat } from "@/components/phases/RequirementsChat";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const NewIdea = () => {
@@ -200,35 +200,9 @@ const NewIdea = () => {
                   </SheetDescription>
                 </SheetHeader>
                 <div className="mt-6">
-                  <UniversalAIChat
-                    context={{
-                      type: 'general',
-                      data: {
-                        formData,
-                        currentStep: step
-                      }
-                    }}
-                    systemPrompt={`You are an experienced startup mentor helping an entrepreneur fill out an idea capture form. Current form data:
-Title: ${formData.title || 'Not provided yet'}
-Description: ${formData.description || 'Not provided yet'}
-Problem Statement: ${formData.problem_statement || 'Not provided yet'}
-Target Audience: ${formData.target_audience || 'Not provided yet'}
-Value Proposition: ${formData.unique_value_proposition || 'Not provided yet'}
-
-Help them:
-1. Craft a clear, compelling description
-2. Define specific target audiences
-3. Articulate the problem they're solving
-4. Develop a strong value proposition
-5. Think through business model options
-
-Be proactive - suggest specific improvements, give examples, and help them refine their thinking. Don't just ask questions, guide them with concrete advice.`}
-                    suggestedQuestions={[
-                      "Help me write a clear description",
-                      "Who should my target audience be?",
-                      "What makes a good value proposition?",
-                      "How do I identify the problem I'm solving?"
-                    ]}
+                  <RequirementsChat 
+                    ideaId={formData.title || "new-idea"} 
+                    ideaTitle={formData.title || "Your Startup Idea"} 
                   />
                 </div>
               </SheetContent>

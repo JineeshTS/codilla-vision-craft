@@ -19,7 +19,7 @@ import BlueOceanCanvas from "@/components/business/BlueOceanCanvas";
 import RiskMatrix from "@/components/business/RiskMatrix";
 import GTMStrategy from "@/components/business/GTMStrategy";
 import UnitEconomics from "@/components/business/UnitEconomics";
-import UniversalAIChat from "@/components/shared/UniversalAIChat";
+import { RequirementsChat } from "@/components/phases/RequirementsChat";
 
 const BusinessValidation = () => {
   const { id } = useParams();
@@ -234,41 +234,9 @@ const BusinessValidation = () => {
           </div>
 
           <div className="lg:col-span-1">
-            <UniversalAIChat
-              context={{
-                type: "idea",
-                id: id,
-                phase: 2,
-              }}
-              systemPrompt={`You are a business validation expert helping entrepreneurs complete business frameworks. The user is working on Phase 2: Business Validation for their idea "${idea?.title}".
-
-Current frameworks being worked on:
-- Business Model Canvas (BMC)
-- Lean Canvas
-- Value Proposition Canvas
-- SWOT Analysis
-- Porter's Five Forces
-- Jobs-to-Be-Done (JTBD)
-- Blue Ocean Strategy
-- Risk Matrix
-- Go-to-Market (GTM) Strategy
-- Unit Economics
-
-Help them:
-1. Fill out framework sections with insightful suggestions
-2. Identify gaps or inconsistencies
-3. Provide industry-specific examples
-4. Suggest improvements based on best practices
-5. Calculate key metrics (CAC, LTV, etc.)
-
-Be concise, actionable, and ask clarifying questions when needed.`}
-              suggestedQuestions={[
-                "Help me identify key partners for my Business Model Canvas",
-                "What are my main cost drivers?",
-                "Analyze my competitive positioning",
-                "Calculate estimated CAC and LTV for my business"
-              ]}
-              className="sticky top-4 h-[600px]"
+            <RequirementsChat 
+              ideaId={id!} 
+              ideaTitle={idea?.title || "Business Validation"} 
             />
           </div>
         </div>

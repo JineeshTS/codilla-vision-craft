@@ -11,7 +11,7 @@ import PRDGenerator from "@/components/product/PRDGenerator";
 import UserPersonas from "@/components/product/UserPersonas";
 import FeatureSpecification from "@/components/product/FeatureSpecification";
 import UserStories from "@/components/product/UserStories";
-import UniversalAIChat from "@/components/shared/UniversalAIChat";
+import { RequirementsChat } from "@/components/phases/RequirementsChat";
 
 const ProductDefinition = () => {
   const { id } = useParams();
@@ -125,36 +125,9 @@ const ProductDefinition = () => {
             </div>
 
             <div className="lg:col-span-1">
-              <UniversalAIChat
-                context={{
-                  type: "project",
-                  id: id,
-                  phase: 3,
-                }}
-                systemPrompt={`You are a product definition expert helping define the product requirements for "${project?.name}".
-
-The user has generated a Product Requirements Document (PRD) and is now working on:
-- Feature specifications
-- User personas
-- User stories
-
-Help them:
-1. Refine feature descriptions and acceptance criteria
-2. Create detailed user personas with motivations and pain points
-3. Write clear user stories in the format "As a [user], I want [goal] so that [reason]"
-4. Prioritize features for MVP
-5. Identify edge cases and technical considerations
-
-Current PRD: ${JSON.stringify(project?.prd_data || {}).substring(0, 500)}...
-
-Be specific, actionable, and focus on clarity.`}
-                suggestedQuestions={[
-                  "Create 3 detailed user personas for my product",
-                  "Write user stories for the authentication flow",
-                  "What features should be in MVP vs later releases?",
-                  "Identify potential edge cases for checkout"
-                ]}
-                className="sticky top-4 h-[600px]"
+              <RequirementsChat 
+                ideaId={id!} 
+                ideaTitle={project?.name || "Product Definition"} 
               />
             </div>
           </div>

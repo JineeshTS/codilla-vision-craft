@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import Navbar from "@/components/Navbar";
-import { PhaseTaskChat } from "@/components/phases/PhaseTaskChat";
+import { RequirementsChat } from "@/components/phases/RequirementsChat";
 import { getPhaseStructure, PhaseTask } from "@/config/phaseStructure";
 import { ArrowLeft, CheckCircle2, Circle, Lock, PartyPopper } from "lucide-react";
 import { 
@@ -235,12 +235,9 @@ const PhaseDetail = () => {
                 </div>
               </Card>
             ) : selectedTask ? (
-              <PhaseTaskChat
-                projectId={projectId!}
-                phaseNumber={phaseNum}
-                task={selectedTask}
-                isCompleted={isTaskCompleted(selectedTask.id)}
-                onComplete={handleTaskComplete}
+              <RequirementsChat 
+                ideaId={projectId!} 
+                ideaTitle={selectedTask.title} 
               />
             ) : (
               <Card className="glass-panel p-12 text-center">
