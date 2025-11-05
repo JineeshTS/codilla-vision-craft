@@ -1,4 +1,5 @@
 import { Suspense, lazy } from "react";
+import { HelmetProvider } from "react-helmet-async";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -55,8 +56,6 @@ const PageLoader = () => (
     </div>
   </div>
 );
-
-import { HelmetProvider } from "react-helmet-async";
 
 const App = () => (
   <HelmetProvider>
