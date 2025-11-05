@@ -194,7 +194,11 @@ export async function parseAIResponse(response: Response, model: AIModel): Promi
   }
 }
 
-// Estimate tokens (rough approximation)
+/**
+ * Estimate tokens (rough approximation)
+ * @deprecated Use tokenizer.ts countTokens() for accurate counting
+ */
 export function estimateTokens(text: string): number {
+  console.warn('⚠️ Using legacy estimateTokens - consider using tokenizer.ts for accuracy');
   return Math.ceil(text.length / 4);
 }

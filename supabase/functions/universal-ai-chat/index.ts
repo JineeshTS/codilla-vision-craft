@@ -2,14 +2,11 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 import { corsHeaders } from "../_shared/cors.ts";
 import { callAI, type AIModel, type AIMessage as ProviderMessage } from "../_shared/multi-ai-provider.ts";
+import { countTokens, countMessagesTokens } from "../_shared/tokenizer.ts";
 
 interface AIMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
-}
-
-function estimateTokens(text: string): number {
-  return Math.ceil(text.length / 4);
 }
 
 serve(async (req) => {
@@ -96,8 +93,8 @@ serve(async (req) => {
       { role: 'user', content: message },
     ];
 
-    // Estimate tokens
-    const estimatedTokens = messages.reduce((sum, m) => sum + estimateTokens(m.content), 0);
+    // Count tokens accurately using provider-specific tokenizers
+    const estimatedTokens = await countMessagesTokens(messages, model as AIModel);
 
     // Check user token balance
     const { data: profile } = await supabase
@@ -126,9 +123,10 @@ serve(async (req) => {
     });
 
     // Update conversation with user message
+    const messageTokens = await countTokens(message, model as AIModel);
     const updatedMessages = [
       ...(conversation.messages || []),
-      { role: 'user', content: message, timestamp: new Date().toISOString(), tokens: estimateTokens(message) }
+      { role: 'user', content: message, timestamp: new Date().toISOString(), tokens: messageTokens }
     ];
 
     await supabase

@@ -138,11 +138,19 @@ async function callGoogle(
   return response;
 }
 
+/**
+ * Estimate tokens (rough approximation)
+ * @deprecated Use tokenizer.ts countTokens() for accurate counting
+ */
 export function estimateTokens(text: string): number {
-  // Rough estimation: 1 token ≈ 4 characters
+  console.warn('⚠️ Using legacy estimateTokens - consider using tokenizer.ts for accuracy');
   return Math.ceil(text.length / 4);
 }
 
+/**
+ * Calculate total tokens for messages
+ * @deprecated Use tokenizer.ts countMessagesTokens() for accurate counting
+ */
 export function calculateMessageTokens(messages: AIMessage[]): number {
   return messages.reduce((total, msg) => {
     return total + estimateTokens(msg.content);
