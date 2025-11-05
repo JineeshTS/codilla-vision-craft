@@ -6,7 +6,7 @@ export interface AIMessage {
   content: string;
 }
 
-export type AIModel = 'claude' | 'gemini' | 'codex';
+export type AIModel = 'claude' | 'gemini' | 'codex' | 'gpt-5';
 
 export interface AIProviderConfig {
   model: AIModel;
@@ -133,7 +133,7 @@ export async function callCodex(
   }
 
   const body = {
-    model: 'gpt-4-turbo', // Update to 'gpt-5' when available
+    model: 'gpt-5',
     messages: messages.map(m => ({
       role: m.role,
       content: m.content
@@ -170,6 +170,7 @@ export async function callAI(config: AIProviderConfig): Promise<Response> {
     case 'gemini':
       return callGemini(messages, temperature, maxTokens, stream);
     case 'codex':
+    case 'gpt-5':
       return callCodex(messages, temperature, maxTokens, stream);
     default:
       throw new Error(`Unsupported AI model: ${model}`);
@@ -186,6 +187,7 @@ export async function parseAIResponse(response: Response, model: AIModel): Promi
     case 'gemini':
       return data.candidates[0].content.parts[0].text;
     case 'codex':
+    case 'gpt-5':
       return data.choices[0].message.content;
     default:
       throw new Error(`Unsupported model for parsing: ${model}`);
