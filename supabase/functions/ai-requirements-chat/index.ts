@@ -65,21 +65,34 @@ serve(async (req) => {
       );
     }
 
-    // Fetch idea details
-    const { data: idea, error: ideaError } = await supabase
-      .from('ideas')
-      .select('*')
-      .eq('id', ideaId)
-      .eq('user_id', user.id)
-      .single();
+    // Fetch idea details if it's an existing idea
+    let idea = null;
+    let systemPrompt = '';
+    
+    // Check if this is a new idea (not yet saved to database)
+    const isNewIdea = ideaId === 'new-idea' || !ideaId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+    
+    if (!isNewIdea) {
+      const { data: fetchedIdea, error: ideaError } = await supabase
+        .from('ideas')
+        .select('*')
+        .eq('id', ideaId)
+        .eq('user_id', user.id)
+        .single();
 
-    if (ideaError || !idea) {
-      return createErrorResponse('Idea not found', 404, corsHeaders, errorId);
+      if (ideaError || !fetchedIdea) {
+        return createErrorResponse('Idea not found', 404, corsHeaders, errorId);
+      }
+      
+      idea = fetchedIdea;
+      console.log(`📝 Processing existing idea: ${idea.title}`);
+    } else {
+      console.log(`📝 Processing new idea (not yet saved)`);
     }
 
-    console.log(`📝 Processing idea: ${idea.title}`);
-
-    const systemPrompt = `You are an experienced startup mentor helping entrepreneurs structure and refine their ideas. Your role is NOT to just ask questions, but to ACTIVELY HELP them organize their thinking and define key elements.
+    // Build system prompt based on whether we have an existing idea or not
+    if (idea) {
+      systemPrompt = `You are an experienced startup mentor helping entrepreneurs structure and refine their ideas. Your role is NOT to just ask questions, but to ACTIVELY HELP them organize their thinking and define key elements.
 
 Your mentorship approach:
 
@@ -111,6 +124,32 @@ ${idea.target_audience ? `- Audience: ${idea.target_audience}` : ''}
 ${idea.unique_value_proposition ? `- UVP: ${idea.unique_value_proposition}` : ''}
 
 Start by analyzing what they have, acknowledge strengths, and proactively guide them to strengthen weak areas. Be specific, actionable, and mentor-like. Don't just ask "who is your target audience?" - help them define it with examples and frameworks.`;
+    } else {
+      systemPrompt = `You are an experienced startup mentor helping entrepreneurs capture and structure new business ideas. Your role is NOT to just ask questions, but to ACTIVELY HELP them organize their thinking from scratch.
+
+Your mentorship approach:
+
+1. **Help them articulate their idea** - Guide them to clearly define:
+   - The core problem they want to solve (who has it, when, why it matters)
+   - Their proposed solution approach
+   - Who would benefit most (target audience)
+   - What makes their approach unique (value proposition)
+   - How they might make money (business model)
+   
+2. **Proactively structure information** - Instead of just asking questions:
+   - Suggest specific frameworks (e.g., "Try thinking about the problem using the Jobs-to-be-Done framework...")
+   - Offer examples of well-defined problem statements
+   - Help them reframe vague ideas into concrete opportunities
+   - Point out what elements are missing and guide them on how to think about those
+   
+3. **Be a thought partner** - Work WITH them to:
+   - Transform rough concepts into structured ideas
+   - Identify assumptions that need validation
+   - Spot early red flags or opportunities
+   - Build clarity step by step
+
+Start by helping them articulate what problem they're trying to solve and who has that problem. Be specific, actionable, and mentor-like. Don't just ask "what's your idea?" - guide them through defining it systematically.`;
+    }
 
     const aiMessages: AIMessage[] = [
       { role: 'system', content: systemPrompt },
