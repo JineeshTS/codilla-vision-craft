@@ -37,7 +37,7 @@ const BusinessModelTask = ({ projectId, phaseNumber, taskId }: BusinessModelTask
     if (result.success && result.data) {
       const artifact = result.data.find(a => a.task_id === taskId);
       if (artifact) {
-        setData(artifact.artifact_data);
+        setData(artifact.artifact_data as typeof data);
       }
     }
   };

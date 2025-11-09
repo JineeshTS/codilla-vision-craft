@@ -40,10 +40,15 @@ const CompetitiveAnalysisTask = ({ projectId, phaseNumber, taskId }: Competitive
     const result = await getPhaseArtifacts(projectId, phaseNumber);
     if (result.success && result.data) {
       const artifact = result.data.find(a => a.task_id === taskId);
-      if (artifact) {
-        setCompetitors(artifact.artifact_data.competitors || []);
-        setPositioning(artifact.artifact_data.positioning || "");
-        setDifferentiation(artifact.artifact_data.differentiation || "");
+      if (artifact?.artifact_data) {
+        const artifactData = artifact.artifact_data as {
+          competitors?: Competitor[];
+          positioning?: string;
+          differentiation?: string;
+        };
+        setCompetitors(artifactData.competitors || []);
+        setPositioning(artifactData.positioning || "");
+        setDifferentiation(artifactData.differentiation || "");
       }
     }
   };

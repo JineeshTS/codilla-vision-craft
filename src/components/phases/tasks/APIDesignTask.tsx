@@ -35,9 +35,12 @@ const APIDesignTask = ({ projectId, phaseNumber, taskId }: APIDesignTaskProps) =
   const loadExistingData = async () => {
     const { success, data } = await getPhaseArtifacts(projectId, phaseNumber);
     if (success && data) {
-      const artifact = data.find((a: any) => a.task_id === taskId);
-      if (artifact?.artifact_data?.endpoints) {
-        setEndpoints(artifact.artifact_data.endpoints);
+      const artifact = data.find(a => a.task_id === taskId);
+      if (artifact?.artifact_data) {
+        const artifactData = artifact.artifact_data as { endpoints?: APIEndpoint[] };
+        if (artifactData.endpoints) {
+          setEndpoints(artifactData.endpoints);
+        }
       }
     }
   };

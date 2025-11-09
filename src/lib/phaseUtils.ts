@@ -1,6 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
 import { PHASE_STRUCTURES } from "@/config/phaseStructure";
 import { logError } from "@/lib/errorTracking";
+import type { Database } from "@/integrations/supabase/types";
+
+type PhaseArtifactRow = Database['public']['Tables']['phase_artifacts']['Row'];
+type PhaseArtifactInsert = Database['public']['Tables']['phase_artifacts']['Insert'];
 
 export interface PhaseProgress {
   id: string;
@@ -173,13 +177,15 @@ export const saveTaskArtifact = async (
   artifactData: unknown
 ): Promise<{ success: boolean; error?: string }> => {
   try {
-    const { error } = await supabase.from("phase_artifacts").insert({
+    const insertData: PhaseArtifactInsert = {
       project_id: projectId,
       phase_number: phaseNumber,
       task_id: taskId,
       artifact_type: artifactType,
-      artifact_data: artifactData,
-    });
+      artifact_data: artifactData as any,
+    };
+
+    const { error } = await supabase.from("phase_artifacts").insert(insertData);
 
     if (error) throw error;
 
@@ -197,7 +203,7 @@ export const saveTaskArtifact = async (
 export const getPhaseArtifacts = async (
   projectId: string,
   phaseNumber: number
-): Promise<{ success: boolean; data?: unknown[]; error?: string }> => {
+): Promise<{ success: boolean; data?: PhaseArtifactRow[]; error?: string }> => {
   try {
     const { data, error } = await supabase
       .from("phase_artifacts")

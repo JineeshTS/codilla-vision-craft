@@ -34,9 +34,12 @@ const DatabaseSchemaTask = ({ projectId, phaseNumber, taskId }: DatabaseSchemaTa
   const loadExistingData = async () => {
     const { success, data } = await getPhaseArtifacts(projectId, phaseNumber);
     if (success && data) {
-      const artifact = data.find((a: any) => a.task_id === taskId);
-      if (artifact?.artifact_data?.tables) {
-        setTables(artifact.artifact_data.tables);
+      const artifact = data.find(a => a.task_id === taskId);
+      if (artifact?.artifact_data) {
+        const artifactData = artifact.artifact_data as { tables?: Table[] };
+        if (artifactData.tables) {
+          setTables(artifactData.tables);
+        }
       }
     }
   };

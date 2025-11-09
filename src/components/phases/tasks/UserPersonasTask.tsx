@@ -40,8 +40,11 @@ const UserPersonasTask = ({ projectId, phaseNumber, taskId }: UserPersonasTaskPr
     const result = await getPhaseArtifacts(projectId, phaseNumber);
     if (result.success && result.data) {
       const artifact = result.data.find(a => a.task_id === taskId);
-      if (artifact && artifact.artifact_data.personas) {
-        setPersonas(artifact.artifact_data.personas);
+      if (artifact?.artifact_data) {
+        const artifactData = artifact.artifact_data as { personas?: any[] };
+        if (artifactData.personas) {
+          setPersonas(artifactData.personas);
+        }
       }
     }
   };

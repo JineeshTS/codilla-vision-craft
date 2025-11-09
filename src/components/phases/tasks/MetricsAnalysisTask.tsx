@@ -38,11 +38,14 @@ export const MetricsAnalysisTask = ({ projectId, phaseNumber, taskId }: MetricsA
   const loadExistingData = async () => {
     const result = await getPhaseArtifacts(projectId, phaseNumber);
     if (result.success && result.data) {
-      const existingArtifact = result.data.find((a: any) => a.task_id === taskId);
+      const existingArtifact = result.data.find(a => a.task_id === taskId);
       if (existingArtifact?.artifact_data) {
-        const data = existingArtifact.artifact_data;
-        setMetrics(data.metrics || []);
-        setOverallInsights(data.overallInsights || "");
+        const artifactData = existingArtifact.artifact_data as {
+          metrics?: Metric[];
+          overallInsights?: string;
+        };
+        setMetrics(artifactData.metrics || []);
+        setOverallInsights(artifactData.overallInsights || "");
       }
     }
   };

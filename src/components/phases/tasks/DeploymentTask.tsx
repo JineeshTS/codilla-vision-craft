@@ -32,9 +32,9 @@ export const DeploymentTask = ({ projectId, phaseNumber, taskId }: DeploymentTas
   const loadExistingData = async () => {
     const result = await getPhaseArtifacts(projectId, phaseNumber);
     if (result.success && result.data) {
-      const existingArtifact = result.data.find((a: any) => a.task_id === taskId);
+      const existingArtifact = result.data.find(a => a.task_id === taskId);
       if (existingArtifact?.artifact_data) {
-        setData(existingArtifact.artifact_data);
+        setData(existingArtifact.artifact_data as typeof data);
       }
     }
   };

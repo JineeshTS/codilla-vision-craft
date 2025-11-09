@@ -46,7 +46,7 @@ export function BaseTaskComponent<T extends Record<string, unknown>>({
         const result = await getPhaseArtifacts(projectId, phaseNumber);
         
         if (result.success && result.data) {
-          const taskArtifact = result.data.find(artifact => artifact.task_id === taskId);
+          const taskArtifact = result.data.find((artifact: any) => artifact.task_id === taskId);
           if (taskArtifact?.artifact_data) {
             setData(taskArtifact.artifact_data as T);
           }

@@ -40,8 +40,11 @@ const FeatureSpecTask = ({ projectId, phaseNumber, taskId }: FeatureSpecTaskProp
     const result = await getPhaseArtifacts(projectId, phaseNumber);
     if (result.success && result.data) {
       const artifact = result.data.find(a => a.task_id === taskId);
-      if (artifact && artifact.artifact_data.features) {
-        setFeatures(artifact.artifact_data.features);
+      if (artifact?.artifact_data) {
+        const artifactData = artifact.artifact_data as { features?: any[] };
+        if (artifactData.features) {
+          setFeatures(artifactData.features);
+        }
       }
     }
   };

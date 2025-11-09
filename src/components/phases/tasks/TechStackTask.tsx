@@ -33,9 +33,12 @@ const TechStackTask = ({ projectId, phaseNumber, taskId }: TechStackTaskProps) =
   const loadExistingData = async () => {
     const { success, data } = await getPhaseArtifacts(projectId, phaseNumber);
     if (success && data) {
-      const artifact = data.find((a: any) => a.task_id === taskId);
-      if (artifact?.artifact_data?.technologies) {
-        setTechnologies(artifact.artifact_data.technologies);
+      const artifact = data.find(a => a.task_id === taskId);
+      if (artifact?.artifact_data) {
+        const artifactData = artifact.artifact_data as { technologies?: Technology[] };
+        if (artifactData.technologies) {
+          setTechnologies(artifactData.technologies);
+        }
       }
     }
   };

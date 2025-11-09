@@ -41,8 +41,11 @@ const UserStoriesTask = ({ projectId, phaseNumber, taskId }: UserStoriesTaskProp
     const result = await getPhaseArtifacts(projectId, phaseNumber);
     if (result.success && result.data) {
       const artifact = result.data.find(a => a.task_id === taskId);
-      if (artifact && artifact.artifact_data.stories) {
-        setStories(artifact.artifact_data.stories);
+      if (artifact?.artifact_data) {
+        const artifactData = artifact.artifact_data as { stories?: any[] };
+        if (artifactData.stories) {
+          setStories(artifactData.stories);
+        }
       }
     }
   };

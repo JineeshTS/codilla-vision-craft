@@ -35,13 +35,18 @@ export const LaunchStrategyTask = ({ projectId, phaseNumber, taskId }: LaunchStr
   const loadExistingData = async () => {
     const result = await getPhaseArtifacts(projectId, phaseNumber);
     if (result.success && result.data) {
-      const existingArtifact = result.data.find((a: any) => a.task_id === taskId);
+      const existingArtifact = result.data.find(a => a.task_id === taskId);
       if (existingArtifact?.artifact_data) {
-        const data = existingArtifact.artifact_data;
-        setChannels(data.channels || [{ channel: "", strategy: "", timeline: "" }]);
-        setCoreMessaging(data.coreMessaging || "");
-        setTargetAudience(data.targetAudience || "");
-        setLaunchGoals(data.launchGoals || "");
+        const artifactData = existingArtifact.artifact_data as {
+          channels?: LaunchChannel[];
+          coreMessaging?: string;
+          targetAudience?: string;
+          launchGoals?: string;
+        };
+        setChannels(artifactData.channels || [{ channel: "", strategy: "", timeline: "" }]);
+        setCoreMessaging(artifactData.coreMessaging || "");
+        setTargetAudience(artifactData.targetAudience || "");
+        setLaunchGoals(artifactData.launchGoals || "");
       }
     }
   };

@@ -31,9 +31,9 @@ const DesignSystemTask = ({ projectId, phaseNumber, taskId }: DesignSystemTaskPr
   const loadExistingData = async () => {
     const { success, data: artifacts } = await getPhaseArtifacts(projectId, phaseNumber);
     if (success && artifacts) {
-      const artifact = artifacts.find((a: any) => a.task_id === taskId);
+      const artifact = artifacts.find(a => a.task_id === taskId);
       if (artifact?.artifact_data) {
-        setData(artifact.artifact_data);
+        setData(artifact.artifact_data as typeof data);
       }
     }
   };

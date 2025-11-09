@@ -34,9 +34,12 @@ const WireframesTask = ({ projectId, phaseNumber, taskId }: WireframesTaskProps)
   const loadExistingData = async () => {
     const { success, data } = await getPhaseArtifacts(projectId, phaseNumber);
     if (success && data) {
-      const artifact = data.find((a: any) => a.task_id === taskId);
-      if (artifact?.artifact_data?.wireframes) {
-        setWireframes(artifact.artifact_data.wireframes);
+      const artifact = data.find(a => a.task_id === taskId);
+      if (artifact?.artifact_data) {
+        const artifactData = artifact.artifact_data as { wireframes?: Wireframe[] };
+        if (artifactData.wireframes) {
+          setWireframes(artifactData.wireframes);
+        }
       }
     }
   };

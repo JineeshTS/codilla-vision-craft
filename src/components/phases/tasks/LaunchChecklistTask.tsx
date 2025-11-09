@@ -38,9 +38,12 @@ export const LaunchChecklistTask = ({ projectId, phaseNumber, taskId }: LaunchCh
   const loadExistingData = async () => {
     const result = await getPhaseArtifacts(projectId, phaseNumber);
     if (result.success && result.data) {
-      const existingArtifact = result.data.find((a: any) => a.task_id === taskId);
-      if (existingArtifact?.artifact_data?.items) {
-        setItems(existingArtifact.artifact_data.items);
+      const existingArtifact = result.data.find(a => a.task_id === taskId);
+      if (existingArtifact?.artifact_data) {
+        const artifactData = existingArtifact.artifact_data as { items?: ChecklistItem[] };
+        if (artifactData.items) {
+          setItems(artifactData.items);
+        }
       }
     }
   };
