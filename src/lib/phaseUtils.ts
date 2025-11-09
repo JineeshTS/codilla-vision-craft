@@ -1,12 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
 import { PHASE_STRUCTURES } from "@/config/phaseStructure";
+import { logError } from "@/lib/errorTracking";
 
 export interface PhaseProgress {
   id: string;
   project_id: string;
   phase_number: number;
   completed_tasks: string[];
-  task_outputs: Record<string, any>;
+  task_outputs: Record<string, unknown>;
   progress: number;
   status: string;
 }
@@ -103,9 +104,10 @@ export const completePhase = async (
     }
 
     return { success: true };
-  } catch (error: any) {
-    console.error("Error completing phase:", error);
-    return { success: false, error: error.message };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logError(error instanceof Error ? error : new Error(String(error)), { projectId, phaseNumber });
+    return { success: false, error: errorMessage };
   }
 };
 
@@ -153,9 +155,10 @@ export const initializePhaseProgress = async (
     if (error) throw error;
 
     return { success: true, data: data as PhaseProgress };
-  } catch (error: any) {
-    console.error("Error initializing phase progress:", error);
-    return { success: false, error: error.message };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logError(error instanceof Error ? error : new Error(String(error)), { projectId, phaseNumber });
+    return { success: false, error: errorMessage };
   }
 };
 
@@ -167,7 +170,7 @@ export const saveTaskArtifact = async (
   phaseNumber: number,
   taskId: string,
   artifactType: string,
-  artifactData: any
+  artifactData: unknown
 ): Promise<{ success: boolean; error?: string }> => {
   try {
     const { error } = await supabase.from("phase_artifacts").insert({
@@ -181,9 +184,10 @@ export const saveTaskArtifact = async (
     if (error) throw error;
 
     return { success: true };
-  } catch (error: any) {
-    console.error("Error saving task artifact:", error);
-    return { success: false, error: error.message };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logError(error instanceof Error ? error : new Error(String(error)), { projectId, phaseNumber, taskId });
+    return { success: false, error: errorMessage };
   }
 };
 
@@ -193,7 +197,7 @@ export const saveTaskArtifact = async (
 export const getPhaseArtifacts = async (
   projectId: string,
   phaseNumber: number
-): Promise<{ success: boolean; data?: any[]; error?: string }> => {
+): Promise<{ success: boolean; data?: unknown[]; error?: string }> => {
   try {
     const { data, error } = await supabase
       .from("phase_artifacts")
@@ -205,8 +209,9 @@ export const getPhaseArtifacts = async (
     if (error) throw error;
 
     return { success: true, data: data || [] };
-  } catch (error: any) {
-    console.error("Error fetching phase artifacts:", error);
-    return { success: false, error: error.message };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logError(error instanceof Error ? error : new Error(String(error)), { projectId, phaseNumber });
+    return { success: false, error: errorMessage };
   }
 };
