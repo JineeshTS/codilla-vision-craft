@@ -25,7 +25,6 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { PhaseWorkflow } from "@/components/phases/PhaseWorkflow";
 import { ThreeAIIndicator } from "@/components/ThreeAIIndicator";
-import { RequirementsChat } from "@/components/phases/RequirementsChat";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResearchReport } from "@/components/ResearchReport";
 import { BusinessResearchEditor } from "@/components/business/BusinessResearchEditor";
@@ -389,16 +388,8 @@ const IdeaDetail = () => {
         ) : (
           <>
             <Tabs defaultValue="overview" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="discussion">
-                  AI Mentor
-                  {idea.current_phase === 1 && (
-                    <span className="ml-2 px-2 py-0.5 bg-primary text-primary-foreground text-xs rounded-full">
-                      Active
-                    </span>
-                  )}
-                </TabsTrigger>
                 <TabsTrigger value="business-research">Business Research</TabsTrigger>
                 <TabsTrigger value="workflow">Workflow</TabsTrigger>
               </TabsList>
@@ -485,18 +476,6 @@ const IdeaDetail = () => {
                     </>
                   )}
                 </Card>
-              </TabsContent>
-
-              <TabsContent value="discussion">
-                {idea.current_phase === 1 ? (
-                  <RequirementsChat ideaId={idea.id} ideaTitle={idea.title} />
-                ) : (
-                  <Card className="glass-panel p-8 text-center">
-                    <p className="text-muted-foreground">
-                      AI discussion is only available during Phase 1: Idea Capture & Screening
-                    </p>
-                  </Card>
-                )}
               </TabsContent>
 
               <TabsContent value="business-research" className="h-[calc(100vh-300px)]">

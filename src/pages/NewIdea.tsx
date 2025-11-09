@@ -7,14 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
-import { Lightbulb, ArrowRight, Save, AlertCircle, MessageSquare } from "lucide-react";
+import { Lightbulb, ArrowRight, Save, AlertCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { ideaSchema, sanitizeText } from "@/lib/validation";
 import { z } from "zod";
 import { Phase1Form } from "@/components/phases/Phase1Form";
-import { RequirementsChat } from "@/components/phases/RequirementsChat";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const NewIdea = () => {
   const navigate = useNavigate();
@@ -23,7 +21,6 @@ const NewIdea = () => {
   const [step, setStep] = useState(1);
   const totalSteps = 5;
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [showAIMentor, setShowAIMentor] = useState(false);
   const [formData, setFormData] = useState({
     // Phase 1: Basic Information
     title: "",
@@ -180,36 +177,12 @@ const NewIdea = () => {
       <Navbar />
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Lightbulb className="w-8 h-8 text-primary" />
-              <h1 className="text-4xl font-bold gradient-text">Capture Your Idea</h1>
-            </div>
-            <Sheet open={showAIMentor} onOpenChange={setShowAIMentor}>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="lg">
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  AI Mentor
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto">
-                <SheetHeader>
-                  <SheetTitle>AI Startup Mentor</SheetTitle>
-                  <SheetDescription>
-                    Get help structuring your idea, defining your target audience, and crafting a compelling value proposition
-                  </SheetDescription>
-                </SheetHeader>
-                <div className="mt-6">
-                  <RequirementsChat 
-                    ideaId={formData.title || "new-idea"} 
-                    ideaTitle={formData.title || "Your Startup Idea"} 
-                  />
-                </div>
-              </SheetContent>
-            </Sheet>
+          <div className="flex items-center gap-2 mb-4">
+            <Lightbulb className="w-8 h-8 text-primary" />
+            <h1 className="text-4xl font-bold gradient-text">Capture Your Idea</h1>
           </div>
           <p className="text-muted-foreground">
-            Let's bring your vision to life through AI-powered validation. Click "AI Mentor" anytime for guidance.
+            Let's bring your vision to life through AI-powered validation. Use the floating AI Mentor for guidance anytime.
           </p>
         </div>
 

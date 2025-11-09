@@ -14,7 +14,6 @@ import {
   Pause, Eye, MessageSquare, AlertTriangle
 } from "lucide-react";
 import CodeGenerator from "@/components/CodeGenerator";
-import { RequirementsChat } from "@/components/phases/RequirementsChat";
 
 interface DevelopmentPrompt {
   id: string;
@@ -211,8 +210,7 @@ const AIAssistedDev = () => {
         </div>
 
         {currentPrompt && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
+          <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
               <Card className="glass-panel p-6 mb-6">
@@ -300,14 +298,6 @@ const AIAssistedDev = () => {
                 </div>
               </Card>
             </div>
-            </div>
-            </div>
-
-            <div className="lg:col-span-1">
-              <RequirementsChat 
-                ideaId={projectId!} 
-                ideaTitle="AI Development Assistant" 
-              />
             </div>
           </div>
         )}

@@ -11,7 +11,6 @@ import PRDGenerator from "@/components/product/PRDGenerator";
 import UserPersonas from "@/components/product/UserPersonas";
 import FeatureSpecification from "@/components/product/FeatureSpecification";
 import UserStories from "@/components/product/UserStories";
-import { RequirementsChat } from "@/components/phases/RequirementsChat";
 
 const ProductDefinition = () => {
   const { id } = useParams();
@@ -116,20 +115,11 @@ const ProductDefinition = () => {
         )}
 
         {project?.prd_data?.features && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-8">
-              <PRDGenerator data={project.prd_data} />
-              <FeatureSpecification features={project.prd_data.features} />
-              <UserPersonas personas={project.user_personas || []} />
-              <UserStories stories={project.user_stories || []} />
-            </div>
-
-            <div className="lg:col-span-1">
-              <RequirementsChat 
-                ideaId={id!} 
-                ideaTitle={project?.name || "Product Definition"} 
-              />
-            </div>
+          <div className="space-y-8">
+            <PRDGenerator data={project.prd_data} />
+            <FeatureSpecification features={project.prd_data.features} />
+            <UserPersonas personas={project.user_personas || []} />
+            <UserStories stories={project.user_stories || []} />
           </div>
         )}
 

@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { RequirementsChat } from "@/components/phases/RequirementsChat";
 import { 
   Loader2, CheckCircle, Clock, Rocket, 
   Code, Database, Plug, TestTube, Upload,
@@ -232,13 +231,6 @@ const DevelopmentPrep = () => {
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
-            </div>
-
-            <div className="lg:col-span-1">
-              <RequirementsChat 
-                ideaId={projectId!} 
-                ideaTitle={projectName || "Development Preparation"} 
-              />
             </div>
           </div>
         )}

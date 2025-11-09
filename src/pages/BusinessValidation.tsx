@@ -19,7 +19,6 @@ import BlueOceanCanvas from "@/components/business/BlueOceanCanvas";
 import RiskMatrix from "@/components/business/RiskMatrix";
 import GTMStrategy from "@/components/business/GTMStrategy";
 import UnitEconomics from "@/components/business/UnitEconomics";
-import { RequirementsChat } from "@/components/phases/RequirementsChat";
 
 const BusinessValidation = () => {
   const { id } = useParams();
@@ -145,8 +144,8 @@ const BusinessValidation = () => {
           </Card>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
+        <div className="space-y-6">
+          <div>
             <Tabs defaultValue="bmc" className="space-y-6">
               <TabsList className="grid grid-cols-5 lg:grid-cols-10">
                 <TabsTrigger value="bmc">BMC</TabsTrigger>
@@ -231,13 +230,6 @@ const BusinessValidation = () => {
                 />
               </TabsContent>
             </Tabs>
-          </div>
-
-          <div className="lg:col-span-1">
-            <RequirementsChat 
-              ideaId={id!} 
-              ideaTitle={idea?.title || "Business Validation"} 
-            />
           </div>
         </div>
 
