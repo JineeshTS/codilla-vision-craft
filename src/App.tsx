@@ -9,6 +9,7 @@ import { Loader2 } from "lucide-react";
 import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import { useActivityTracking } from "@/hooks/useActivityTracking";
 import { SessionTimeoutDialog } from "@/components/shared/SessionTimeoutDialog";
+import { FloatingAIChat } from "@/components/shared/FloatingAIChat";
 
 // Eager load critical pages
 import Index from "./pages/Index";
@@ -110,6 +111,7 @@ const AppContent = () => {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
+      <FloatingAIChat />
     </>
   );
 };
