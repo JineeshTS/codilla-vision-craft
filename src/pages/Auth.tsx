@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -193,10 +193,10 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center p-4 cosmic-bg">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-4">
+          <Link to="/" className="inline-flex items-center justify-center gap-2 mb-4 hover:opacity-80 transition-opacity">
             <Sparkles className="w-8 h-8 text-primary" />
             <h1 className="text-4xl font-bold gradient-text">Codilla.ai</h1>
-          </div>
+          </Link>
           <p className="text-muted-foreground">Transform ideas into reality with AI consensus</p>
         </div>
 
