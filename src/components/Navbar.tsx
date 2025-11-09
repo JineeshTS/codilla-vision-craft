@@ -74,6 +74,9 @@ const Navbar = () => {
             <Link to="/analytics" onClick={onNavigate}>Analytics</Link>
           </Button>
           <Button variant="ghost" asChild className={mobile ? "w-full justify-start" : ""}>
+            <Link to="/about" onClick={onNavigate}>About</Link>
+          </Button>
+          <Button variant="ghost" asChild className={mobile ? "w-full justify-start" : ""}>
             <Link to="/code-ide" onClick={onNavigate}>Code IDE</Link>
           </Button>
           <Button variant="outline" asChild className={mobile ? "w-full justify-start gap-2" : "gap-2"}>

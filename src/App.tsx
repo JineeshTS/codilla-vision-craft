@@ -10,6 +10,7 @@ import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import { useActivityTracking } from "@/hooks/useActivityTracking";
 import { SessionTimeoutDialog } from "@/components/shared/SessionTimeoutDialog";
 import { FloatingAIChat } from "@/components/shared/FloatingAIChat";
+import { Footer } from "@/components/shared/Footer";
 
 // Eager load critical pages
 import Index from "./pages/Index";
@@ -19,6 +20,7 @@ import Auth from "./pages/Auth";
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const About = lazy(() => import("./pages/About"));
 const Ideas = lazy(() => import("./pages/Ideas"));
 const NewIdea = lazy(() => import("./pages/NewIdea"));
 const IdeaDetail = lazy(() => import("./pages/IdeaDetail"));
@@ -79,6 +81,7 @@ const AppContent = () => {
         onExtend={extendSession}
         onLogout={logout}
       />
+      <div className="flex flex-col min-h-screen">
       <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<Index />} />
@@ -107,10 +110,13 @@ const AppContent = () => {
               <Route path="/admin" element={<Admin />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
               <Route path="/admin/analytics" element={<Analytics />} />
+              <Route path="/about" element={<About />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
+      <Footer />
+      </div>
       <FloatingAIChat />
     </>
   );
