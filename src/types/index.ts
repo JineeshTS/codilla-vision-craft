@@ -40,12 +40,20 @@ export interface Idea {
   description: string;
   problem_statement: string | null;
   target_audience: string | null;
-  unique_value: string | null;
-  validation_score: number | null;
-  validation_report: string | null;
-  status: 'draft' | 'validated' | 'in_progress' | 'completed';
+  business_model: string | null;
+  category: string | null;
+  unique_value_proposition: string | null;
+  consensus_score: number | null;
+  screening_score: number | null;
+  domain_knowledge_score: number | null;
+  passion_score: number | null;
+  business_validation_score: number | null;
+  tokens_spent: number;
+  status: 'draft' | 'validating' | 'validated' | 'in_development' | 'launched' | 'completed' | 'archived';
   created_at: string;
   updated_at: string;
+  validation_summary: any;
+  business_research_data: any;
 }
 
 export interface IdeaFormData {
@@ -69,14 +77,16 @@ export interface Project {
   user_id: string;
   idea_id: string;
   name: string;
-  description: string | null;
-  status: 'planning' | 'development' | 'testing' | 'deployed';
-  progress: number;
   current_phase: number;
+  progress_percentage: number;
   repository_url: string | null;
   deployment_url: string | null;
   created_at: string;
   updated_at: string;
+  prd_data: any;
+  user_personas: any;
+  user_stories: any;
+  mvp_features: any;
 }
 
 export interface ProjectWithIdea extends Project {

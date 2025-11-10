@@ -2,22 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, Lightbulb, TrendingUp, Archive } from "lucide-react";
+import { Plus, Lightbulb } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-
-interface Idea {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  consensus_score: number | null;
-  tokens_spent: number;
-  created_at: string;
-}
+import { IdeaCard } from "@/components/shared/IdeaCard";
+import type { Idea } from "@/types";
 
 const Ideas = () => {
   const navigate = useNavigate();
@@ -52,27 +43,6 @@ const Ideas = () => {
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "draft": return <Lightbulb className="w-4 h-4" />;
-      case "validating": return <TrendingUp className="w-4 h-4" />;
-      case "validated": return <TrendingUp className="w-4 h-4" />;
-      case "in_development": return <TrendingUp className="w-4 h-4" />;
-      case "completed": return <Archive className="w-4 h-4" />;
-      default: return <Lightbulb className="w-4 h-4" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "draft": return "bg-muted";
-      case "validating": return "bg-blue-500/20 text-blue-400";
-      case "validated": return "bg-green-500/20 text-green-400";
-      case "in_development": return "bg-purple-500/20 text-purple-400";
-      case "completed": return "bg-primary/20";
-      default: return "bg-muted";
-    }
-  };
 
   return (
     <div className="min-h-screen cosmic-bg">
@@ -106,31 +76,11 @@ const Ideas = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {ideas.map((idea) => (
-              <Card
+              <IdeaCard
                 key={idea.id}
-                className="glass-panel p-6 cursor-pointer hover:scale-105 transition-transform"
+                idea={idea}
                 onClick={() => navigate(`/ideas/${idea.id}`)}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <Badge className={getStatusColor(idea.status)}>
-                    {getStatusIcon(idea.status)}
-                    <span className="ml-1">{idea.status.replace("_", " ")}</span>
-                  </Badge>
-                  {idea.consensus_score && (
-                    <div className="text-sm font-semibold text-primary">
-                      {idea.consensus_score}% consensus
-                    </div>
-                  )}
-                </div>
-                <h3 className="text-xl font-semibold mb-2">{idea.title}</h3>
-                <p className="text-muted-foreground text-sm line-clamp-3 mb-4">
-                  {idea.description}
-                </p>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{idea.tokens_spent} tokens spent</span>
-                  <span>{new Date(idea.created_at).toLocaleDateString()}</span>
-                </div>
-              </Card>
+              />
             ))}
           </div>
         )}
