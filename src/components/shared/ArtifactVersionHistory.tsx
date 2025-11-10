@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Clock, RotateCcw, Save, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { formatDistanceToNow } from "date-fns";
+import { logError } from "@/lib/errorTracking";
 
 interface Version {
   id: string;
@@ -56,7 +57,7 @@ export default function ArtifactVersionHistory({
       if (error) throw error;
       setVersions(data || []);
     } catch (error) {
-      console.error("Error loading versions:", error);
+      logError(error instanceof Error ? error : new Error('Error loading versions'), { artifactId });
       toast({
         title: "Error",
         description: "Failed to load version history",
@@ -77,7 +78,7 @@ export default function ArtifactVersionHistory({
         description: `Restored to version ${version.version_number}`,
       });
     } catch (error) {
-      console.error("Error restoring version:", error);
+      logError(error instanceof Error ? error : new Error('Error restoring version'), { version });
       toast({
         title: "Error",
         description: "Failed to restore version",

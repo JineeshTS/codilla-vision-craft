@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import { Card } from "@/components/ui/card";
 import { Lightbulb, Rocket, CheckCircle, TrendingUp, Plus, Code } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -9,9 +9,16 @@ import { GitHubRepoSelector } from "@/components/GitHubRepoSelector";
 import { AIUsageChart } from "@/components/analytics/AIUsageChart";
 import { CommitHistory } from "@/components/analytics/CommitHistory";
 
+interface DashboardStats {
+  ideas: number;
+  projects: number;
+  completed: number;
+  tokens: number;
+}
+
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<DashboardStats>({
     ideas: 0,
     projects: 0,
     completed: 0,
@@ -62,33 +69,33 @@ const Dashboard = () => {
           <Card className="glass-panel p-6">
             <div className="flex items-center justify-between mb-2">
               <span className="text-muted-foreground">Active Ideas</span>
-              <Lightbulb className="w-5 h-5 text-primary" />
+              <Lightbulb className="w-5 h-5 text-primary" aria-hidden="true" />
             </div>
-            <p className="text-3xl font-bold">{stats.ideas}</p>
+            <p className="text-3xl font-bold" aria-label={`${stats.ideas} active ideas`}>{stats.ideas}</p>
           </Card>
 
           <Card className="glass-panel p-6">
             <div className="flex items-center justify-between mb-2">
               <span className="text-muted-foreground">In Development</span>
-              <Rocket className="w-5 h-5 text-primary" />
+              <Rocket className="w-5 h-5 text-primary" aria-hidden="true" />
             </div>
-            <p className="text-3xl font-bold">{stats.projects}</p>
+            <p className="text-3xl font-bold" aria-label={`${stats.projects} projects in development`}>{stats.projects}</p>
           </Card>
 
           <Card className="glass-panel p-6">
             <div className="flex items-center justify-between mb-2">
               <span className="text-muted-foreground">Completed</span>
-              <CheckCircle className="w-5 h-5 text-green-400" />
+              <CheckCircle className="w-5 h-5 text-green-400" aria-hidden="true" />
             </div>
-            <p className="text-3xl font-bold">{stats.completed}</p>
+            <p className="text-3xl font-bold" aria-label={`${stats.completed} completed projects`}>{stats.completed}</p>
           </Card>
 
           <Card className="glass-panel p-6">
             <div className="flex items-center justify-between mb-2">
               <span className="text-muted-foreground">Available Tokens</span>
-              <TrendingUp className="w-5 h-5 text-primary" />
+              <TrendingUp className="w-5 h-5 text-primary" aria-hidden="true" />
             </div>
-            <p className="text-3xl font-bold">{stats.tokens.toLocaleString()}</p>
+            <p className="text-3xl font-bold" aria-label={`${stats.tokens.toLocaleString()} tokens available`}>{stats.tokens.toLocaleString()}</p>
           </Card>
         </div>
 
@@ -106,8 +113,12 @@ const Dashboard = () => {
             <Card 
               className="glass-panel p-6 hover:scale-105 transition-transform cursor-pointer"
               onClick={() => navigate("/ideas/new")}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && navigate("/ideas/new")}
+              aria-label="Capture new idea"
             >
-              <Plus className="w-8 h-8 text-primary mb-4" />
+              <Plus className="w-8 h-8 text-primary mb-4" aria-hidden="true" />
               <h3 className="text-xl font-semibold mb-2">Capture New Idea</h3>
               <p className="text-muted-foreground text-sm">Start the validation process</p>
             </Card>
@@ -115,8 +126,12 @@ const Dashboard = () => {
           <Card 
             className="glass-panel p-6 hover:scale-105 transition-transform cursor-pointer"
             onClick={() => navigate("/code-ide")}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && navigate("/code-ide")}
+            aria-label="Open AI Code IDE"
           >
-            <Code className="w-8 h-8 text-primary mb-4" />
+            <Code className="w-8 h-8 text-primary mb-4" aria-hidden="true" />
             <h3 className="text-xl font-semibold mb-2">AI Code IDE</h3>
             <p className="text-muted-foreground text-sm">Generate & review code with AI</p>
           </Card>
@@ -124,8 +139,12 @@ const Dashboard = () => {
           <Card 
             className="glass-panel p-6 hover:scale-105 transition-transform cursor-pointer"
             onClick={() => navigate("/deployment")}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && navigate("/deployment")}
+            aria-label="Deploy and test"
           >
-            <Rocket className="w-8 h-8 text-primary mb-4" />
+            <Rocket className="w-8 h-8 text-primary mb-4" aria-hidden="true" />
             <h3 className="text-xl font-semibold mb-2">Deploy & Test</h3>
             <p className="text-muted-foreground text-sm">Production readiness checks</p>
           </Card>
@@ -133,8 +152,12 @@ const Dashboard = () => {
             <Card 
               className="glass-panel p-6 hover:scale-105 transition-transform cursor-pointer"
               onClick={() => navigate("/ideas")}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && navigate("/ideas")}
+              aria-label="View all ideas"
             >
-              <CheckCircle className="w-8 h-8 text-green-400 mb-4" />
+              <CheckCircle className="w-8 h-8 text-green-400 mb-4" aria-hidden="true" />
               <h3 className="text-xl font-semibold mb-2">View All Ideas</h3>
               <p className="text-muted-foreground text-sm">Review your concepts</p>
             </Card>

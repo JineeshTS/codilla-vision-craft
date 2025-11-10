@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { logError } from "@/lib/errorTracking";
 
 interface ExportData {
   tokenTransactions: any[];
@@ -48,7 +49,7 @@ export default function AnalyticsExport() {
         projects: projects.data || [],
       };
     } catch (error) {
-      console.error("Error fetching export data:", error);
+      logError(error instanceof Error ? error : new Error('Error fetching export data'), { context: 'fetchExportData' });
       toast({
         title: "Error",
         description: "Failed to fetch analytics data",

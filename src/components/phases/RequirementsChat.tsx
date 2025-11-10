@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import TokenCostPreview from "@/components/shared/TokenCostPreview";
+import { logError } from "@/lib/errorTracking";
 
 interface Message {
   role: "user" | "assistant";
@@ -125,7 +126,7 @@ export const RequirementsChat = ({ ideaId, ideaTitle }: RequirementsChatProps) =
         }
       }
     } catch (error: any) {
-      console.error("Chat error:", error);
+      logError(error instanceof Error ? error : new Error('Chat error'), { ideaId, ideaTitle });
       toast({
         variant: "destructive",
         title: "Error",

@@ -1,7 +1,8 @@
-import { Mail, MapPin, Phone } from "lucide-react";
+import { Mail, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
+import { memo } from "react";
 
-export const Footer = () => {
+export const Footer = memo(() => {
   return (
     <footer className="border-t bg-card mt-auto">
       <div className="container mx-auto px-4 py-8">
@@ -97,4 +98,6 @@ export const Footer = () => {
       </div>
     </footer>
   );
-};
+});
+
+Footer.displayName = 'Footer';

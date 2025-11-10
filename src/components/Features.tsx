@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Sparkles, Shield, Zap, Target, TrendingUp, RefreshCw } from "lucide-react";
+import { memo } from "react";
 
 const features = [
   {
@@ -40,7 +41,7 @@ const features = [
   },
 ];
 
-export const Features = () => {
+export const Features = memo(() => {
   return (
     <section className="py-12 sm:py-16 md:py-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -76,4 +77,6 @@ export const Features = () => {
       </div>
     </section>
   );
-};
+});
+
+Features.displayName = 'Features';

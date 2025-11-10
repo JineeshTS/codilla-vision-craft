@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Loader2 } from "lucide-react";
+import { logError } from "@/lib/errorTracking";
 
 interface TokenTransaction {
   created_at: string;
@@ -47,7 +48,7 @@ const TokenUsageChart = () => {
 
         setData(Object.values(grouped));
       } catch (error) {
-        console.error("Error fetching token transactions:", error);
+        logError(error instanceof Error ? error : new Error('Error fetching token transactions'), { context: 'fetchTransactions' });
       } finally {
         setLoading(false);
       }

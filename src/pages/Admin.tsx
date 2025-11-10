@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { Users, Sparkles, CreditCard, TrendingUp, AlertCircle, Activity } from "lucide-react";
+import { Users, Sparkles, CreditCard, Activity } from "lucide-react";
 import { toast } from "sonner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { logError } from "@/lib/errorTracking";
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -47,7 +47,7 @@ export default function Admin() {
       setIsAdmin(true);
       await loadStats();
     } catch (error) {
-      console.error('Error checking admin access:', error);
+      logError(error instanceof Error ? error : new Error('Error checking admin access'), { context: 'checkAdminAccess' });
       navigate('/dashboard');
     } finally {
       setLoading(false);
@@ -107,7 +107,7 @@ export default function Admin() {
         totalProjects: projectsCount || 0,
       });
     } catch (error) {
-      console.error('Error loading stats:', error);
+      logError(error instanceof Error ? error : new Error('Error loading stats'), { context: 'loadStats' });
       toast.error("Failed to load statistics");
     }
   };

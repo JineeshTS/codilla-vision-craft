@@ -4,11 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from "recharts";
-import { Users, DollarSign, Zap, TrendingUp, Activity, Brain, AlertTriangle, Sparkles } from "lucide-react";
+import { Users, Zap, TrendingUp, Activity, Brain, AlertTriangle, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import AnalyticsExport from "@/components/analytics/AnalyticsExport";
+import { logError } from "@/lib/errorTracking";
 
 interface TokenTrend {
   date: string;
@@ -87,7 +88,7 @@ export default function Analytics() {
 
       await loadAnalytics();
     } catch (error) {
-      console.error("Error checking admin access:", error);
+      logError(error instanceof Error ? error : new Error('Error checking admin access'), { context: 'checkAdminAccess' });
       navigate("/");
     }
   };
@@ -219,7 +220,7 @@ export default function Analytics() {
         },
       });
     } catch (error) {
-      console.error("Error loading analytics:", error);
+      logError(error instanceof Error ? error : new Error('Error loading analytics'), { context: 'loadAnalytics' });
       toast({
         title: "Error",
         description: "Failed to load analytics data.",

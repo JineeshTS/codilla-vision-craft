@@ -209,39 +209,43 @@ const Auth = () => {
 
             <TabsContent value="signin">
               <form onSubmit={handleSignIn} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signin-email">Email</Label>
-                  <Input
-                    id="signin-email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                  {errors.email && (
-                    <div className="flex items-center gap-1 text-xs text-destructive">
-                      <AlertCircle className="w-3 h-3" />
-                      <span>{errors.email}</span>
-                    </div>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signin-password">Password</Label>
-                  <Input
-                    id="signin-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                  {errors.password && (
-                    <div className="flex items-center gap-1 text-xs text-destructive">
-                      <AlertCircle className="w-3 h-3" />
-                      <span>{errors.password}</span>
-                    </div>
-                  )}
+                 <div className="space-y-2">
+                   <Label htmlFor="signin-email">Email</Label>
+                   <Input
+                     id="signin-email"
+                     type="email"
+                     placeholder="your@email.com"
+                     value={email}
+                     onChange={(e) => setEmail(e.target.value)}
+                     required
+                     aria-invalid={!!errors.email}
+                     aria-describedby={errors.email ? "signin-email-error" : undefined}
+                   />
+                   {errors.email && (
+                     <div id="signin-email-error" className="flex items-center gap-1 text-xs text-destructive" role="alert">
+                       <AlertCircle className="w-3 h-3" aria-hidden="true" />
+                       <span>{errors.email}</span>
+                     </div>
+                   )}
+                 </div>
+                 <div className="space-y-2">
+                   <Label htmlFor="signin-password">Password</Label>
+                   <Input
+                     id="signin-password"
+                     type="password"
+                     placeholder="••••••••"
+                     value={password}
+                     onChange={(e) => setPassword(e.target.value)}
+                     required
+                     aria-invalid={!!errors.password}
+                     aria-describedby={errors.password ? "signin-password-error" : undefined}
+                   />
+                   {errors.password && (
+                     <div id="signin-password-error" className="flex items-center gap-1 text-xs text-destructive" role="alert">
+                       <AlertCircle className="w-3 h-3" aria-hidden="true" />
+                       <span>{errors.password}</span>
+                     </div>
+                   )}
                   <div className="text-right">
                     <a
                       href="/reset-password"
@@ -281,70 +285,76 @@ const Auth = () => {
 
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-name">Full Name</Label>
-                  <Input
-                    id="signup-name"
-                    type="text"
-                    placeholder="John Doe"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required
-                  />
-                  {errors.fullName && (
-                    <div className="flex items-center gap-1 text-xs text-destructive">
-                      <AlertCircle className="w-3 h-3" />
-                      <span>{errors.fullName}</span>
-                    </div>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                  {errors.email && (
-                    <div className="flex items-center gap-1 text-xs text-destructive">
-                      <AlertCircle className="w-3 h-3" />
-                      <span>{errors.email}</span>
-                    </div>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => handlePasswordChange(e.target.value)}
-                    required
-                  />
-                  {errors.password && (
-                    <div className="flex items-center gap-1 text-xs text-destructive">
-                      <AlertCircle className="w-3 h-3" />
-                      <span>{errors.password}</span>
-                    </div>
-                  )}
-                  {password && passwordStrength.label && (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">Password strength:</span>
-                        <span className="font-medium">{passwordStrength.label}</span>
-                      </div>
-                      <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                        <div
-                          className={`h-full ${passwordStrength.color} transition-all duration-300`}
-                          style={{ width: `${(passwordStrength.score / 6) * 100}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
+                 <div className="space-y-2">
+                   <Label htmlFor="signup-name">Full Name</Label>
+                   <Input
+                     id="signup-name"
+                     type="text"
+                     placeholder="John Doe"
+                     value={fullName}
+                     onChange={(e) => setFullName(e.target.value)}
+                     required
+                     aria-invalid={!!errors.fullName}
+                     aria-describedby={errors.fullName ? "signup-name-error" : undefined}
+                   />
+                   {errors.fullName && (
+                     <div id="signup-name-error" className="flex items-center gap-1 text-xs text-destructive" role="alert">
+                       <AlertCircle className="w-3 h-3" aria-hidden="true" />
+                       <span>{errors.fullName}</span>
+                     </div>
+                   )}
+                 </div>
+                 <div className="space-y-2">
+                   <Label htmlFor="signup-email">Email</Label>
+                   <Input
+                     id="signup-email"
+                     type="email"
+                     placeholder="your@email.com"
+                     value={email}
+                     onChange={(e) => setEmail(e.target.value)}
+                     required
+                     aria-invalid={!!errors.email}
+                     aria-describedby={errors.email ? "signup-email-error" : undefined}
+                   />
+                   {errors.email && (
+                     <div id="signup-email-error" className="flex items-center gap-1 text-xs text-destructive" role="alert">
+                       <AlertCircle className="w-3 h-3" aria-hidden="true" />
+                       <span>{errors.email}</span>
+                     </div>
+                   )}
+                 </div>
+                 <div className="space-y-2">
+                   <Label htmlFor="signup-password">Password</Label>
+                   <Input
+                     id="signup-password"
+                     type="password"
+                     placeholder="••••••••"
+                     value={password}
+                     onChange={(e) => handlePasswordChange(e.target.value)}
+                     required
+                     aria-invalid={!!errors.password}
+                     aria-describedby={errors.password ? "signup-password-error" : undefined}
+                   />
+                   {errors.password && (
+                     <div id="signup-password-error" className="flex items-center gap-1 text-xs text-destructive" role="alert">
+                       <AlertCircle className="w-3 h-3" aria-hidden="true" />
+                       <span>{errors.password}</span>
+                     </div>
+                   )}
+                   {password && passwordStrength.label && (
+                     <div className="space-y-2" aria-live="polite">
+                       <div className="flex items-center justify-between text-xs">
+                         <span className="text-muted-foreground">Password strength:</span>
+                         <span className="font-medium">{passwordStrength.label}</span>
+                       </div>
+                       <div className="w-full h-2 bg-muted rounded-full overflow-hidden" role="progressbar" aria-valuenow={passwordStrength.score} aria-valuemin={0} aria-valuemax={6}>
+                         <div
+                           className={`h-full ${passwordStrength.color} transition-all duration-300`}
+                           style={{ width: `${(passwordStrength.score / 6) * 100}%` }}
+                         />
+                       </div>
+                     </div>
+                   )}
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   <Rocket className="w-4 h-4 mr-2" />

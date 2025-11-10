@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Coins, AlertCircle, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { logError } from "@/lib/errorTracking";
 
 interface TokenCostPreviewProps {
   open: boolean;
@@ -53,7 +54,7 @@ export default function TokenCostPreview({
       if (error) throw error;
       setUserBalance(data?.token_balance || 0);
     } catch (err) {
-      console.error('Error fetching balance:', err);
+      logError(err instanceof Error ? err : new Error('Error fetching balance'), { context: 'fetchUserBalance' });
     }
   };
 
@@ -88,7 +89,7 @@ export default function TokenCostPreview({
       const data = await response.json();
       setTokenEstimate(data);
     } catch (err: any) {
-      console.error('Error calculating cost:', err);
+      logError(err instanceof Error ? err : new Error('Error calculating cost'), { messages, model });
       setError(err.message || 'Failed to calculate token cost');
     } finally {
       setIsCalculating(false);

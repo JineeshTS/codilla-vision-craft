@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Loader2, Save } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { logError } from "@/lib/errorTracking";
 
 export default function AdminSettings() {
   const navigate = useNavigate();
@@ -69,7 +70,7 @@ export default function AdminSettings() {
       setIsAdmin(true);
       await loadConfigs();
     } catch (error) {
-      console.error('Error checking admin access:', error);
+      logError(error instanceof Error ? error : new Error('Error checking admin access'), { context: 'checkAdminAccess' });
       navigate('/dashboard');
     } finally {
       setLoading(false);
@@ -128,7 +129,7 @@ export default function AdminSettings() {
         }
       });
     } catch (error) {
-      console.error('Error loading configs:', error);
+      logError(error instanceof Error ? error : new Error('Error loading configs'), { context: 'loadConfigs' });
       toast.error("Failed to load configuration");
     }
   };
@@ -159,7 +160,7 @@ export default function AdminSettings() {
 
       toast.success("Configuration saved successfully");
     } catch (error) {
-      console.error('Error saving config:', error);
+      logError(error instanceof Error ? error : new Error('Error saving config'), { configKey, configType });
       toast.error("Failed to save configuration");
     } finally {
       setSaving(false);

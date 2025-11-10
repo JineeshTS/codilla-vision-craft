@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logError } from "@/lib/errorTracking";
 
 interface Notification {
   id: string;
@@ -10,7 +11,7 @@ interface Notification {
   type: string;
   read: boolean;
   action_url: string | null;
-  metadata: any;
+  metadata: Record<string, unknown> | null;
   created_at: string;
 }
 
@@ -36,11 +37,11 @@ export function useNotifications() {
       .limit(50);
 
     if (error) {
-      console.error("Error loading notifications:", error);
+      logError(error, { context: 'loadNotifications' });
       return;
     }
 
-    setNotifications(data || []);
+    setNotifications(data as Notification[] || []);
     setUnreadCount(data?.filter(n => !n.read).length || 0);
   };
 
@@ -81,7 +82,7 @@ export function useNotifications() {
       .eq("id", notificationId);
 
     if (error) {
-      console.error("Error marking notification as read:", error);
+      logError(error, { context: 'markAsRead', notificationId });
       return;
     }
 
@@ -102,7 +103,7 @@ export function useNotifications() {
       .eq("read", false);
 
     if (error) {
-      console.error("Error marking all as read:", error);
+      logError(error, { context: 'markAllAsRead' });
       return;
     }
 
@@ -117,7 +118,7 @@ export function useNotifications() {
       .eq("id", notificationId);
 
     if (error) {
-      console.error("Error deleting notification:", error);
+      logError(error, { context: 'deleteNotification', notificationId });
       return;
     }
 

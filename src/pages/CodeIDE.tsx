@@ -8,11 +8,12 @@ import CodeReview from "@/components/CodeReview";
 import { Card } from "@/components/ui/card";
 import { Code, Sparkles } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { User } from "@supabase/supabase-js";
 
 const CodeIDE = () => {
   const navigate = useNavigate();
   const isAuthenticated = useAuthGuard();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [selectedModel, setSelectedModel] = useState<'claude' | 'gemini' | 'codex'>('gemini');
 
   useEffect(() => {
@@ -60,8 +61,8 @@ const CodeIDE = () => {
             <CodeGenerator 
               context="Full-stack web application development"
               model={selectedModel}
-              onCodeGenerated={(code) => {
-                console.log("Generated code:", code);
+              onCodeGenerated={() => {
+                // Code generated successfully
               }}
             />
 
