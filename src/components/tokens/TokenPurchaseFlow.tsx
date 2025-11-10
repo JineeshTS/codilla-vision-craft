@@ -5,6 +5,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { logError } from "@/lib/errorTracking";
 
 interface TokenPurchaseFlowProps {
   isOpen: boolean;
@@ -98,7 +99,7 @@ const TokenPurchaseFlow = ({
             onSuccess();
             onClose();
           } catch (err) {
-            console.error("Payment verification failed:", err);
+            logError(err instanceof Error ? err : new Error('Payment verification failed'), { packageDetails });
             setError("Payment verification failed. Please contact support.");
           } finally {
             setIsProcessing(false);
@@ -121,7 +122,7 @@ const TokenPurchaseFlow = ({
       const razorpay = new window.Razorpay(options);
       razorpay.open();
     } catch (err) {
-      console.error("Purchase error:", err);
+      logError(err instanceof Error ? err : new Error('Purchase error'), { packageDetails });
       setError(
         err instanceof Error ? err.message : "Failed to initiate purchase"
       );

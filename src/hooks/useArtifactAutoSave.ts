@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logError, logInfo } from "@/lib/errorTracking";
 
 interface UseArtifactAutoSaveProps {
   artifactId: string | null;
@@ -59,9 +60,9 @@ export function useArtifactAutoSave({
 
       lastSavedData.current = data;
       
-      console.log("Auto-saved version", versionNum);
+      logInfo("Auto-saved version", { artifactId, versionNum, projectId });
     } catch (error) {
-      console.error("Error auto-saving:", error);
+      logError(error instanceof Error ? error : new Error('Error auto-saving'), { artifactId, projectId });
       // Silent fail for auto-save, don't disrupt user
     }
   }, [artifactId, projectId, data, enabled]);
@@ -108,7 +109,7 @@ export function useArtifactAutoSave({
         description: `Version ${versionNum} created successfully`,
       });
     } catch (error) {
-      console.error("Error creating version:", error);
+      logError(error instanceof Error ? error : new Error('Error creating version'), { artifactId, projectId });
       toast({
         title: "Error",
         description: "Failed to save version",

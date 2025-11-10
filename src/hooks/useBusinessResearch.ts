@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logError } from '@/lib/errorTracking';
 
 interface BusinessResearchData {
   executive_summary?: { content: string; edited_by_user: boolean };
@@ -66,7 +67,7 @@ export const useBusinessResearch = (ideaId: string) => {
         risk_matrix: savedData.risk_matrix || {},
       });
     } catch (error) {
-      console.error('Error fetching business research:', error);
+      logError(error instanceof Error ? error : new Error('Error fetching business research'), { ideaId });
       toast({
         title: 'Error',
         description: 'Failed to load business research data',
@@ -99,7 +100,7 @@ export const useBusinessResearch = (ideaId: string) => {
         description: 'Changes saved successfully',
       });
     } catch (error) {
-      console.error('Error saving business research:', error);
+      logError(error instanceof Error ? error : new Error('Error saving business research'), { ideaId, newData });
       toast({
         title: 'Error',
         description: 'Failed to save changes',

@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PhaseTask } from "@/config/phaseStructure";
 import { TaskRenderer } from "./TaskRenderer";
 import TokenCostPreview from "@/components/shared/TokenCostPreview";
+import { logError } from "@/lib/errorTracking";
 
 interface Message {
   role: "user" | "assistant";
@@ -139,7 +140,7 @@ export const PhaseTaskChat = ({
         }
       }
     } catch (error: any) {
-      console.error("Chat error:", error);
+      logError(error instanceof Error ? error : new Error('Chat error'), { projectId, phaseNumber, taskId: task.id });
       toast({
         variant: "destructive",
         title: "Error",

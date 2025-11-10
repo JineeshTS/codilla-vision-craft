@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/errorTracking";
 
 export interface ActivityItem {
   id: string;
@@ -115,7 +116,7 @@ async function fetchActivities(projectId: string): Promise<ActivityItem[]> {
       });
     }
   } catch (error) {
-    console.error('Error fetching project activity:', error);
+    logError(error instanceof Error ? error : new Error('Error fetching project activity'), { projectId });
   }
 
   // Sort all activities by timestamp

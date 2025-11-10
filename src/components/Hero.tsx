@@ -3,7 +3,6 @@ import { ArrowRight, Sparkles, Brain, Code, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export const Hero = () => {
-  console.log("Hero component rendering");
   return (
     <section className="relative min-h-screen flex items-center justify-center pt-16 overflow-hidden">
       {/* Animated background elements */}

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sparkles, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { logError } from "@/lib/errorTracking";
 
 interface TopUpOption {
   amount: number;
@@ -55,7 +56,7 @@ const TokenTopUp = ({ onSelectAmount }: TokenTopUpProps) => {
         setBasePrice(priceData.data.config_value.price_per_1k);
       }
     } catch (error) {
-      console.error("Error fetching config:", error);
+      logError(error instanceof Error ? error : new Error('Error fetching config'), { context: 'fetchConfig' });
       // Use defaults
       setTopUpOptions([
         { amount: 100, tokens: 10000, bonus: 0 },

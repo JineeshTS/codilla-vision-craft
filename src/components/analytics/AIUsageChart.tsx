@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Loader2 } from "lucide-react";
+import { logError } from "@/lib/errorTracking";
 
 export const AIUsageChart = () => {
   const [data, setData] = useState<any[]>([]);
@@ -39,7 +40,7 @@ export const AIUsageChart = () => {
 
       setData(Object.values(grouped));
     } catch (error) {
-      console.error('Error fetching AI usage:', error);
+      logError(error instanceof Error ? error : new Error('Error fetching AI usage'), { context: 'fetchAIUsage' });
     } finally {
       setLoading(false);
     }

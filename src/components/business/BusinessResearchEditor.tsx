@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, FileText, Loader2, History } from 'lucide-react';
+import { logError } from '@/lib/errorTracking';
 import ArtifactVersionHistory from '@/components/shared/ArtifactVersionHistory';
 import { useArtifactAutoSave } from '@/hooks/useArtifactAutoSave';
 import { ResearchReportSidebar } from '@/components/ResearchReportSidebar';
@@ -96,7 +97,7 @@ export const BusinessResearchEditor = ({
 
       doc.save(`${ideaTitle.replace(/\s+/g, '_')}_Business_Research.pdf`);
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      logError(error instanceof Error ? error : new Error('Error generating PDF'), { ideaTitle });
     } finally {
       setExporting(false);
     }
@@ -155,7 +156,7 @@ export const BusinessResearchEditor = ({
       const blob = await Packer.toBlob(doc);
       saveAs(blob, `${ideaTitle.replace(/\s+/g, '_')}_Business_Research.docx`);
     } catch (error) {
-      console.error('Error generating Word document:', error);
+      logError(error instanceof Error ? error : new Error('Error generating Word document'), { ideaTitle });
     } finally {
       setExporting(false);
     }

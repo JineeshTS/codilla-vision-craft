@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { logError } from '@/lib/errorTracking';
 
 /**
  * Hook to automatically track user activity
@@ -30,7 +31,7 @@ export function useActivityTracking() {
           lastUpdateRef.current = now;
         }
       } catch (error) {
-        console.error('Error updating activity:', error);
+        logError(error instanceof Error ? error : new Error('Error updating activity'), { context: 'updateActivity' });
       }
     };
 

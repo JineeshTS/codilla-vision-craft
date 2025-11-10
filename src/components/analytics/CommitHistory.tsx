@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { Github, ExternalLink, Clock, FileCode } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { logError } from "@/lib/errorTracking";
 
 interface Commit {
   id: string;
@@ -37,7 +38,7 @@ export const CommitHistory = () => {
 
       if (data) setCommits(data);
     } catch (error) {
-      console.error('Error fetching commits:', error);
+      logError(error instanceof Error ? error : new Error('Error fetching commits'), { context: 'fetchCommits' });
     } finally {
       setLoading(false);
     }

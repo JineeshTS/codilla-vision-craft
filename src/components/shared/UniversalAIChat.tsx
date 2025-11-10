@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ReactMarkdown from 'react-markdown';
 import TokenCostPreview from "./TokenCostPreview";
+import { logError } from "@/lib/errorTracking";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -74,7 +75,7 @@ export default function UniversalAIChat({
         setTotalTokens((data as any).total_tokens_used || 0);
       }
     } catch (error) {
-      console.error('Error loading conversation:', error);
+      logError(error instanceof Error ? error : new Error('Error loading conversation'), { conversationId });
     }
   };
 
@@ -208,7 +209,7 @@ export default function UniversalAIChat({
       }
 
     } catch (error) {
-      console.error('Error sending message:', error);
+      logError(error instanceof Error ? error : new Error('Error sending message'), { context, systemPrompt });
       toast.error("Failed to send message");
       setMessages(prev => prev.slice(0, -1));
     } finally {

@@ -1,6 +1,7 @@
 import React from "react";
 import { AlertCircle, RefreshCw, Home } from "lucide-react";
 import { Button } from "./ui/button";
+import { logError } from "@/lib/errorTracking";
 
 interface Props {
   children: React.ReactNode;
@@ -42,14 +43,8 @@ export class ErrorBoundary extends React.Component<Props, State> {
       url: window.location.href,
     };
 
-    // Log to console
-    console.error(`[ErrorBoundary] ${errorLog.componentName} crashed:`, errorLog);
-
-    // In production, send to error tracking service (e.g., Sentry)
-    if (import.meta.env.PROD) {
-      // TODO: Implement error tracking service
-      // Example: Sentry.captureException(error, { contexts: { errorLog } });
-    }
+    // Log error with full context
+    logError(error, errorLog);
 
     this.setState({ errorInfo });
   }
