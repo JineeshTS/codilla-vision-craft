@@ -793,6 +793,53 @@ export type Database = {
         }
         Relationships: []
       }
+      project_presence: {
+        Row: {
+          created_at: string
+          current_page: string | null
+          cursor_position: Json | null
+          id: string
+          is_active: boolean | null
+          last_seen_at: string
+          project_id: string
+          user_avatar: string | null
+          user_id: string
+          user_name: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_page?: string | null
+          cursor_position?: Json | null
+          id?: string
+          is_active?: boolean | null
+          last_seen_at?: string
+          project_id: string
+          user_avatar?: string | null
+          user_id: string
+          user_name?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_page?: string | null
+          cursor_position?: Json | null
+          id?: string
+          is_active?: boolean | null
+          last_seen_at?: string
+          project_id?: string
+          user_avatar?: string | null
+          user_id?: string
+          user_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_presence_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           created_at: string
@@ -1122,6 +1169,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_stale_presence: { Args: never; Returns: undefined }
       get_next_version_number: {
         Args: { p_artifact_id: string }
         Returns: number
