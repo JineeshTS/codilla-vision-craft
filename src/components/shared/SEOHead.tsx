@@ -16,7 +16,7 @@ const DEFAULT_SEO = {
   title: 'Codilla.ai - Transform Ideas into Reality with AI Consensus',
   description: 'Revolutionary AI-powered development platform that validates ideas through multi-agent consensus (Claude, Gemini, Codex) and guides you through a 10-phase development framework.',
   keywords: 'AI development, idea validation, multi-agent AI, product development, AI consensus, code generation, startup tools, business validation',
-  image: 'https://codilla.ai/og-image.png',
+  image: 'https://codilla.ai/apple-touch-icon.png',
   url: 'https://codilla.ai',
   type: 'website' as const,
 };
@@ -82,7 +82,7 @@ export function SEOHead({
       <link rel="canonical" href={seo.url} />
 
       {/* Favicon and App Icons */}
-      <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+      <link rel="icon" type="image/png" href="/favicon.png" />
       <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       <link rel="manifest" href="/manifest.json" />
       <meta name="theme-color" content="#8B5CF6" />
