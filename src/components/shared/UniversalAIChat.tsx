@@ -112,13 +112,13 @@ export default function UniversalAIChat({
       }
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/universal-ai-chat`,
+        `https://numyfjzmrtvzclgyfkpx.supabase.co/functions/v1/universal-ai-chat`,
         {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${session.access_token}`,
             'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51bXlmanptcnR2emNsZ3lma3B4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxMTE1NjMsImV4cCI6MjA3NzY4NzU2M30.v4pd3hWBjf-btAW3THhmhNV0pXf9yXVJjTEfDMjpULw',
           },
           body: JSON.stringify({
             conversationId,

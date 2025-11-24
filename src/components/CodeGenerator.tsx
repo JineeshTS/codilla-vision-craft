@@ -36,12 +36,12 @@ const CodeGenerator = ({ context, model = 'gemini', onCodeGenerated }: CodeGener
     setGeneratedCode("");
 
     try {
-      const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-code`;
+      const CHAT_URL = `https://numyfjzmrtvzclgyfkpx.supabase.co/functions/v1/generate-code`;
       const response = await fetch(CHAT_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51bXlmanptcnR2emNsZ3lma3B4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIxMTE1NjMsImV4cCI6MjA3NzY4NzU2M30.v4pd3hWBjf-btAW3THhmhNV0pXf9yXVJjTEfDMjpULw`,
         },
         body: JSON.stringify({ prompt, context, model, optimizeForLovable }),
       });
