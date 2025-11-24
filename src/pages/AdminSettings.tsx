@@ -83,7 +83,7 @@ export default function AdminSettings() {
       if (!session) return;
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-get-config`,
+        `https://numyfjzmrtvzclgyfkpx.supabase.co/functions/v1/admin-get-config`,
         {
           method: 'POST',
           headers: {
@@ -141,7 +141,7 @@ export default function AdminSettings() {
       if (!session) throw new Error('Not authenticated');
 
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-update-config`,
+        `https://numyfjzmrtvzclgyfkpx.supabase.co/functions/v1/admin-update-config`,
         {
           method: 'POST',
           headers: {
