@@ -6,9 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Rocket, AlertCircle, Github } from "lucide-react";
+import { Sparkles, Rocket, AlertCircle, Github, Lock } from "lucide-react";
 import { signUpSchema, signInSchema, calculatePasswordStrength } from "@/lib/validation";
+import { useAccountLockout } from "@/hooks/useAccountLockout";
 import { z } from "zod";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -19,6 +21,15 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [passwordStrength, setPasswordStrength] = useState({ score: 0, label: '', color: '' });
+  
+  const {
+    isLockedOut,
+    recordFailedAttempt,
+    resetAttempts,
+    getRemainingAttempts,
+    formatTimeRemaining,
+    timeRemaining,
+  } = useAccountLockout();
 
   useEffect(() => {
     // Check if user is already logged in
@@ -114,6 +125,16 @@ const Auth = () => {
     e.preventDefault();
     setErrors({});
     
+    // Check if account is locked out
+    if (isLockedOut()) {
+      toast({
+        variant: "destructive",
+        title: "Account temporarily locked",
+        description: `Too many failed attempts. Please try again in ${formatTimeRemaining()}.`,
+      });
+      return;
+    }
+    
     // Client-side validation
     try {
       signInSchema.parse({ email, password });
@@ -139,12 +160,18 @@ const Auth = () => {
       });
 
       if (error) {
+        // Record failed attempt for lockout
+        const attempts = recordFailedAttempt();
+        const remaining = 5 - attempts;
+        
         // Handle specific auth errors
         if (error.message.includes('Invalid login credentials')) {
           toast({
             variant: "destructive",
             title: "Invalid credentials",
-            description: "Please check your email and password.",
+            description: remaining > 0 
+              ? `Please check your email and password. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.`
+              : "Account locked for 15 minutes due to too many failed attempts.",
           });
         } else {
           throw error;
@@ -152,6 +179,9 @@ const Auth = () => {
         return;
       }
 
+      // Reset lockout on successful login
+      resetAttempts();
+      
       toast({
         title: "Welcome back!",
         description: "Successfully signed in.",
@@ -168,6 +198,15 @@ const Auth = () => {
   };
 
   const handleGitHubSignIn = async () => {
+    if (isLockedOut()) {
+      toast({
+        variant: "destructive",
+        title: "Account temporarily locked",
+        description: `Too many failed attempts. Please try again in ${formatTimeRemaining()}.`,
+      });
+      return;
+    }
+    
     setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -201,6 +240,16 @@ const Auth = () => {
         </div>
 
         <div className="glass-panel p-8">
+          {isLockedOut() && timeRemaining > 0 && (
+            <Alert variant="destructive" className="mb-4">
+              <Lock className="h-4 w-4" />
+              <AlertDescription>
+                Account temporarily locked due to too many failed login attempts. 
+                Please try again in {formatTimeRemaining()}.
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
@@ -218,6 +267,7 @@ const Auth = () => {
                      value={email}
                      onChange={(e) => setEmail(e.target.value)}
                      required
+                     disabled={isLockedOut()}
                      aria-invalid={!!errors.email}
                      aria-describedby={errors.email ? "signin-email-error" : undefined}
                    />
@@ -237,6 +287,7 @@ const Auth = () => {
                      value={password}
                      onChange={(e) => setPassword(e.target.value)}
                      required
+                     disabled={isLockedOut()}
                      aria-invalid={!!errors.password}
                      aria-describedby={errors.password ? "signin-password-error" : undefined}
                    />
@@ -255,7 +306,12 @@ const Auth = () => {
                     </a>
                   </div>
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
+                {getRemainingAttempts() < 5 && getRemainingAttempts() > 0 && (
+                  <p className="text-xs text-amber-500">
+                    {getRemainingAttempts()} login attempt{getRemainingAttempts() === 1 ? '' : 's'} remaining
+                  </p>
+                )}
+                <Button type="submit" className="w-full" disabled={loading || isLockedOut()}>
                   {loading ? "Signing in..." : "Sign In"}
                 </Button>
               </form>
@@ -276,7 +332,7 @@ const Auth = () => {
                 variant="outline"
                 className="w-full"
                 onClick={handleGitHubSignIn}
-                disabled={loading}
+                disabled={loading || isLockedOut()}
               >
                 <Github className="mr-2 h-4 w-4" />
                 GitHub
@@ -294,6 +350,7 @@ const Auth = () => {
                      value={fullName}
                      onChange={(e) => setFullName(e.target.value)}
                      required
+                     maxLength={100}
                      aria-invalid={!!errors.fullName}
                      aria-describedby={errors.fullName ? "signup-name-error" : undefined}
                    />
@@ -313,6 +370,7 @@ const Auth = () => {
                      value={email}
                      onChange={(e) => setEmail(e.target.value)}
                      required
+                     maxLength={255}
                      aria-invalid={!!errors.email}
                      aria-describedby={errors.email ? "signup-email-error" : undefined}
                    />
@@ -332,6 +390,7 @@ const Auth = () => {
                      value={password}
                      onChange={(e) => handlePasswordChange(e.target.value)}
                      required
+                     maxLength={128}
                      aria-invalid={!!errors.password}
                      aria-describedby={errors.password ? "signup-password-error" : undefined}
                    />
@@ -366,6 +425,13 @@ const Auth = () => {
               </form>
             </TabsContent>
           </Tabs>
+          
+          <p className="text-xs text-center text-muted-foreground mt-6">
+            By continuing, you agree to our{' '}
+            <Link to="/terms" className="text-primary hover:underline">Terms of Service</Link>
+            {' '}and{' '}
+            <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
+          </p>
         </div>
       </div>
     </div>
