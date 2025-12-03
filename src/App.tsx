@@ -10,6 +10,7 @@ import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import { useActivityTracking } from "@/hooks/useActivityTracking";
 import { SessionTimeoutDialog } from "@/components/shared/SessionTimeoutDialog";
 import { FloatingAIChat } from "@/components/shared/FloatingAIChat";
+import { CookieConsentBanner } from "@/components/shared/CookieConsentBanner";
 import { Footer } from "@/components/shared/Footer";
 
 // Eager load critical pages
@@ -44,6 +45,11 @@ const Admin = lazy(() => import("./pages/Admin"));
 const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const AdminUsers = lazy(() => import("./pages/AdminUsers"));
 const AdminContent = lazy(() => import("./pages/AdminContent"));
+
+// Legal pages
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -115,6 +121,10 @@ const AppContent = () => {
               <Route path="/admin/content" element={<AdminContent />} />
               <Route path="/admin/analytics" element={<Analytics />} />
               <Route path="/about" element={<About />} />
+              {/* Legal pages */}
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/cookies" element={<CookiePolicy />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
@@ -122,6 +132,7 @@ const AppContent = () => {
       <Footer />
       </div>
       <FloatingAIChat />
+      <CookieConsentBanner />
     </>
   );
 };
