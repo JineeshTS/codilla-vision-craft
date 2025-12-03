@@ -24,7 +24,7 @@ const BusinessValidation = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isAuthenticated = useAuthGuard();
+  const { isAuthenticated } = useAuthGuard();
   const [idea, setIdea] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [validating, setValidating] = useState(false);

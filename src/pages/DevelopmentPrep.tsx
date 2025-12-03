@@ -30,7 +30,7 @@ const DevelopmentPrep = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isAuthenticated = useAuthGuard();
+  const { isAuthenticated } = useAuthGuard();
   
   const [prompts, setPrompts] = useState<DevelopmentPrompt[]>([]);
   const [loading, setLoading] = useState(false);

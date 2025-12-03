@@ -13,7 +13,7 @@ import type { Idea } from "@/types";
 const Ideas = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isAuthenticated = useAuthGuard();
+  const { isAuthenticated } = useAuthGuard();
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [loading, setLoading] = useState(true);
 

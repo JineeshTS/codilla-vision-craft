@@ -13,7 +13,7 @@ import type { Project } from "@/types";
 const Projects = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isAuthenticated = useAuthGuard();
+  const { isAuthenticated } = useAuthGuard();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
