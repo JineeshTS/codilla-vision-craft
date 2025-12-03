@@ -17,6 +17,7 @@ vi.mock('@/integrations/supabase/client', () => ({
 // Mock react-router-dom
 vi.mock('react-router-dom', () => ({
   useNavigate: () => vi.fn(),
+  useLocation: () => ({ pathname: '/dashboard' }),
 }));
 
 describe('useAuthGuard', () => {
@@ -27,13 +28,14 @@ describe('useAuthGuard', () => {
   it('should initialize with null authentication state', () => {
     const { result } = renderHook(() => useAuthGuard());
     
-    expect(result.current).toBeNull();
+    expect(result.current.isAuthenticated).toBeNull();
+    expect(result.current.isEmailVerified).toBeNull();
   });
 
-  it('should return boolean authentication state', () => {
+  it('should return object with authentication and email verification state', () => {
     const { result } = renderHook(() => useAuthGuard());
     
-    // Should eventually return a boolean or null
-    expect(typeof result.current === 'boolean' || result.current === null).toBe(true);
+    expect(result.current).toHaveProperty('isAuthenticated');
+    expect(result.current).toHaveProperty('isEmailVerified');
   });
 });

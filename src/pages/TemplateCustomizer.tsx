@@ -25,7 +25,7 @@ interface Template {
 const TemplateCustomizer = () => {
   const { templateId } = useParams();
   const navigate = useNavigate();
-  const isAuthenticated = useAuthGuard();
+  const { isAuthenticated } = useAuthGuard();
   const { toast } = useToast();
   
   const [template, setTemplate] = useState<Template | null>(null);

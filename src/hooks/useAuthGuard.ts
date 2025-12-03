@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
 /**
@@ -18,9 +18,11 @@ import { supabase } from '@/integrations/supabase/client';
  * Attackers can bypass client-side redirects, but they cannot bypass RLS policies
  * or access data they don't own.
  */
-export const useAuthGuard = (redirectTo: string = '/auth') => {
+export const useAuthGuard = (redirectTo: string = '/auth', requireEmailVerification: boolean = true) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isEmailVerified, setIsEmailVerified] = useState<boolean | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -29,9 +31,16 @@ export const useAuthGuard = (redirectTo: string = '/auth') => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (mounted) {
-        setIsAuthenticated(!!session);
-        if (!session) {
+        const authenticated = !!session;
+        const emailVerified = !!session?.user?.email_confirmed_at;
+        
+        setIsAuthenticated(authenticated);
+        setIsEmailVerified(emailVerified);
+        
+        if (!authenticated) {
           navigate(redirectTo);
+        } else if (requireEmailVerification && !emailVerified && location.pathname !== '/verify-email') {
+          navigate('/verify-email');
         }
       }
     };
@@ -41,9 +50,16 @@ export const useAuthGuard = (redirectTo: string = '/auth') => {
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (mounted) {
-        setIsAuthenticated(!!session);
-        if (!session) {
+        const authenticated = !!session;
+        const emailVerified = !!session?.user?.email_confirmed_at;
+        
+        setIsAuthenticated(authenticated);
+        setIsEmailVerified(emailVerified);
+        
+        if (!authenticated) {
           navigate(redirectTo);
+        } else if (requireEmailVerification && !emailVerified && location.pathname !== '/verify-email') {
+          navigate('/verify-email');
         }
       }
     });
@@ -52,7 +68,7 @@ export const useAuthGuard = (redirectTo: string = '/auth') => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [navigate, redirectTo]);
+  }, [navigate, redirectTo, requireEmailVerification, location.pathname]);
 
-  return isAuthenticated;
+  return { isAuthenticated, isEmailVerified };
 };

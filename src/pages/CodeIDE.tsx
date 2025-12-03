@@ -12,7 +12,7 @@ import type { User } from "@supabase/supabase-js";
 
 const CodeIDE = () => {
   const navigate = useNavigate();
-  const isAuthenticated = useAuthGuard();
+  const { isAuthenticated } = useAuthGuard();
   const [user, setUser] = useState<User | null>(null);
   const [selectedModel, setSelectedModel] = useState<'claude' | 'gemini' | 'codex'>('gemini');
 

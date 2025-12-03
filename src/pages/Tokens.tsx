@@ -29,7 +29,7 @@ interface Profile {
 const Tokens = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isAuthenticated = useAuthGuard();
+  const { isAuthenticated } = useAuthGuard();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);

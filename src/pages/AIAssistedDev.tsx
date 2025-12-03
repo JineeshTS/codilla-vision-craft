@@ -28,7 +28,7 @@ interface DevelopmentPrompt {
 const AIAssistedDev = () => {
   const { projectId } = useParams();
   const { toast } = useToast();
-  const isAuthenticated = useAuthGuard();
+  const { isAuthenticated } = useAuthGuard();
   
   const [prompts, setPrompts] = useState<DevelopmentPrompt[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);

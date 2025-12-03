@@ -23,7 +23,7 @@ const TemplateApply = () => {
   const { templateId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isAuthenticated = useAuthGuard();
+  const { isAuthenticated } = useAuthGuard();
   const [template, setTemplate] = useState<Template | null>(null);
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);

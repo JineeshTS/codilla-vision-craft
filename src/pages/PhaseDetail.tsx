@@ -29,7 +29,7 @@ const PhaseDetail = () => {
   const { projectId, phaseNumber } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isAuthenticated = useAuthGuard();
+  const { isAuthenticated } = useAuthGuard();
   const [loading, setLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState<PhaseTask | null>(null);
   const [phaseProgress, setPhaseProgress] = useState<PhaseProgress | null>(null);
