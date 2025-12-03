@@ -48,18 +48,22 @@ export const ideaSchema = z.object({
   description: z
     .string()
     .trim()
-    .min(20, { message: 'Description must be at least 20 characters' }),
+    .min(20, { message: 'Description must be at least 20 characters' })
+    .max(5000, { message: 'Description must be less than 5000 characters' }),
   problem_statement: z
     .string()
     .trim()
+    .max(2000, { message: 'Problem statement must be less than 2000 characters' })
     .optional(),
   target_audience: z
     .string()
     .trim()
+    .max(1000, { message: 'Target audience must be less than 1000 characters' })
     .optional(),
   unique_value_proposition: z
     .string()
     .trim()
+    .max(1000, { message: 'Value proposition must be less than 1000 characters' })
     .optional(),
 });
 

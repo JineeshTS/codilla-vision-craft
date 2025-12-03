@@ -37,16 +37,18 @@ export const SessionTimeoutDialog = ({
             <Clock className="h-5 w-5 text-warning" />
             <AlertDialogTitle>Session Timeout Warning</AlertDialogTitle>
           </div>
-          <AlertDialogDescription className="space-y-2">
-            <p>
-              Your session is about to expire due to inactivity.
-            </p>
-            <p className="text-lg font-semibold text-foreground">
-              Time remaining: {formatTime(secondsRemaining)}
-            </p>
-            <p className="text-sm">
-              Click "Stay Logged In" to continue your session, or you'll be automatically logged out.
-            </p>
+          <AlertDialogDescription asChild>
+            <div className="space-y-2">
+              <span className="block">
+                Your session is about to expire due to inactivity.
+              </span>
+              <span className="block text-lg font-semibold text-foreground">
+                Time remaining: {formatTime(secondsRemaining)}
+              </span>
+              <span className="block text-sm">
+                Click "Stay Logged In" to continue your session, or you'll be automatically logged out.
+              </span>
+            </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

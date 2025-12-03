@@ -42,6 +42,8 @@ const Deployment = lazy(() => import("./pages/Deployment"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Admin = lazy(() => import("./pages/Admin"));
 const AdminSettings = lazy(() => import("./pages/AdminSettings"));
+const AdminUsers = lazy(() => import("./pages/AdminUsers"));
+const AdminContent = lazy(() => import("./pages/AdminContent"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -109,6 +111,8 @@ const AppContent = () => {
               <Route path="/projects/:projectId/ai-development" element={<AIAssistedDev />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/content" element={<AdminContent />} />
               <Route path="/admin/analytics" element={<Analytics />} />
               <Route path="/about" element={<About />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
