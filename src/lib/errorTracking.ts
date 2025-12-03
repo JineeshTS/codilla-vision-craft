@@ -2,9 +2,10 @@
  * Centralized error tracking and logging utility
  * 
  * This module provides a consistent way to log errors, warnings, and info messages
- * across the application. In production, this can be integrated with services like
- * Sentry, LogRocket, or other error tracking platforms.
+ * across the application. Integrates with Sentry for production error tracking.
  */
+
+import { captureException, captureMessage } from './sentry';
 
 interface LogContext {
   [key: string]: unknown;
@@ -40,7 +41,7 @@ function addToHistory(log: ErrorLog): void {
 
 /**
  * Log an error with optional context
- * In production, this should send to an error tracking service
+ * Sends to Sentry in production
  */
 export function logError(error: Error | string, context?: LogContext): void {
   const errorMessage = error instanceof Error ? error.message : error;
@@ -64,8 +65,9 @@ export function logError(error: Error | string, context?: LogContext): void {
     });
   }
 
-  // TODO: In production, send to error tracking service (Sentry, LogRocket, etc.)
-  // Example: Sentry.captureException(error, { extra: context });
+  // Send to Sentry in production
+  const errorObj = error instanceof Error ? error : new Error(errorMessage);
+  captureException(errorObj, context);
 }
 
 /**
@@ -88,7 +90,8 @@ export function logWarning(message: string, context?: LogContext): void {
     });
   }
 
-  // TODO: In production, send to error tracking service
+  // Send to Sentry in production
+  captureMessage(message, 'warning', context);
 }
 
 /**
@@ -112,7 +115,8 @@ export function logInfo(message: string, context?: LogContext): void {
     });
   }
 
-  // TODO: In production, send to error tracking service
+  // Send to Sentry in production (sparingly)
+  captureMessage(message, 'info', context);
 }
 
 /**
