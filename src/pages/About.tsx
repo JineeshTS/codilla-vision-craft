@@ -1,6 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, MapPin, Phone, Building2, Users, Target, Sparkles } from "lucide-react";
+import { Mail, MapPin, Building2, Users, Target, Sparkles } from "lucide-react";
 import { SEOHead } from "@/components/shared/SEOHead";
+import Navbar from "@/components/Navbar";
+import { Link } from "react-router-dom";
 
 const About = () => {
   return (
@@ -9,7 +11,7 @@ const About = () => {
         title="About Codilla - AI-Powered Startup Builder"
         description="Learn about GANAKYS CODILLA APPS (OPC) Private Limited. We help entrepreneurs transform ideas into validated, production-ready applications using AI-powered tools."
       />
-      
+      <Navbar />
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="space-y-8">
           {/* Hero Section */}
@@ -137,12 +139,12 @@ const About = () => {
                 Join thousands of entrepreneurs using Codilla to validate ideas and build successful products
               </p>
               <div className="flex gap-4 justify-center flex-wrap">
-                <a 
-                  href="/ideas" 
+                <Link 
+                  to="/ideas" 
                   className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
                 >
                   Start Building
-                </a>
+                </Link>
                 <a 
                   href="mailto:info@codilla.ai" 
                   className="inline-flex items-center justify-center rounded-md border border-input bg-background px-6 py-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
