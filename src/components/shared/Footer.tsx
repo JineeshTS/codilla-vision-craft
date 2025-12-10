@@ -66,14 +66,19 @@ export const Footer = memo(() => {
             <h3 className="font-semibold text-lg">Legal</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="mailto:legal@codilla.ai" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/terms" className="text-muted-foreground hover:text-foreground transition-colors">
                   Terms of Service
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="mailto:legal@codilla.ai" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">
                   Privacy Policy
-                </a>
+                </Link>
+              </li>
+              <li>
+                <Link to="/cookies" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Cookie Policy
+                </Link>
               </li>
             </ul>
           </div>
