@@ -146,7 +146,11 @@ const Tokens = () => {
           {loading ? (
             <p className="text-center py-8 text-muted-foreground">Loading transactions...</p>
           ) : transactions.length === 0 ? (
-            <p className="text-center py-8 text-muted-foreground">No transactions yet</p>
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Coins className="h-12 w-12 text-muted-foreground/50 mb-3" />
+              <p className="text-lg font-medium text-muted-foreground mb-1">No transactions yet</p>
+              <p className="text-sm text-muted-foreground/70">Your token transactions will appear here</p>
+            </div>
           ) : (
             <div className="space-y-3">
               {transactions.map((tx) => (

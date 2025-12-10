@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkRateLimit } from "../_shared/rate-limit.ts";
+import { createErrorResponse } from "../_shared/error-handler.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,7 +13,14 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const errorId = crypto.randomUUID();
+
   try {
+    // Get authorization token
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return createErrorResponse('Authentication required', 401, corsHeaders, errorId);
+    }
     const { projectId } = await req.json();
     console.log("Generating PRD for project:", projectId);
 
@@ -40,8 +49,38 @@ serve(async (req) => {
     if (projectError) throw projectError;
     if (!project) throw new Error("Project not found");
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Not authenticated");
+    // Authenticate user
+    const token = authHeader.replace('Bearer ', '');
+    const userClient = createClient(supabaseUrl, supabaseKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+    
+    const { data: { user }, error: userError } = await userClient.auth.getUser(token);
+    if (userError || !user) {
+      console.error('Auth failed:', userError);
+      return createErrorResponse('Authentication required', 401, corsHeaders, errorId);
+    }
+
+    console.log(`✅ User authenticated: ${user.id}`);
+
+    // Check rate limit (5 PRD generations per hour)
+    const rateLimitResult = checkRateLimit(user.id, {
+      limit: 5,
+      windowMs: 60 * 60 * 1000
+    });
+
+    if (!rateLimitResult.allowed) {
+      return new Response(
+        JSON.stringify({
+          error: 'Rate limit exceeded',
+          retryAfter: rateLimitResult.retryAfter
+        }),
+        {
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
 
     // Check token balance
     const { data: profile } = await supabase
