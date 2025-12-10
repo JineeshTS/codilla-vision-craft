@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import Navbar from "@/components/Navbar";
 import { Layers, Search, Filter } from "lucide-react";
+import { Pagination } from "@/components/shared/Pagination";
 import {
   Select,
   SelectContent,
@@ -26,6 +27,8 @@ interface Template {
   usage_count: number;
 }
 
+const ITEMS_PER_PAGE = 12;
+
 const Templates = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -33,7 +36,8 @@ const Templates = () => {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -62,17 +66,30 @@ const Templates = () => {
     }
   };
 
-  const categories = [
+  const categories = useMemo(() => [
     "all",
     ...Array.from(new Set(templates.map(t => t.category)))
-  ];
+  ], [templates]);
 
-  const filteredTemplates = templates.filter(template => {
-    const matchesSearch = template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      template.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || template.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredTemplates = useMemo(() => {
+    return templates.filter(template => {
+      const matchesSearch = template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        template.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = selectedCategory === "all" || template.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [templates, searchQuery, selectedCategory]);
+
+  const totalPages = Math.ceil(filteredTemplates.length / ITEMS_PER_PAGE);
+  const paginatedTemplates = filteredTemplates.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategory]);
 
   const handleUseTemplate = (templateId: string) => {
     navigate(`/template/${templateId}`);
@@ -104,7 +121,7 @@ const Templates = () => {
           </div>
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-muted-foreground" />
-            <Select value={selectedCategory || "all"} onValueChange={setSelectedCategory}>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
@@ -136,44 +153,53 @@ const Templates = () => {
             </p>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTemplates.map(template => (
-              <Card key={template.id} className="glass-panel p-6 flex flex-col">
-                <div className="aspect-video bg-background/50 rounded-lg mb-4 flex items-center justify-center border border-muted">
-                  {template.preview_image_url ? (
-                    <img 
-                      src={template.preview_image_url} 
-                      alt={template.name}
-                      className="w-full h-full object-cover rounded-lg"
-                    />
-                  ) : (
-                    <Layers className="w-12 h-12 text-muted-foreground" />
-                  )}
-                </div>
-                
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-semibold text-lg">{template.name}</h3>
-                  <Badge variant="secondary">{template.category}</Badge>
-                </div>
-                
-                <p className="text-sm text-muted-foreground mb-4 flex-1">
-                  {template.description || "No description available"}
-                </p>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">
-                    {template.usage_count} uses
-                  </span>
-                  <Button 
-                    onClick={() => handleUseTemplate(template.id)}
-                    size="sm"
-                  >
-                    Use Template
-                  </Button>
-                </div>
-              </Card>
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {paginatedTemplates.map(template => (
+                <Card key={template.id} className="glass-panel p-6 flex flex-col">
+                  <div className="aspect-video bg-background/50 rounded-lg mb-4 flex items-center justify-center border border-muted">
+                    {template.preview_image_url ? (
+                      <img 
+                        src={template.preview_image_url} 
+                        alt={template.name}
+                        className="w-full h-full object-cover rounded-lg"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <Layers className="w-12 h-12 text-muted-foreground" />
+                    )}
+                  </div>
+                  
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-semibold text-lg">{template.name}</h3>
+                    <Badge variant="secondary">{template.category}</Badge>
+                  </div>
+                  
+                  <p className="text-sm text-muted-foreground mb-4 flex-1">
+                    {template.description || "No description available"}
+                  </p>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">
+                      {template.usage_count} uses
+                    </span>
+                    <Button 
+                      onClick={() => handleUseTemplate(template.id)}
+                      size="sm"
+                    >
+                      Use Template
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              className="mt-8"
+            />
+          </>
         )}
       </div>
     </div>

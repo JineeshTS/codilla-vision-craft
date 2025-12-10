@@ -8,8 +8,9 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import Navbar from "@/components/Navbar";
-import { Rocket, CheckCircle, Clock, AlertCircle, ExternalLink, GitBranch } from "lucide-react";
+import { Rocket, CheckCircle, Clock, AlertCircle, ExternalLink, GitBranch, Trash2 } from "lucide-react";
 import { ProjectActivityFeed } from "@/components/analytics/ProjectActivityFeed";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 
 interface Project {
   id: string;
@@ -53,6 +54,8 @@ const ProjectDetail = () => {
   const [project, setProject] = useState<Project | null>(null);
   const [phases, setPhases] = useState<Phase[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -254,14 +257,66 @@ const ProjectDetail = () => {
           </div>
         </div>
 
-        <div className="mt-6 flex justify-start">
+        <div className="mt-6 flex justify-between">
           <Button
             variant="outline"
             onClick={() => navigate(`/projects`)}
           >
             Back to Projects
           </Button>
+          <Button
+            variant="destructive"
+            onClick={() => setShowDeleteDialog(true)}
+            disabled={deleting}
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Delete Project
+          </Button>
         </div>
+
+        <ConfirmDialog
+          open={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+          title="Delete Project"
+          description={`Are you sure you want to delete "${project.name}"? This will permanently delete all phases, artifacts, and related data. This action cannot be undone.`}
+          confirmText="Delete Project"
+          variant="destructive"
+          loading={deleting}
+          onConfirm={async () => {
+            setDeleting(true);
+            try {
+              // Delete related records first (cascade delete)
+              await supabase.from('phase_artifacts').delete().eq('project_id', id);
+              await supabase.from('artifact_versions').delete().eq('project_id', id);
+              await supabase.from('phase_progress').delete().eq('project_id', id);
+              await supabase.from('phases').delete().eq('project_id', id);
+              await supabase.from('change_requests').delete().eq('project_id', id);
+              await supabase.from('development_prompts').delete().eq('project_id', id);
+              await supabase.from('code_commits').delete().eq('project_id', id);
+              await supabase.from('project_presence').delete().eq('project_id', id);
+              await supabase.from('prompt_executions').delete().eq('project_id', id);
+
+              // Finally delete the project
+              const { error } = await supabase.from('projects').delete().eq('id', id);
+              if (error) throw error;
+
+              toast({
+                title: "Project deleted",
+                description: "The project and all related data have been deleted.",
+              });
+              navigate('/projects');
+            } catch (error: any) {
+              toast({
+                variant: "destructive",
+                title: "Error deleting project",
+                description: error.message,
+              });
+            } finally {
+              setDeleting(false);
+              setShowDeleteDialog(false);
+            }
+          }}
+        />
       </div>
     </div>
   );

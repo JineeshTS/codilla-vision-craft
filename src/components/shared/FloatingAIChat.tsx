@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MessageCircle, X, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import UniversalAIChat from "./UniversalAIChat";
+import { supabase } from "@/integrations/supabase/client";
 
 const SYSTEM_PROMPT = `You are the AI Mentor for Codilla.ai, an intelligent assistant helping users build their startup ideas from concept to launch.
 
@@ -82,6 +83,25 @@ Always be helpful, encouraging, and specific. If a user asks about a feature, ex
 export const FloatingAIChat = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(!!session);
+    };
+    
+    checkAuth();
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Only show for authenticated users
+  if (!isAuthenticated) return null;
 
   if (!isOpen) {
     return (

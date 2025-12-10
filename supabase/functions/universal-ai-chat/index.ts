@@ -25,9 +25,14 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    
     const supabase = createClient(supabaseUrl, supabaseKey, {
       global: { headers: { Authorization: authHeader } }
     });
+    
+    // Use service role for token operations to bypass RLS
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
     const token = authHeader.replace('Bearer ', '').trim();
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
@@ -96,31 +101,53 @@ serve(async (req) => {
     // Count tokens accurately using provider-specific tokenizers
     const estimatedTokens = await countMessagesTokens(messages, model as AIModel);
 
-    // Check user token balance
-    const { data: profile } = await supabase
+    // Check user token balance FIRST before making any AI calls
+    const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
       .select('token_balance')
       .eq('id', user.id)
       .single();
 
-    if (!profile || profile.token_balance < estimatedTokens) {
+    if (profileError || !profile) {
+      console.error('Error fetching profile:', profileError);
+      return new Response(JSON.stringify({ error: 'Failed to verify token balance' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    if (profile.token_balance < estimatedTokens) {
       return new Response(JSON.stringify({ 
         error: 'Insufficient tokens',
         required: estimatedTokens,
-        balance: profile?.token_balance || 0
+        balance: profile.token_balance
       }), {
         status: 402,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    const aiResponse = await callAI({
-      model: model as AIModel,
-      messages: messages as any,
-      stream: true,
-      temperature: 0.7,
-      maxTokens: 4096,
-    });
+    // Call AI - only deduct tokens after successful response
+    let aiResponse;
+    try {
+      aiResponse = await callAI({
+        model: model as AIModel,
+        messages: messages as any,
+        stream: true,
+        temperature: 0.7,
+        maxTokens: 4096,
+      });
+    } catch (aiError) {
+      console.error('AI call failed:', aiError);
+      // Don't deduct tokens on AI failure
+      return new Response(JSON.stringify({ 
+        error: 'AI service temporarily unavailable. Please try again.',
+        details: aiError instanceof Error ? aiError.message : 'Unknown error'
+      }), {
+        status: 503,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
     // Update conversation with user message
     const messageTokens = await countTokens(message, model as AIModel);
@@ -134,22 +161,29 @@ serve(async (req) => {
       .update({ messages: updatedMessages })
       .eq('id', conversation.id);
 
-    // Deduct estimated tokens (will adjust later based on actual usage)
-    await supabase
+    // Deduct tokens AFTER successful AI call
+    const { error: updateError } = await supabaseAdmin
       .from('profiles')
-      .update({ token_balance: profile.token_balance - estimatedTokens })
+      .update({ 
+        token_balance: profile.token_balance - estimatedTokens,
+        tokens_used: profile.tokens_used ? profile.tokens_used + estimatedTokens : estimatedTokens
+      })
       .eq('id', user.id);
 
+    if (updateError) {
+      console.error('Error updating token balance:', updateError);
+      // Continue anyway - the AI response was successful
+    }
+
     // Log transaction
-    await supabase
+    await supabaseAdmin
       .from('token_transactions')
       .insert({
         user_id: user.id,
         amount: -estimatedTokens,
-        transaction_type: 'usage',
-        description: 'AI Chat',
-        operation_type: 'ai_chat_message',
-        tokens_estimate: estimatedTokens,
+        balance_after: profile.token_balance - estimatedTokens,
+        transaction_type: 'consumption',
+        description: 'AI Chat message',
       });
 
     // Return streaming response

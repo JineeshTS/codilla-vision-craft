@@ -20,6 +20,7 @@ export interface ConfirmDialogProps {
   onConfirm: () => void | Promise<void>;
   variant?: 'default' | 'destructive';
   icon?: 'warning' | 'trash' | 'cancel';
+  loading?: boolean;
 }
 
 const icons = {
@@ -38,12 +39,12 @@ export function ConfirmDialog({
   onConfirm,
   variant = 'default',
   icon = 'warning',
+  loading = false,
 }: ConfirmDialogProps) {
   const Icon = icons[icon];
 
   const handleConfirm = async () => {
     await onConfirm();
-    onOpenChange(false);
   };
 
   return (
@@ -69,12 +70,13 @@ export function ConfirmDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>{cancelText}</AlertDialogCancel>
+          <AlertDialogCancel disabled={loading}>{cancelText}</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
+            disabled={loading}
             className={variant === 'destructive' ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : ''}
           >
-            {confirmText}
+            {loading ? 'Processing...' : confirmText}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
