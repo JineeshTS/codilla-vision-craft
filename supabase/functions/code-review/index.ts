@@ -1,19 +1,64 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { callAI } from "../_shared/multi-ai-provider.ts";
+import { checkRateLimit } from "../_shared/rate-limit.ts";
+import { createErrorResponse } from "../_shared/error-handler.ts";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const errorId = crypto.randomUUID();
+
   try {
+    // Get authorization token
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return createErrorResponse('Authentication required', 401, corsHeaders, errorId);
+    }
+
     const { code, language, context, model = 'gemini' } = await req.json();
 
     if (!code) {
       return new Response(
         JSON.stringify({ error: 'Code is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Authenticate user
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    
+    const token = authHeader.replace('Bearer ', '');
+    const userClient = createClient(supabaseUrl, supabaseKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+    
+    const { data: { user }, error: userError } = await userClient.auth.getUser(token);
+    if (userError || !user) {
+      console.error('Auth failed:', userError);
+      return createErrorResponse('Authentication required', 401, corsHeaders, errorId);
+    }
+
+    // Check rate limit (20 code reviews per hour)
+    const rateLimitResult = checkRateLimit(user.id, {
+      limit: 20,
+      windowMs: 60 * 60 * 1000
+    });
+
+    if (!rateLimitResult.allowed) {
+      return new Response(
+        JSON.stringify({
+          error: 'Rate limit exceeded',
+          retryAfter: rateLimitResult.retryAfter
+        }),
+        {
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
       );
     }
 
