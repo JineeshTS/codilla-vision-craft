@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import Navbar from "@/components/Navbar";
-import { Lightbulb, Sparkles, Rocket, Edit, Save, X, TrendingUp, Trash2 } from "lucide-react";
+import { Lightbulb, Sparkles, Rocket, Edit, Save, X, Trash2, Loader2, TrendingUp } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,6 +28,7 @@ import { ThreeAIIndicator } from "@/components/ThreeAIIndicator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResearchReport } from "@/components/ResearchReport";
 import { BusinessResearchEditor } from "@/components/business/BusinessResearchEditor";
+import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 
 interface Idea {
   id: string;
@@ -263,8 +264,9 @@ const IdeaDetail = () => {
     return (
       <div className="min-h-screen cosmic-bg">
         <Navbar />
-        <div className="container mx-auto px-4 py-8 text-center">
-          <p className="text-muted-foreground">Loading...</p>
+        <div className="container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
+          <p className="text-muted-foreground">Loading idea...</p>
         </div>
       </div>
     );
@@ -287,6 +289,10 @@ const IdeaDetail = () => {
     <div className="min-h-screen cosmic-bg">
       <Navbar />
       <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <Breadcrumbs items={[
+          { label: "Ideas", href: "/ideas" },
+          { label: idea.title }
+        ]} />
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <Lightbulb className="w-8 h-8 text-primary" />
