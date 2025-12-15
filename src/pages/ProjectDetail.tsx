@@ -8,9 +8,10 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import Navbar from "@/components/Navbar";
-import { Rocket, CheckCircle, Clock, AlertCircle, ExternalLink, GitBranch, Trash2 } from "lucide-react";
+import { Rocket, CheckCircle, Clock, AlertCircle, ExternalLink, GitBranch, Trash2, Loader2 } from "lucide-react";
 import { ProjectActivityFeed } from "@/components/analytics/ProjectActivityFeed";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 
 interface Project {
   id: string;
@@ -109,7 +110,8 @@ const ProjectDetail = () => {
     return (
       <div className="min-h-screen cosmic-bg">
         <Navbar />
-        <div className="container mx-auto px-4 py-8 text-center">
+        <div className="container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
           <p className="text-muted-foreground">Loading project...</p>
         </div>
       </div>
@@ -122,6 +124,10 @@ const ProjectDetail = () => {
     <div className="min-h-screen cosmic-bg">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
+        <Breadcrumbs items={[
+          { label: "Projects", href: "/projects" },
+          { label: project.name }
+        ]} />
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
             <Rocket className="w-8 h-8 text-primary" />

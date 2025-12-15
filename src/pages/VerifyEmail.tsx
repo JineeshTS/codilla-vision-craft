@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { Mail, CheckCircle, Loader2 } from "lucide-react";
+import { Footer } from "@/components/shared/Footer";
 
 const VerifyEmail = () => {
   const navigate = useNavigate();
@@ -94,70 +95,73 @@ const VerifyEmail = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 cosmic-bg">
-      <div className="w-full max-w-md">
-        <div className="glass-panel p-8">
-          <div className="text-center mb-6">
-            {isVerified ? (
-              <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            ) : (
-              <Mail className="w-16 h-16 text-primary mx-auto mb-4" />
-            )}
-            <h1 className="text-2xl font-bold mb-2">
-              {isVerified ? "Email Verified!" : "Verify Your Email"}
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              {isVerified
-                ? "Redirecting you to dashboard..."
-                : `We've sent a verification email to ${userEmail}`
-              }
-            </p>
-          </div>
+    <div className="min-h-screen flex flex-col cosmic-bg">
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="glass-panel p-8">
+            <div className="text-center mb-6">
+              {isVerified ? (
+                <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+              ) : (
+                <Mail className="w-16 h-16 text-primary mx-auto mb-4" />
+              )}
+              <h1 className="text-2xl font-bold mb-2">
+                {isVerified ? "Email Verified!" : "Verify Your Email"}
+              </h1>
+              <p className="text-muted-foreground text-sm">
+                {isVerified
+                  ? "Redirecting you to dashboard..."
+                  : `We've sent a verification email to ${userEmail}`
+                }
+              </p>
+            </div>
 
-          {!isVerified && (
-            <div className="space-y-4">
-              <div className="bg-muted/50 rounded-lg p-4 text-sm">
-                <p className="mb-2">Please check your email and click the verification link.</p>
-                <p className="text-muted-foreground">
-                  Don't see the email? Check your spam folder or request a new one.
-                </p>
+            {!isVerified && (
+              <div className="space-y-4">
+                <div className="bg-muted/50 rounded-lg p-4 text-sm">
+                  <p className="mb-2">Please check your email and click the verification link.</p>
+                  <p className="text-muted-foreground">
+                    Don't see the email? Check your spam folder or request a new one.
+                  </p>
+                </div>
+
+                <Button
+                  onClick={handleResendVerification}
+                  className="w-full"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="w-4 h-4 mr-2" />
+                      Resend Verification Email
+                    </>
+                  )}
+                </Button>
+
+                <Button
+                  onClick={handleSignOut}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Sign Out
+                </Button>
               </div>
+            )}
 
-              <Button
-                onClick={handleResendVerification}
-                className="w-full"
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <Mail className="w-4 h-4 mr-2" />
-                    Resend Verification Email
-                  </>
-                )}
-              </Button>
-
-              <Button
-                onClick={handleSignOut}
-                variant="outline"
-                className="w-full"
-              >
-                Sign Out
-              </Button>
-            </div>
-          )}
-
-          {isVerified && (
-            <div className="flex justify-center">
-              <Loader2 className="w-6 h-6 animate-spin text-primary" />
-            </div>
-          )}
+            {isVerified && (
+              <div className="flex justify-center">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              </div>
+            )}
+          </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };
