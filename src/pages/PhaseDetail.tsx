@@ -10,6 +10,7 @@ import { useAuthGuard } from "@/hooks/useAuthGuard";
 import Navbar from "@/components/Navbar";
 import { getPhaseStructure, PhaseTask } from "@/config/phaseStructure";
 import { ArrowLeft, CheckCircle2, Circle, Lock, PartyPopper } from "lucide-react";
+import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { 
   initializePhaseProgress, 
   calculatePhaseProgress, 
@@ -124,6 +125,13 @@ const PhaseDetail = () => {
     <div className="min-h-screen cosmic-bg">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
+        <Breadcrumbs 
+          items={[
+            { label: "Projects", href: "/projects" },
+            { label: "Project", href: `/projects/${projectId}` },
+            { label: `Phase ${phaseNum}` }
+          ]} 
+        />
         <Button
           variant="ghost"
           onClick={() => navigate(`/projects/${projectId}`)}

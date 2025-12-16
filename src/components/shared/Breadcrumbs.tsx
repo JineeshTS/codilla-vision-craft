@@ -35,6 +35,8 @@ const routeLabels: Record<string, string> = {
   "new-idea": "New Idea",
   "reset-password": "Reset Password",
   "verify-email": "Verify Email",
+  phase: "Phase",
+  deployment: "Deployment",
 };
 
 export const Breadcrumbs = ({ items, showHome = true }: BreadcrumbsProps) => {
