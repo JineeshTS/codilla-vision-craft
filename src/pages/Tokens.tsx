@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import TokenTopUp from "@/components/tokens/TokenTopUp";
 import TokenPurchaseFlow from "@/components/tokens/TokenPurchaseFlow";
 import TokenUsageChart from "@/components/tokens/TokenUsageChart";
+import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 
 interface Transaction {
   id: string;
@@ -98,6 +99,7 @@ const Tokens = () => {
     <div className="min-h-screen cosmic-bg">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
+        <Breadcrumbs />
         <div className="mb-8">
           <h1 className="text-4xl font-bold gradient-text mb-2">Token Management</h1>
           <p className="text-muted-foreground">Track your AI processing credits</p>
