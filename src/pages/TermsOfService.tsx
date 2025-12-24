@@ -1,5 +1,4 @@
 import { SEOHead } from '@/components/shared/SEOHead';
-import { Footer } from '@/components/shared/Footer';
 import Navbar from '@/components/Navbar';
 
 const TermsOfService = () => {
@@ -155,7 +154,6 @@ const TermsOfService = () => {
             </section>
           </div>
         </main>
-        <Footer />
       </div>
     </>
   );
