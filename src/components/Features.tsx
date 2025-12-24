@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Sparkles, Shield, Zap, Target, TrendingUp, RefreshCw } from "lucide-react";
+import { Sparkles, Shield, Zap, Target, Layers, RefreshCw } from "lucide-react";
 import { memo } from "react";
 
 const features = [
@@ -16,21 +16,21 @@ const features = [
     color: "text-primary",
   },
   {
-    icon: Zap,
-    title: "80% Template-Based",
+    icon: Layers,
+    title: "Reusable Templates",
     description: "Leverage battle-tested templates for common features. Only build what's unique to your app.",
     color: "text-secondary",
   },
   {
     icon: Target,
     title: "Structured Framework",
-    description: "Follow a proven 10-phase process used by successful founders worldwide.",
+    description: "Follow a proven 10-phase process from idea validation to deployment.",
     color: "text-primary",
   },
   {
-    icon: TrendingUp,
-    title: "60-70% Success Rate",
-    description: "Our structured approach achieves 6-7x higher success rate than unstructured development.",
+    icon: Zap,
+    title: "AI-Powered Development",
+    description: "Generate code, get reviews, and iterate faster with AI assistance at every step.",
     color: "text-secondary",
   },
   {
