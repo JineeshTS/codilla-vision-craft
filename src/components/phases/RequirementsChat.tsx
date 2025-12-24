@@ -30,7 +30,7 @@ export const RequirementsChat = ({ ideaId, ideaTitle }: RequirementsChatProps) =
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedModel, setSelectedModel] = useState<"claude" | "gemini" | "gpt-5">("gemini");
+  const [selectedModel, setSelectedModel] = useState<"balanced" | "fast" | "advanced">("balanced");
   const [showCostPreview, setShowCostPreview] = useState(false);
   const [pendingMessage, setPendingMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -179,9 +179,9 @@ export const RequirementsChat = ({ ideaId, ideaTitle }: RequirementsChatProps) =
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="gemini">Gemini Pro</SelectItem>
-              <SelectItem value="claude">Claude</SelectItem>
-              <SelectItem value="gpt-5">GPT-5</SelectItem>
+              <SelectItem value="balanced">Balanced</SelectItem>
+              <SelectItem value="fast">Fast</SelectItem>
+              <SelectItem value="advanced">Advanced</SelectItem>
             </SelectContent>
           </Select>
         </div>

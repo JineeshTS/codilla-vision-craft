@@ -82,11 +82,11 @@ serve(async (req) => {
 
     console.log(`📝 Processing idea: ${idea.title}`);
 
-    // Define AI models
+    // Define AI models (using generic names)
     const aiModels = [
-      { name: 'Claude', model: 'google/gemini-2.5-pro', specialty: 'Analysis & Strategy' },
-      { name: 'Gemini', model: 'google/gemini-2.5-flash', specialty: 'Review & Validation' },
-      { name: 'Codex', model: 'google/gemini-2.5-flash-lite', specialty: 'Technical Assessment' }
+      { name: 'Agent 1', model: 'google/gemini-2.5-pro', specialty: 'Analysis & Strategy' },
+      { name: 'Agent 2', model: 'google/gemini-2.5-flash', specialty: 'Review & Validation' },
+      { name: 'Agent 3', model: 'google/gemini-2.5-flash-lite', specialty: 'Technical Assessment' }
     ];
 
     // Create system prompt based on phase
