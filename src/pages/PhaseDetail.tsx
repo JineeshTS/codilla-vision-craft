@@ -150,7 +150,7 @@ const PhaseDetail = () => {
               <p className="text-muted-foreground">{phaseStructure.description}</p>
             </div>
             <Badge variant="outline" className="text-lg px-4 py-2">
-              {phaseStructure.duration}
+              {phaseStructure.tasks.length} tasks
             </Badge>
           </div>
           
@@ -163,7 +163,7 @@ const PhaseDetail = () => {
             </div>
             <Progress value={getProgressPercentage()} className="h-2" />
             <p className="text-xs text-muted-foreground mt-2">
-              Estimated: {phaseStructure.totalTokens} tokens • Decision Gate: {phaseStructure.decisionGate}
+              Decision Gate: {phaseStructure.decisionGate}
             </p>
           </Card>
         </div>
@@ -205,9 +205,6 @@ const PhaseDetail = () => {
                       <p className="text-xs text-muted-foreground mb-2">
                         {task.description}
                       </p>
-                      <Badge variant="outline" className="text-xs">
-                        ~{task.estimatedTokens} tokens
-                      </Badge>
                     </div>
                   </div>
                 </Card>
