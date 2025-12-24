@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, CheckCircle, Loader2 } from "lucide-react";
-import { Footer } from "@/components/shared/Footer";
 
 const VerifyEmail = () => {
   const navigate = useNavigate();
@@ -161,7 +160,6 @@ const VerifyEmail = () => {
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 };
