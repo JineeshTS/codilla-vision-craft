@@ -474,7 +474,12 @@ export default function AdminSettings() {
 
             {/* Email Queue Stats */}
             <div className="mt-6 pt-4 border-t">
-              <h4 className="font-medium mb-3">Email Queue Status</h4>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium">Email Queue Status</h4>
+                <span className="text-xs text-muted-foreground bg-green-500/10 text-green-600 px-2 py-1 rounded-full">
+                  Auto-processes every 5 minutes
+                </span>
+              </div>
               <div className="grid grid-cols-3 gap-4">
                 <div className="p-3 bg-muted rounded-lg text-center">
                   <div className="text-2xl font-bold text-amber-500">{queueStats.pending}</div>
