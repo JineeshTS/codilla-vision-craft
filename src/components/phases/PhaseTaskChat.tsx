@@ -240,7 +240,7 @@ export const PhaseTaskChat = ({
             <Bot className="w-6 h-6 text-primary" />
             <div>
               <h3 className="text-lg font-semibold">{task.title}</h3>
-              <p className="text-xs text-muted-foreground">~{task.estimatedTokens} tokens • AI Guidance</p>
+              <p className="text-xs text-muted-foreground">AI Guidance</p>
             </div>
           </div>
           {isCompleted && (

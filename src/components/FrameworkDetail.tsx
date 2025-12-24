@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { PHASE_STRUCTURES } from "@/config/phaseStructure";
-import { Sparkles, CheckCircle2, Clock, Coins } from "lucide-react";
+import { Sparkles, CheckCircle2 } from "lucide-react";
 
 export const FrameworkDetail = () => {
   return (
@@ -43,12 +43,8 @@ export const FrameworkDetail = () => {
                       
                       <div className="flex flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
-                          <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                          {phase.duration}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Coins className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                          {phase.totalTokens} tokens
+                          <CheckCircle2 className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                          {phase.tasks.length} tasks
                         </span>
                       </div>
                     </div>
@@ -88,9 +84,6 @@ export const FrameworkDetail = () => {
                                     {task.description}
                                   </CardDescription>
                                 </div>
-                                <Badge variant="outline" className="flex-shrink-0 text-[10px] sm:text-xs self-start">
-                                  ~{task.estimatedTokens.toLocaleString()} tokens
-                                </Badge>
                               </div>
                             </CardHeader>
                             <CardContent className="pt-0 p-3 sm:p-6 sm:pt-0">
