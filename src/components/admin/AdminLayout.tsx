@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
-import { Loader2, Menu, LayoutDashboard, Users, FileText, CreditCard, BarChart3, Settings, ClipboardList, MessageSquare, Bell, Shield, LogOut } from "lucide-react";
+import { Loader2, Menu, LayoutDashboard, Users, FileText, CreditCard, BarChart3, Settings, ClipboardList, MessageSquare, Bell, Shield, LogOut, Key } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface AdminLayoutProps {
@@ -22,8 +22,9 @@ const navItems = [
   { path: "/admin/payments", label: "Payments & Tokens", icon: CreditCard },
   { path: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { path: "/admin/announcements", label: "Announcements", icon: Bell },
-  { path: "/admin/settings", label: "System Config", icon: Settings },
+  { path: "/admin/api-keys", label: "API Keys", icon: Key },
   { path: "/admin/audit-logs", label: "Audit Logs", icon: ClipboardList },
+  { path: "/admin/settings", label: "System Config", icon: Settings },
 ];
 
 const Sidebar = ({ className }: { className?: string }) => {
