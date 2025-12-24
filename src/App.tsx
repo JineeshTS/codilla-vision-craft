@@ -50,6 +50,8 @@ const AdminContent = lazy(() => import("./pages/AdminContent"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
+const Contact = lazy(() => import("./pages/Contact"));
+const AdminEnquiries = lazy(() => import("./pages/AdminEnquiries"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -119,12 +121,14 @@ const AppContent = () => {
               <Route path="/admin/settings" element={<AdminSettings />} />
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/content" element={<AdminContent />} />
+              <Route path="/admin/enquiries" element={<AdminEnquiries />} />
               <Route path="/admin/analytics" element={<Analytics />} />
               <Route path="/about" element={<About />} />
-              {/* Legal pages */}
+              {/* Legal & Contact pages */}
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/cookies" element={<CookiePolicy />} />
+              <Route path="/contact" element={<Contact />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
