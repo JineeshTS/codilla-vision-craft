@@ -1,8 +1,8 @@
 import { Badge } from "@/components/ui/badge";
-import { Brain, Sparkles, Code } from "lucide-react";
+import { Brain, Sparkles, Zap } from "lucide-react";
 
 interface AIAgentIndicatorProps {
-  agent: "claude" | "gemini" | "codex";
+  agent: "agent1" | "agent2" | "agent3";
   score?: number;
   size?: "sm" | "md" | "lg";
   showIcon?: boolean;
@@ -15,23 +15,23 @@ const AIAgentIndicator = ({
   showIcon = true 
 }: AIAgentIndicatorProps) => {
   const agentConfig = {
-    claude: {
-      name: "Claude",
-      color: "text-ai-claude",
-      bgColor: "bg-ai-claude/20",
+    agent1: {
+      name: "Agent 1",
+      color: "text-primary",
+      bgColor: "bg-primary/20",
       icon: Brain,
     },
-    gemini: {
-      name: "Gemini",
-      color: "text-ai-gemini",
-      bgColor: "bg-ai-gemini/20",
+    agent2: {
+      name: "Agent 2",
+      color: "text-secondary",
+      bgColor: "bg-secondary/20",
       icon: Sparkles,
     },
-    codex: {
-      name: "Codex",
-      color: "text-ai-codex",
-      bgColor: "bg-ai-codex/20",
-      icon: Code,
+    agent3: {
+      name: "Agent 3",
+      color: "text-primary",
+      bgColor: "bg-primary/20",
+      icon: Zap,
     },
   };
 

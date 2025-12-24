@@ -7,12 +7,12 @@ const features = [
     icon: Shield,
     title: "Validation Before Coding",
     description: "Save tokens and prevent failures by validating your idea thoroughly before writing a single line of code.",
-    color: "text-ai-claude",
+    color: "text-primary",
   },
   {
     icon: Sparkles,
     title: "Three-AI Consensus",
-    description: "Claude generates, Gemini reviews, and Codex optimizes. Three minds are better than one.",
+    description: "Multiple AI agents analyze, review, and optimize your idea. Three minds are better than one.",
     color: "text-primary",
   },
   {
@@ -25,13 +25,13 @@ const features = [
     icon: Target,
     title: "Structured Framework",
     description: "Follow a proven 10-phase process used by successful founders worldwide.",
-    color: "text-ai-gemini",
+    color: "text-primary",
   },
   {
     icon: TrendingUp,
     title: "60-70% Success Rate",
     description: "Our structured approach achieves 6-7x higher success rate than unstructured development.",
-    color: "text-ai-codex",
+    color: "text-secondary",
   },
   {
     icon: RefreshCw,

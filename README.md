@@ -6,10 +6,7 @@ A revolutionary platform that transforms ideas into fully functional application
 
 ### Core Platform Features
 
-- **Multi-Agent AI Consensus** - Ideas validated by three specialized AI agents:
-  - Claude (Gemini 2.5 Pro) - Complex reasoning and architecture
-  - Gemini (Gemini 2.5 Flash) - Balanced performance
-  - Codex (Gemini 2.5 Flash Lite) - Fast analysis and code generation
+- **Multi-Agent AI Consensus** - Ideas validated by three specialized AI agents for comprehensive analysis
 
 - **10-Phase Development Framework**
   1. Requirements Analysis
@@ -47,7 +44,7 @@ A revolutionary platform that transforms ideas into fully functional application
 
 - **Frontend**: React 18, TypeScript, Tailwind CSS, shadcn/ui
 - **Backend**: Supabase (PostgreSQL), Edge Functions (Deno)
-- **AI**: Lovable AI Gateway (Gemini 2.5 models)
+- **AI**: Multi-agent consensus system
 - **Security**: Row Level Security (RLS), separate roles table
 - **Real-time**: Supabase subscriptions & SSE streaming
 
@@ -86,7 +83,6 @@ A revolutionary platform that transforms ideas into fully functional application
 Cosmic-themed UI with:
 - Purple/pink gradient palette
 - Glassmorphic effects
-- Agent-specific colors (Claude: blue, Gemini: green, Codex: purple)
 - Smooth animations & transitions
 
 ## 📚 Getting Started (Development)
