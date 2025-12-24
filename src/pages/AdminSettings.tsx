@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Loader2, Save } from "lucide-react";
+import { Loader2, Save, Mail } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { logError } from "@/lib/errorTracking";
 
@@ -34,6 +34,8 @@ export default function AdminSettings() {
   });
   const [testEmail, setTestEmail] = useState('');
   const [testingSmtp, setTestingSmtp] = useState(false);
+  const [processingQueue, setProcessingQueue] = useState(false);
+  const [queueStats, setQueueStats] = useState({ pending: 0, sent: 0, failed: 0 });
 
   const [razorpayConfig, setRazorpayConfig] = useState({
     keyId: '',
@@ -71,7 +73,7 @@ export default function AdminSettings() {
       }
 
       setIsAdmin(true);
-      await loadConfigs();
+      await Promise.all([loadConfigs(), loadQueueStats()]);
     } catch (error) {
       logError(error instanceof Error ? error : new Error('Error checking admin access'), { context: 'checkAdminAccess' });
       navigate('/dashboard');
@@ -223,6 +225,50 @@ export default function AdminSettings() {
       toast.error(error instanceof Error ? error.message : "Failed to send test email");
     } finally {
       setTestingSmtp(false);
+    }
+  };
+
+  const loadQueueStats = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('email_queue')
+        .select('status');
+      
+      if (error) throw error;
+      
+      const stats = { pending: 0, sent: 0, failed: 0 };
+      data?.forEach(item => {
+        if (item.status === 'pending') stats.pending++;
+        else if (item.status === 'sent') stats.sent++;
+        else if (item.status === 'failed') stats.failed++;
+      });
+      setQueueStats(stats);
+    } catch (error) {
+      console.error('Failed to load queue stats:', error);
+    }
+  };
+
+  const processEmailQueue = async () => {
+    setProcessingQueue(true);
+    try {
+      const response = await fetch(
+        `https://numyfjzmrtvzclgyfkpx.supabase.co/functions/v1/process-email-queue`,
+        { method: 'POST' }
+      );
+
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to process queue');
+      }
+
+      toast.success(`Processed ${result.processed} emails (${result.success} sent, ${result.failed} failed)`);
+      await loadQueueStats();
+    } catch (error) {
+      logError(error instanceof Error ? error : new Error('Queue processing failed'), { context: 'processEmailQueue' });
+      toast.error(error instanceof Error ? error.message : "Failed to process email queue");
+    } finally {
+      setProcessingQueue(false);
     }
   };
 
@@ -420,6 +466,29 @@ export default function AdminSettings() {
                 {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
                 Save Email Config
               </Button>
+              <Button variant="outline" onClick={processEmailQueue} disabled={processingQueue}>
+                {processingQueue ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Mail className="h-4 w-4 mr-2" />}
+                Process Email Queue
+              </Button>
+            </div>
+
+            {/* Email Queue Stats */}
+            <div className="mt-6 pt-4 border-t">
+              <h4 className="font-medium mb-3">Email Queue Status</h4>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="p-3 bg-muted rounded-lg text-center">
+                  <div className="text-2xl font-bold text-amber-500">{queueStats.pending}</div>
+                  <div className="text-xs text-muted-foreground">Pending</div>
+                </div>
+                <div className="p-3 bg-muted rounded-lg text-center">
+                  <div className="text-2xl font-bold text-green-500">{queueStats.sent}</div>
+                  <div className="text-xs text-muted-foreground">Sent</div>
+                </div>
+                <div className="p-3 bg-muted rounded-lg text-center">
+                  <div className="text-2xl font-bold text-red-500">{queueStats.failed}</div>
+                  <div className="text-xs text-muted-foreground">Failed</div>
+                </div>
+              </div>
             </div>
           </Card>
         </TabsContent>
