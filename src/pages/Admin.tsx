@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { Users, Sparkles, CreditCard, Activity, Loader2 } from "lucide-react";
+import { Users, Sparkles, CreditCard, Activity, Loader2, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { logError } from "@/lib/errorTracking";
 import { useAdminGuard } from "@/hooks/useAdminGuard";
@@ -188,6 +188,13 @@ export default function Admin() {
                     className="w-full text-left px-4 py-2 rounded-md bg-secondary hover:bg-secondary/80 transition-colors"
                   >
                     Content Moderation
+                  </button>
+                  <button
+                    onClick={() => navigate('/admin/enquiries')}
+                    className="w-full text-left px-4 py-2 rounded-md bg-secondary hover:bg-secondary/80 transition-colors flex items-center gap-2"
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    Enquiry Management
                   </button>
                 </div>
               </Card>
