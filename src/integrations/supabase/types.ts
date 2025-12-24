@@ -463,6 +463,72 @@ export type Database = {
           },
         ]
       }
+      email_queue: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          sent_at: string | null
+          status: string
+          template_data: Json | null
+          template_key: string
+          to_email: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          sent_at?: string | null
+          status?: string
+          template_data?: Json | null
+          template_key: string
+          to_email: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          sent_at?: string | null
+          status?: string
+          template_data?: Json | null
+          template_key?: string
+          to_email?: string
+        }
+        Relationships: []
+      }
+      email_templates: {
+        Row: {
+          created_at: string
+          html_body: string
+          id: string
+          name: string
+          subject: string
+          template_key: string
+          text_body: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          html_body: string
+          id?: string
+          name: string
+          subject: string
+          template_key: string
+          text_body?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          html_body?: string
+          id?: string
+          name?: string
+          subject?: string
+          template_key?: string
+          text_body?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       enquiries: {
         Row: {
           admin_notes: string | null
