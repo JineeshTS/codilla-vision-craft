@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { SEOHead } from "@/components/shared/SEOHead";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Sparkles, CreditCard, Activity, TrendingUp, MessageSquare, FileText, Zap } from "lucide-react";
+import { Users, Sparkles, CreditCard, Activity, TrendingUp, MessageSquare, FileText, Zap, Bell, ClipboardList, Key } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { format, subDays } from "date-fns";
 
@@ -61,8 +61,11 @@ export default function Admin() {
     { label: "User Management", path: "/admin/users", icon: Users, color: "text-blue-400" },
     { label: "Content Moderation", path: "/admin/content", icon: FileText, color: "text-green-400" },
     { label: "Enquiries", path: "/admin/enquiries", icon: MessageSquare, color: "text-yellow-400", badge: stats?.newEnquiries },
-    { label: "Payments", path: "/admin/payments", icon: CreditCard, color: "text-purple-400" },
+    { label: "Payments & Tokens", path: "/admin/payments", icon: CreditCard, color: "text-purple-400" },
     { label: "Analytics", path: "/admin/analytics", icon: TrendingUp, color: "text-pink-400" },
+    { label: "Announcements", path: "/admin/announcements", icon: Bell, color: "text-cyan-400" },
+    { label: "API Keys", path: "/admin/api-keys", icon: Key, color: "text-red-400" },
+    { label: "Audit Logs", path: "/admin/audit-logs", icon: ClipboardList, color: "text-indigo-400" },
     { label: "System Config", path: "/admin/settings", icon: Zap, color: "text-orange-400" },
   ];
 
@@ -172,7 +175,7 @@ export default function Admin() {
               <CardTitle className="text-lg">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {quickActions.map((action) => (
                   <button
                     key={action.path}
