@@ -30,7 +30,10 @@ export default function AdminSettings() {
     password: '',
     fromName: 'Codilla.ai',
     fromEmail: '',
+    secure: false,
   });
+  const [testEmail, setTestEmail] = useState('');
+  const [testingSmtp, setTestingSmtp] = useState(false);
 
   const [razorpayConfig, setRazorpayConfig] = useState({
     keyId: '',
@@ -185,6 +188,44 @@ export default function AdminSettings() {
     saveConfig('email_smtp', emailConfig, 'email');
   };
 
+  const testSmtpConnection = async () => {
+    if (!testEmail) return;
+    
+    setTestingSmtp(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const response = await fetch(
+        `https://numyfjzmrtvzclgyfkpx.supabase.co/functions/v1/test-smtp`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            config: emailConfig,
+            testEmail,
+          }),
+        }
+      );
+
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send test email');
+      }
+
+      toast.success("Test email sent successfully! Check your inbox.");
+    } catch (error) {
+      logError(error instanceof Error ? error : new Error('SMTP test failed'), { context: 'testSmtpConnection' });
+      toast.error(error instanceof Error ? error.message : "Failed to send test email");
+    } finally {
+      setTestingSmtp(false);
+    }
+  };
+
   const saveRazorpayConfig = () => {
     saveConfig('razorpay_config', razorpayConfig, 'payment');
   };
@@ -270,60 +311,111 @@ export default function AdminSettings() {
 
         <TabsContent value="email">
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Email Configuration</h3>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="smtp-host">SMTP Host</Label>
-                <Input
-                  id="smtp-host"
-                  value={emailConfig.host}
-                  onChange={(e) => setEmailConfig({ ...emailConfig, host: e.target.value })}
-                  placeholder="smtp.hostinger.com"
-                />
+            <h3 className="text-lg font-semibold mb-4">SMTP Email Configuration</h3>
+            <p className="text-sm text-muted-foreground mb-6">
+              Configure your SMTP server settings to send transactional emails (notifications, enquiry responses, etc.)
+            </p>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="smtp-host">SMTP Host</Label>
+                  <Input
+                    id="smtp-host"
+                    value={emailConfig.host}
+                    onChange={(e) => setEmailConfig({ ...emailConfig, host: e.target.value })}
+                    placeholder="smtp.gmail.com or smtp.hostinger.com"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="smtp-port">Port</Label>
+                  <Input
+                    id="smtp-port"
+                    type="number"
+                    value={emailConfig.port}
+                    onChange={(e) => setEmailConfig({ ...emailConfig, port: parseInt(e.target.value) })}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Common ports: 587 (TLS), 465 (SSL), 25 (unencrypted)
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="smtp-username">Username / Email</Label>
+                  <Input
+                    id="smtp-username"
+                    value={emailConfig.username}
+                    onChange={(e) => setEmailConfig({ ...emailConfig, username: e.target.value })}
+                    placeholder="your@email.com"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="smtp-password">Password / App Password</Label>
+                  <Input
+                    id="smtp-password"
+                    type="password"
+                    value={emailConfig.password}
+                    onChange={(e) => setEmailConfig({ ...emailConfig, password: e.target.value })}
+                    placeholder="••••••••"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    For Gmail, use an App Password (not your regular password)
+                  </p>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="smtp-port">Port</Label>
-                <Input
-                  id="smtp-port"
-                  type="number"
-                  value={emailConfig.port}
-                  onChange={(e) => setEmailConfig({ ...emailConfig, port: parseInt(e.target.value) })}
-                />
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="from-name">From Name</Label>
+                  <Input
+                    id="from-name"
+                    value={emailConfig.fromName}
+                    onChange={(e) => setEmailConfig({ ...emailConfig, fromName: e.target.value })}
+                    placeholder="Codilla.ai"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="from-email">From Email</Label>
+                  <Input
+                    id="from-email"
+                    type="email"
+                    value={emailConfig.fromEmail}
+                    onChange={(e) => setEmailConfig({ ...emailConfig, fromEmail: e.target.value })}
+                    placeholder="noreply@codilla.ai"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="smtp-secure">Security</Label>
+                  <select
+                    id="smtp-secure"
+                    value={emailConfig.secure ? 'true' : 'false'}
+                    onChange={(e) => setEmailConfig({ ...emailConfig, secure: e.target.value === 'true' })}
+                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                  >
+                    <option value="true">SSL/TLS (port 465)</option>
+                    <option value="false">STARTTLS (port 587)</option>
+                  </select>
+                </div>
+                <div className="pt-4 border-t">
+                  <Label>Test Email Address</Label>
+                  <div className="flex gap-2 mt-1">
+                    <Input
+                      value={testEmail}
+                      onChange={(e) => setTestEmail(e.target.value)}
+                      placeholder="test@example.com"
+                    />
+                    <Button 
+                      variant="outline" 
+                      onClick={testSmtpConnection} 
+                      disabled={testingSmtp || !testEmail}
+                    >
+                      {testingSmtp ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Test'}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Send a test email to verify your SMTP configuration
+                  </p>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="smtp-username">Username</Label>
-                <Input
-                  id="smtp-username"
-                  value={emailConfig.username}
-                  onChange={(e) => setEmailConfig({ ...emailConfig, username: e.target.value })}
-                  placeholder="your@email.com"
-                />
-              </div>
-              <div>
-                <Label htmlFor="smtp-password">Password</Label>
-                <Input
-                  id="smtp-password"
-                  type="password"
-                  value={emailConfig.password}
-                  onChange={(e) => setEmailConfig({ ...emailConfig, password: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="from-name">From Name</Label>
-                <Input
-                  id="from-name"
-                  value={emailConfig.fromName}
-                  onChange={(e) => setEmailConfig({ ...emailConfig, fromName: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label htmlFor="from-email">From Email</Label>
-                <Input
-                  id="from-email"
-                  value={emailConfig.fromEmail}
-                  onChange={(e) => setEmailConfig({ ...emailConfig, fromEmail: e.target.value })}
-                />
-              </div>
+            </div>
+            <div className="flex gap-2 mt-6 pt-4 border-t">
               <Button onClick={saveEmailConfig} disabled={saving}>
                 {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
                 Save Email Config

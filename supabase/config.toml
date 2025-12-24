@@ -60,3 +60,6 @@ verify_jwt = true
 
 [functions.github-oauth-callback]
 verify_jwt = true
+
+[functions.test-smtp]
+verify_jwt = true
