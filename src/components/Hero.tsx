@@ -40,7 +40,12 @@ export const Hero = memo(() => {
                 Get Started Free <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="w-full sm:w-auto border-primary/30 hover:bg-primary/10">
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="w-full sm:w-auto border-primary/30 hover:bg-primary/10"
+              onClick={() => document.getElementById('framework')?.scrollIntoView({ behavior: 'smooth' })}
+            >
               See How It Works
             </Button>
           </div>
