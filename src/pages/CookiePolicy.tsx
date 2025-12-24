@@ -1,5 +1,4 @@
 import { SEOHead } from '@/components/shared/SEOHead';
-import { Footer } from '@/components/shared/Footer';
 import Navbar from '@/components/Navbar';
 
 const CookiePolicy = () => {
@@ -148,7 +147,6 @@ const CookiePolicy = () => {
             </section>
           </div>
         </main>
-        <Footer />
       </div>
     </>
   );
