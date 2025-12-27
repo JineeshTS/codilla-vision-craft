@@ -45,15 +45,53 @@ export default function Admin() {
     },
   });
 
-  // Fetch recent activity for charts
+  // Fetch recent activity for charts - REAL DATA
   const { data: chartData } = useQuery({
     queryKey: ["admin-dashboard-charts"],
     queryFn: async () => {
-      const last7Days = Array.from({ length: 7 }, (_, i) => {
+      // Get last 7 days date range
+      const dates = Array.from({ length: 7 }, (_, i) => {
         const date = subDays(new Date(), 6 - i);
-        return { date: format(date, "MMM d"), users: Math.floor(Math.random() * 10) + 5, tokens: Math.floor(Math.random() * 5000) + 1000 };
+        return {
+          date: format(date, "MMM d"),
+          dateStart: new Date(date.setHours(0, 0, 0, 0)).toISOString(),
+          dateEnd: new Date(date.setHours(23, 59, 59, 999)).toISOString(),
+        };
       });
-      return last7Days;
+
+      // Fetch user signups per day
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("created_at")
+        .gte("created_at", dates[0].dateStart)
+        .lte("created_at", dates[6].dateEnd);
+
+      // Fetch token transactions per day
+      const { data: transactions } = await supabase
+        .from("token_transactions")
+        .select("created_at, amount, transaction_type")
+        .gte("created_at", dates[0].dateStart)
+        .lte("created_at", dates[6].dateEnd);
+
+      // Aggregate data by day
+      return dates.map(({ date, dateStart, dateEnd }) => {
+        const dayStart = new Date(dateStart);
+        const dayEnd = new Date(dateEnd);
+
+        const usersCount = profiles?.filter((p) => {
+          const createdAt = new Date(p.created_at);
+          return createdAt >= dayStart && createdAt <= dayEnd;
+        }).length || 0;
+
+        const tokensConsumed = transactions
+          ?.filter((t) => {
+            const createdAt = new Date(t.created_at);
+            return createdAt >= dayStart && createdAt <= dayEnd && t.transaction_type === "consumption";
+          })
+          .reduce((sum, t) => sum + Math.abs(t.amount), 0) || 0;
+
+        return { date, users: usersCount, tokens: tokensConsumed };
+      });
     },
   });
 

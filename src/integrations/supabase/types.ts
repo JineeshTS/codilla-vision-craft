@@ -590,6 +590,9 @@ export type Database = {
           id: string
           inspiration_source: string | null
           key_differentiator: string | null
+          moderated_at: string | null
+          moderated_by: string | null
+          moderation_status: string
           passion_score: number | null
           phase_2_completed_at: string | null
           phase_2_data: Json | null
@@ -628,6 +631,9 @@ export type Database = {
           id?: string
           inspiration_source?: string | null
           key_differentiator?: string | null
+          moderated_at?: string | null
+          moderated_by?: string | null
+          moderation_status?: string
           passion_score?: number | null
           phase_2_completed_at?: string | null
           phase_2_data?: Json | null
@@ -666,6 +672,9 @@ export type Database = {
           id?: string
           inspiration_source?: string | null
           key_differentiator?: string | null
+          moderated_at?: string | null
+          moderated_by?: string | null
+          moderation_status?: string
           passion_score?: number | null
           phase_2_completed_at?: string | null
           phase_2_data?: Json | null
@@ -940,6 +949,7 @@ export type Database = {
           id: string
           last_active_at: string | null
           selected_github_repo: string | null
+          status: string
           token_balance: number
           tokens_used: number
           total_tokens: number
@@ -956,6 +966,7 @@ export type Database = {
           id: string
           last_active_at?: string | null
           selected_github_repo?: string | null
+          status?: string
           token_balance?: number
           tokens_used?: number
           total_tokens?: number
@@ -972,6 +983,7 @@ export type Database = {
           id?: string
           last_active_at?: string | null
           selected_github_repo?: string | null
+          status?: string
           token_balance?: number
           tokens_used?: number
           total_tokens?: number
