@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
   Search, User, Mail, Calendar, Coins, 
-  MoreHorizontal, Ban, UserCheck, Minus, Plus 
+  MoreHorizontal, Ban, UserCheck, Minus, Plus, Shield, ShieldOff 
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -46,6 +46,7 @@ interface UserProfile {
   created_at: string;
   last_active_at: string | null;
   status: string;
+  isAdmin?: boolean;
 }
 
 export default function AdminUsers() {
@@ -53,10 +54,12 @@ export default function AdminUsers() {
   const [page, setPage] = useState(0);
   const [tokenDialogOpen, setTokenDialogOpen] = useState(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [tokenAmount, setTokenAmount] = useState("");
   const [tokenReason, setTokenReason] = useState("");
   const [newStatus, setNewStatus] = useState<string>("");
+  const [roleAction, setRoleAction] = useState<'grant' | 'revoke'>('grant');
   const [isLoading, setIsLoading] = useState(false);
   const pageSize = 20;
 
@@ -78,7 +81,21 @@ export default function AdminUsers() {
         toast.error("Failed to load users");
         throw error;
       }
-      return data as UserProfile[];
+      
+      // Fetch admin roles for all users
+      const userIds = data?.map(u => u.id) || [];
+      const { data: adminRoles } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin")
+        .in("user_id", userIds);
+      
+      const adminUserIds = new Set(adminRoles?.map(r => r.user_id) || []);
+      
+      return (data || []).map(user => ({
+        ...user,
+        isAdmin: adminUserIds.has(user.id)
+      })) as UserProfile[];
     },
   });
 
@@ -149,6 +166,43 @@ export default function AdminUsers() {
     setStatusDialogOpen(true);
   };
 
+  const openRoleDialog = (user: UserProfile, action: 'grant' | 'revoke') => {
+    setSelectedUser(user);
+    setRoleAction(action);
+    setRoleDialogOpen(true);
+  };
+
+  const handleRoleChange = async () => {
+    if (!selectedUser) return;
+    
+    setIsLoading(true);
+    try {
+      if (roleAction === 'grant') {
+        const { error } = await supabase
+          .from("user_roles")
+          .insert({ user_id: selectedUser.id, role: 'admin' });
+        if (error) throw error;
+        toast.success(`Admin role granted to ${selectedUser.email}`);
+      } else {
+        const { error } = await supabase
+          .from("user_roles")
+          .delete()
+          .eq("user_id", selectedUser.id)
+          .eq("role", "admin");
+        if (error) throw error;
+        toast.success(`Admin role revoked from ${selectedUser.email}`);
+      }
+      
+      setRoleDialogOpen(false);
+      setSelectedUser(null);
+      refetch();
+    } catch (error: any) {
+      toast.error(error.message || `Failed to ${roleAction} admin role`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'suspended':
@@ -198,6 +252,7 @@ export default function AdminUsers() {
             <TableHeader>
               <TableRow>
                 <TableHead>User</TableHead>
+                <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Tokens</TableHead>
                 <TableHead>Joined</TableHead>
@@ -208,13 +263,13 @@ export default function AdminUsers() {
             <TableBody>
               {usersLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
+                  <TableCell colSpan={7} className="text-center py-8">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
                   </TableCell>
                 </TableRow>
               ) : users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     No users found
                   </TableCell>
                 </TableRow>
@@ -234,6 +289,16 @@ export default function AdminUsers() {
                           </div>
                         </div>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      {user.isAdmin ? (
+                        <Badge className="bg-purple-500/10 text-purple-500 border-purple-500/20">
+                          <Shield className="h-3 w-3 mr-1" />
+                          Admin
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-muted-foreground">User</Badge>
+                      )}
                     </TableCell>
                     <TableCell>
                       {getStatusBadge(user.status)}
@@ -281,6 +346,18 @@ export default function AdminUsers() {
                             <Minus className="h-4 w-4 mr-2" />
                             Subtract Tokens
                           </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          {user.isAdmin ? (
+                            <DropdownMenuItem onClick={() => openRoleDialog(user, 'revoke')}>
+                              <ShieldOff className="h-4 w-4 mr-2" />
+                              Revoke Admin
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem onClick={() => openRoleDialog(user, 'grant')}>
+                              <Shield className="h-4 w-4 mr-2" />
+                              Grant Admin
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuSeparator />
                           {user.status !== 'active' && (
                             <DropdownMenuItem onClick={() => openStatusDialog(user, 'active')}>
@@ -406,6 +483,35 @@ export default function AdminUsers() {
                 variant={newStatus === 'banned' ? 'destructive' : 'default'}
               >
                 {isLoading ? "Processing..." : "Confirm"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Role Change Dialog */}
+        <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {roleAction === 'grant' ? 'Grant Admin Role' : 'Revoke Admin Role'}
+              </DialogTitle>
+              <DialogDescription>
+                {roleAction === 'grant' 
+                  ? `This will give ${selectedUser?.email} full admin access to the platform.`
+                  : `This will remove admin privileges from ${selectedUser?.email}.`
+                }
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setRoleDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleRoleChange} 
+                disabled={isLoading}
+                variant={roleAction === 'revoke' ? 'destructive' : 'default'}
+              >
+                {isLoading ? "Processing..." : roleAction === 'grant' ? 'Grant Admin' : 'Revoke Admin'}
               </Button>
             </DialogFooter>
           </DialogContent>
