@@ -66,3 +66,9 @@ verify_jwt = true
 
 [functions.process-email-queue]
 verify_jwt = false
+
+[functions.admin-adjust-tokens]
+verify_jwt = true
+
+[functions.admin-suspend-user]
+verify_jwt = true
