@@ -8,10 +8,12 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import { useActivityTracking } from "@/hooks/useActivityTracking";
+import { useIsFeatureEnabled } from "@/hooks/useFeatureFlag";
 import { SessionTimeoutDialog } from "@/components/shared/SessionTimeoutDialog";
 import { FloatingAIChat } from "@/components/shared/FloatingAIChat";
 import { CookieConsentBanner } from "@/components/shared/CookieConsentBanner";
 import { Footer } from "@/components/shared/Footer";
+import MaintenancePage from "@/pages/MaintenancePage";
 
 // Eager load critical pages
 import Index from "./pages/Index";
@@ -80,6 +82,9 @@ const PageLoader = () => (
 );
 
 const AppContent = () => {
+  // Check maintenance mode
+  const { isEnabled: isMaintenanceMode, isLoading: isLoadingFlags } = useIsFeatureEnabled('maintenance_mode');
+
   // Enable session timeout (30 minutes of inactivity)
   const { showWarning, secondsRemaining, extendSession, logout } = useSessionTimeout({
     timeoutMinutes: 30,
@@ -88,6 +93,11 @@ const AppContent = () => {
 
   // Track user activity for analytics
   useActivityTracking();
+
+  // Show maintenance page if enabled (but allow admin routes)
+  if (!isLoadingFlags && isMaintenanceMode) {
+    return <MaintenancePage />;
+  }
 
   return (
     <>
