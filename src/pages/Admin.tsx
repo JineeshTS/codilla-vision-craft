@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { SEOHead } from "@/components/shared/SEOHead";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Sparkles, CreditCard, Activity, TrendingUp, MessageSquare, FileText, Zap, Bell, ClipboardList, Key } from "lucide-react";
+import { Users, Sparkles, CreditCard, Activity, TrendingUp, MessageSquare, FileText, Zap, Bell, ClipboardList, Key, Shield } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { format, subDays } from "date-fns";
 
@@ -97,6 +97,7 @@ export default function Admin() {
 
   const quickActions = [
     { label: "User Management", path: "/admin/users", icon: Users, color: "text-blue-400" },
+    { label: "Idea Moderation", path: "/admin/moderation", icon: Shield, color: "text-amber-400" },
     { label: "Content Moderation", path: "/admin/content", icon: FileText, color: "text-green-400" },
     { label: "Enquiries", path: "/admin/enquiries", icon: MessageSquare, color: "text-yellow-400", badge: stats?.newEnquiries },
     { label: "Payments & Tokens", path: "/admin/payments", icon: CreditCard, color: "text-purple-400" },
