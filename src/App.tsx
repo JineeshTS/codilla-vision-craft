@@ -9,6 +9,7 @@ import { Loader2 } from "lucide-react";
 import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import { useActivityTracking } from "@/hooks/useActivityTracking";
 import { useIsFeatureEnabled } from "@/hooks/useFeatureFlag";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { SessionTimeoutDialog } from "@/components/shared/SessionTimeoutDialog";
 import { FloatingAIChat } from "@/components/shared/FloatingAIChat";
 import { CookieConsentBanner } from "@/components/shared/CookieConsentBanner";
@@ -82,8 +83,9 @@ const PageLoader = () => (
 );
 
 const AppContent = () => {
-  // Check maintenance mode
+  // Check maintenance mode and admin status
   const { isEnabled: isMaintenanceMode, isLoading: isLoadingFlags } = useIsFeatureEnabled('maintenance_mode');
+  const { data: isAdmin, isLoading: isLoadingAdmin } = useIsAdmin();
 
   // Enable session timeout (30 minutes of inactivity)
   const { showWarning, secondsRemaining, extendSession, logout } = useSessionTimeout({
@@ -94,8 +96,8 @@ const AppContent = () => {
   // Track user activity for analytics
   useActivityTracking();
 
-  // Show maintenance page if enabled (but allow admin routes)
-  if (!isLoadingFlags && isMaintenanceMode) {
+  // Show maintenance page if enabled (admins can bypass)
+  if (!isLoadingFlags && !isLoadingAdmin && isMaintenanceMode && !isAdmin) {
     return <MaintenancePage />;
   }
 
