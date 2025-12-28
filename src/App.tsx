@@ -54,6 +54,7 @@ const AdminAuditLogs = lazy(() => import("./pages/AdminAuditLogs"));
 const AdminApiKeys = lazy(() => import("./pages/AdminApiKeys"));
 const AdminEmailTemplates = lazy(() => import("./pages/AdminEmailTemplates"));
 const AdminFeatures = lazy(() => import("./pages/AdminFeatures"));
+const AdminIdeaModeration = lazy(() => import("./pages/AdminIdeaModeration"));
 
 // Legal pages
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
@@ -147,6 +148,7 @@ const AppContent = () => {
               <Route path="/admin/email-templates" element={<AdminEmailTemplates />} />
               <Route path="/admin/analytics" element={<Analytics />} />
               <Route path="/admin/features" element={<AdminFeatures />} />
+              <Route path="/admin/moderation" element={<AdminIdeaModeration />} />
               <Route path="/about" element={<About />} />
               {/* Legal & Contact pages */}
               <Route path="/privacy" element={<PrivacyPolicy />} />
