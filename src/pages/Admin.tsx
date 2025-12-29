@@ -16,13 +16,14 @@ export default function Admin() {
   const { data: stats } = useQuery({
     queryKey: ["admin-dashboard-stats"],
     queryFn: async () => {
-      const [usersResult, ideasResult, projectsResult, transactionsResult, enquiriesResult, activeResult] = await Promise.all([
+      const [usersResult, ideasResult, projectsResult, transactionsResult, enquiriesResult, activeResult, pendingModerationResult] = await Promise.all([
         supabase.from("profiles").select("*", { count: "exact", head: true }),
         supabase.from("ideas").select("*", { count: "exact", head: true }),
         supabase.from("projects").select("*", { count: "exact", head: true }),
         supabase.from("token_transactions").select("amount, transaction_type"),
         supabase.from("enquiries").select("*", { count: "exact", head: true }).eq("status", "new"),
         supabase.from("profiles").select("*", { count: "exact", head: true }).gte("last_active_at", subDays(new Date(), 1).toISOString()),
+        supabase.from("ideas").select("*", { count: "exact", head: true }).eq("moderation_status", "pending"),
       ]);
 
       let totalTokensSold = 0;
@@ -40,6 +41,7 @@ export default function Admin() {
         totalTokensSold,
         totalTokensConsumed,
         newEnquiries: enquiriesResult.count || 0,
+        pendingModeration: pendingModerationResult.count || 0,
         totalRevenue: (totalTokensSold / 1000) * 0.10,
       };
     },
@@ -97,7 +99,7 @@ export default function Admin() {
 
   const quickActions = [
     { label: "User Management", path: "/admin/users", icon: Users, color: "text-blue-400" },
-    { label: "Idea Moderation", path: "/admin/moderation", icon: Shield, color: "text-amber-400" },
+    { label: "Idea Moderation", path: "/admin/moderation", icon: Shield, color: "text-amber-400", badge: stats?.pendingModeration },
     { label: "Content Moderation", path: "/admin/content", icon: FileText, color: "text-green-400" },
     { label: "Enquiries", path: "/admin/enquiries", icon: MessageSquare, color: "text-yellow-400", badge: stats?.newEnquiries },
     { label: "Payments & Tokens", path: "/admin/payments", icon: CreditCard, color: "text-purple-400" },
