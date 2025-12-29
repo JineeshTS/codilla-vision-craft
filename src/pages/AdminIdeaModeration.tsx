@@ -125,6 +125,29 @@ export default function AdminIdeaModeration() {
 
       if (error) throw error;
 
+      // Get user email to send notification
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('id', idea.user_id)
+        .single();
+
+      if (userProfile?.email) {
+        const templateKey = action === 'approve' ? 'idea_approved' : 'idea_rejected';
+        const appUrl = window.location.origin;
+        
+        await supabase.from('email_queue').insert({
+          to_email: userProfile.email,
+          template_key: templateKey,
+          template_data: {
+            idea_title: idea.title,
+            idea_id: idea.id,
+            app_url: appUrl,
+            rejection_reason: action === 'reject' ? rejectionReason : undefined,
+          },
+        });
+      }
+
       toast.success(`Idea ${action === 'approve' ? 'approved' : 'rejected'} successfully`);
       setIdeas(ideas.filter(i => i.id !== idea.id));
     } catch (error) {
