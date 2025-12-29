@@ -72,3 +72,6 @@ verify_jwt = true
 
 [functions.admin-suspend-user]
 verify_jwt = true
+
+[functions.notify-admins-new-idea]
+verify_jwt = true

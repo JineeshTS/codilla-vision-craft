@@ -139,6 +139,17 @@ const NewIdea = () => {
 
       if (error) throw error;
 
+      // Notify admins about new idea submission (fire and forget)
+      supabase.functions.invoke("notify-admins-new-idea", {
+        body: {
+          ideaId: data.id,
+          ideaTitle: formData.title,
+          submitterEmail: user.email,
+        },
+      }).catch((err) => {
+        console.error("Failed to notify admins:", err);
+      });
+
       toast({
         title: "Draft saved!",
         description: "Your idea has been saved as a draft.",
