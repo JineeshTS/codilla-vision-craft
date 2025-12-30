@@ -132,6 +132,24 @@ export default function AdminIdeaModeration() {
         .eq('id', idea.user_id)
         .single();
 
+      // Send in-app notification
+      const notificationTitle = action === 'approve' 
+        ? 'Your idea has been approved!' 
+        : 'Update on your idea submission';
+      const notificationMessage = action === 'approve'
+        ? `Great news! Your idea "${idea.title}" has been approved and is ready for the next steps.`
+        : `Your idea "${idea.title}" was not approved.${rejectionReason ? ` Reason: ${rejectionReason}` : ''}`;
+
+      await supabase.from('notifications').insert({
+        user_id: idea.user_id,
+        title: notificationTitle,
+        message: notificationMessage,
+        type: action === 'approve' ? 'success' : 'warning',
+        action_url: `/ideas/${idea.id}`,
+        metadata: { idea_id: idea.id, moderation_action: action },
+      });
+
+      // Send email notification
       if (userProfile?.email) {
         const templateKey = action === 'approve' ? 'idea_approved' : 'idea_rejected';
         const appUrl = window.location.origin;
