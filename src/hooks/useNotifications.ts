@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { logError } from "@/lib/errorTracking";
@@ -15,12 +15,62 @@ interface Notification {
   created_at: string;
 }
 
+const requestBrowserNotificationPermission = async (): Promise<boolean> => {
+  if (!("Notification" in window)) {
+    console.log("Browser does not support notifications");
+    return false;
+  }
+
+  if (Notification.permission === "granted") {
+    return true;
+  }
+
+  if (Notification.permission !== "denied") {
+    const permission = await Notification.requestPermission();
+    return permission === "granted";
+  }
+
+  return false;
+};
+
+const showBrowserNotification = (title: string, message: string, actionUrl?: string | null) => {
+  if (Notification.permission !== "granted") return;
+
+  const notification = new Notification(title, {
+    body: message,
+    icon: "/favicon.png",
+    badge: "/favicon.png",
+    tag: `notification-${Date.now()}`,
+  });
+
+  if (actionUrl) {
+    notification.onclick = () => {
+      window.focus();
+      window.location.href = actionUrl;
+      notification.close();
+    };
+  }
+};
+
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [browserPermission, setBrowserPermission] = useState<NotificationPermission | "unsupported">("default");
   const { toast } = useToast();
 
+  const requestPermission = useCallback(async () => {
+    const granted = await requestBrowserNotificationPermission();
+    setBrowserPermission(granted ? "granted" : Notification.permission);
+    return granted;
+  }, []);
+
   useEffect(() => {
+    if ("Notification" in window) {
+      setBrowserPermission(Notification.permission);
+    } else {
+      setBrowserPermission("unsupported");
+    }
+
     loadNotifications();
     subscribeToNotifications();
   }, []);
@@ -60,12 +110,19 @@ export function useNotifications() {
           setNotifications(prev => [newNotification, ...prev]);
           setUnreadCount(prev => prev + 1);
 
-          // Show toast notification
+          // Show in-app toast
           toast({
             title: newNotification.title,
             description: newNotification.message,
             variant: newNotification.type === 'error' ? 'destructive' : 'default',
           });
+
+          // Show browser notification
+          showBrowserNotification(
+            newNotification.title,
+            newNotification.message,
+            newNotification.action_url
+          );
         }
       )
       .subscribe();
@@ -132,6 +189,8 @@ export function useNotifications() {
   return {
     notifications,
     unreadCount,
+    browserPermission,
+    requestPermission,
     markAsRead,
     markAllAsRead,
     deleteNotification,
