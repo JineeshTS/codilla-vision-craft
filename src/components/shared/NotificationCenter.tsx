@@ -1,4 +1,4 @@
-import { Bell, Check, Trash2, X } from "lucide-react";
+import { Bell, BellRing, Check, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { useNotifications } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +16,8 @@ export default function NotificationCenter() {
   const {
     notifications,
     unreadCount,
+    browserPermission,
+    requestPermission,
     markAsRead,
     markAllAsRead,
     deleteNotification,
@@ -61,17 +62,31 @@ export default function NotificationCenter() {
       <PopoverContent className="w-96 p-0" align="end">
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="font-semibold">Notifications</h3>
-          {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={markAllAsRead}
-              className="text-xs"
-            >
-              <Check className="h-3 w-3 mr-1" />
-              Mark all read
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {browserPermission !== "granted" && browserPermission !== "unsupported" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={requestPermission}
+                className="text-xs"
+                title="Enable browser notifications"
+              >
+                <BellRing className="h-3 w-3 mr-1" />
+                Enable
+              </Button>
+            )}
+            {unreadCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={markAllAsRead}
+                className="text-xs"
+              >
+                <Check className="h-3 w-3 mr-1" />
+                Mark all read
+              </Button>
+            )}
+          </div>
         </div>
 
         <ScrollArea className="h-[400px]">
